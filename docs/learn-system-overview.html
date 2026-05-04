@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ethika Ethos — Learn System Overview</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 24px;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      color: #0a0a0a;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #737373;
+      margin-bottom: 40px;
+    }
+    .diagram-container {
+      background: white;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 48px;
+      max-width: 1100px;
+      width: 100%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .legend {
+      display: flex;
+      gap: 24px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #525252;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+    .notes {
+      max-width: 700px;
+      margin-top: 40px;
+      padding: 24px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+    }
+    .notes h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0a0a0a;
+      margin-bottom: 12px;
+    }
+    .notes ul {
+      list-style: none;
+      padding: 0;
+    }
+    .notes li {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.7;
+      padding-left: 16px;
+      position: relative;
+    }
+    .notes li::before {
+      content: "—";
+      position: absolute;
+      left: 0;
+      color: #047857;
+    }
+  </style>
+</head>
+<body>
+  <h1>Learn System Overview</h1>
+  <p class="subtitle">How Learn Hub, Learning Journeys, CPD Tracker, and Skills Profile relate</p>
+
+  <div class="diagram-container">
+    <pre class="mermaid">
+graph TD
+    LEARN["<b>Learn Hub</b><br/>Central learning dashboard"]
+
+    LEARN --> JOURNEYS
+    LEARN --> CPD
+    LEARN --> SKILLS
+    LEARN --> KNOWLEDGE
+
+    subgraph JG[" "]
+        JOURNEYS["<b>Learning Journeys</b><br/>Curated guides created by the org"]
+        ITEMS["Items<br/>Readings, tasks, activities"]
+        LOG["Log Learning<br/>User reflections"]
+        REVIEW["Admin Review<br/>Acknowledge / Respond"]
+    end
+
+    subgraph CG[" "]
+        CPD["<b>CPD Tracker</b><br/>Compliance-driven hours tracking"]
+        REQS["Requirements<br/>Mandated by regulation"]
+        HOURS["Hours Logging<br/>Record CPD activity"]
+        CERTS["Evidence<br/>Certificates & uploads"]
+    end
+
+    subgraph SG[" "]
+        SKILLS["<b>Skills Profile</b><br/>Org competency framework"]
+        AREAS["Competency Areas<br/>Defined by the org"]
+        GAPS["Strengths &amp; Gaps<br/>Per-user overview"]
+        ACHIEVED["Achieved Skills<br/>Completed competencies"]
+    end
+
+    KNOWLEDGE["<b>Knowledge &amp; Insights</b><br/>Articles, resources, suggested content"]
+
+    JOURNEYS --> ITEMS
+    ITEMS --> LOG
+    LOG --> REVIEW
+
+    CPD --> REQS
+    REQS --> HOURS
+    HOURS --> CERTS
+
+    SKILLS --> AREAS
+    AREAS --> GAPS
+    AREAS --> ACHIEVED
+
+    AREAS -.->|"Journeys may<br/>help develop"| JOURNEYS
+    AREAS -.->|"Some skills map<br/>to CPD requirements"| CPD
+
+    classDef hub fill:#047857,stroke:#047857,color:#fff,rx:8
+    classDef journey fill:#fef3c7,stroke:#d97706,color:#0a0a0a,rx:8
+    classDef cpd fill:#dbeafe,stroke:#2563eb,color:#0a0a0a,rx:8
+    classDef skills fill:#ede9fe,stroke:#7c3aed,color:#0a0a0a,rx:8
+    classDef knowledge fill:#f3f4f6,stroke:#6b7280,color:#0a0a0a,rx:8
+    classDef groupJ fill:#fffbeb,stroke:#f59e0b,rx:12
+    classDef groupC fill:#eff6ff,stroke:#3b82f6,rx:12
+    classDef groupS fill:#f5f3ff,stroke:#8b5cf6,rx:12
+
+    class LEARN hub
+    class JOURNEYS,ITEMS,LOG,REVIEW journey
+    class CPD,REQS,HOURS,CERTS cpd
+    class SKILLS,AREAS,GAPS,ACHIEVED skills
+    class KNOWLEDGE knowledge
+    class JG groupJ
+    class CG groupC
+    class SG groupS
+    </pre>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#047857"></div> Learn Hub</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#fef3c7;border:1px solid #d97706"></div> Learning Journeys</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#dbeafe;border:1px solid #2563eb"></div> CPD Tracker</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ede9fe;border:1px solid #7c3aed"></div> Skills Profile</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f3f4f6;border:1px solid #6b7280"></div> Knowledge & Insights</div>
+    <div class="legend-item" style="color:#999;font-style:italic">Dashed = loose relationship</div>
+  </div>
+
+  <div class="notes">
+    <h3>Key Principles</h3>
+    <ul>
+      <li><b>Learning Journeys</b> are curated guides, not qualification pathways. The org creates them; Ethika/Ethos does not certify or qualify them.</li>
+      <li><b>CPD</b> is a separate compliance system — hours are mandated by regulation, not by the org's learning journeys.</li>
+      <li><b>Skills Profile</b> is the overarching competency framework. Journeys may help develop some skills, and some skills map to CPD requirements, but they are independent systems.</li>
+      <li><b>Log Learning</b> is a reflection, not a completion. Users share what they learned; admins acknowledge or respond with feedback.</li>
+      <li>Items in a journey are non-sequential — there is no prescribed order or dependency.</li>
+    </ul>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#f9fafb',
+        primaryTextColor: '#0a0a0a',
+        primaryBorderColor: '#d1d5db',
+        lineColor: '#9ca3af',
+        fontSize: '13px',
+      },
+      flowchart: {
+        htmlLabels: true,
+        curve: 'basis',
+        padding: 16,
+        nodeSpacing: 40,
+        rankSpacing: 50,
+      }
+    });
+  </script>
+</body>
+</html>

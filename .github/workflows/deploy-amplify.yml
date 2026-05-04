@@ -1,0 +1,144 @@
+name: Deploy to Amplify
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: testing
+    permissions:
+      contents: write  # gh release create/edit on tag pushes
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume:        arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ vars.AMPLIFY_DEPLOY_ROLE }}
+          role-session-name:     amplify-deploy
+          aws-region:            ${{ vars.AWS_REGION }}
+
+      - name: Resolve Amplify target
+        id: target
+        run: |
+          set -euo pipefail
+          RAW="${{ github.ref_name }}"
+          SAFE="${RAW//\//-}"
+          echo "branch=$SAFE" >> "$GITHUB_OUTPUT"
+          # Amplify URL subdomain is stricter than the branch name — it
+          # lowercases and replaces dots/underscores with '-' (DNS label
+          # rules). So branch `v1.2.0` → subdomain `v1-2-0`.
+          SUB="${SAFE,,}"
+          SUB="${SUB//./-}"
+          SUB="${SUB//_/-}"
+          echo "subdomain=$SUB" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "stage=BETA" >> "$GITHUB_OUTPUT"
+          elif [[ "$SAFE" == "main" ]]; then
+            echo "stage=EXPERIMENTAL" >> "$GITHUB_OUTPUT"
+          else
+            echo "stage=BETA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure Amplify branch exists
+        env:
+          APP_ID: ${{ vars.AMPLIFY_APP_ID }}
+          BRANCH: ${{ steps.target.outputs.branch }}
+          STAGE:  ${{ steps.target.outputs.stage }}
+        run: |
+          set -euo pipefail
+          aws amplify get-branch --app-id "$APP_ID" --branch-name "$BRANCH" >/dev/null 2>&1 \
+            || aws amplify create-branch --app-id "$APP_ID" --branch-name "$BRANCH" --stage "$STAGE"
+
+      - name: Package dist
+        run: (cd dist && zip -rq ../dist.zip .)
+
+      - name: Deploy to Amplify
+        env:
+          APP_ID: ${{ vars.AMPLIFY_APP_ID }}
+          BRANCH: ${{ steps.target.outputs.branch }}
+        run: |
+          set -euo pipefail
+
+          RESP=$(aws amplify create-deployment --app-id "$APP_ID" --branch-name "$BRANCH")
+          JOB_ID=$(echo "$RESP" | jq -r .jobId)
+          UPLOAD_URL=$(echo "$RESP" | jq -r .zipUploadUrl)
+
+          curl --fail --silent --show-error \
+               -H "Content-Type: application/zip" \
+               --upload-file dist.zip "$UPLOAD_URL"
+
+          aws amplify start-deployment \
+            --app-id "$APP_ID" --branch-name "$BRANCH" --job-id "$JOB_ID"
+
+          for i in $(seq 1 60); do
+            STATUS=$(aws amplify get-job \
+              --app-id "$APP_ID" --branch-name "$BRANCH" --job-id "$JOB_ID" \
+              --query 'job.summary.status' --output text)
+            echo "Amplify job $JOB_ID: $STATUS"
+            case "$STATUS" in
+              SUCCEED)           exit 0 ;;
+              FAILED|CANCELLED)  exit 1 ;;
+            esac
+            sleep 10
+          done
+
+          echo "Timed out waiting for Amplify deploy"
+          exit 1
+
+      - name: Annotate GitHub Release with deploy URL
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          URL: https://${{ steps.target.outputs.subdomain }}.${{ vars.AMPLIFY_APP_ID }}.amplifyapp.com
+        run: |
+          set -euo pipefail
+          DEPLOY_LINE="**Deploy:** $URL"
+          if EXISTING=$(gh release view "$TAG" --json body -q .body 2>/dev/null); then
+            if grep -q '^\*\*Deploy:\*\*' <<< "$EXISTING"; then
+              BODY=$(sed "s|^\*\*Deploy:\*\*.*|$DEPLOY_LINE|" <<< "$EXISTING")
+            else
+              BODY=$(printf '%s\n\n%s\n' "$DEPLOY_LINE" "$EXISTING")
+            fi
+            gh release edit "$TAG" --notes "$BODY"
+          else
+            NOTES=$(gh api -X POST "repos/$GITHUB_REPOSITORY/releases/generate-notes" \
+              -f tag_name="$TAG" --jq .body)
+            BODY=$(printf '%s\n\n%s\n' "$DEPLOY_LINE" "$NOTES")
+            gh release create "$TAG" --title "$TAG" --notes "$BODY"
+          fi
+
+      - name: Prune old tag deploy slots (keep newest 3)
+        if: github.ref_type == 'tag'
+        env:
+          APP_ID: ${{ vars.AMPLIFY_APP_ID }}
+        run: |
+          set -euo pipefail
+          OLD=$(aws amplify list-branches --app-id "$APP_ID" \
+                  --query 'sort_by(branches[?starts_with(branchName, `v`)], &createTime)[::-1].branchName' \
+                  --output text | tr '\t' '\n' | tail -n +4)
+          for b in $OLD; do
+            echo "Pruning old tag slot: $b"
+            aws amplify delete-branch --app-id "$APP_ID" --branch-name "$b"
+          done

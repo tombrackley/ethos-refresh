@@ -1,0 +1,24 @@
+import { useState, useEffect } from "react"
+
+export function useMedia(query) {
+  const [matches, setMatches] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.matchMedia(query).matches;
+    }
+    return false
+  })
+
+  useEffect(() => {
+    const matchMedia = window.matchMedia(query)
+
+    const handleChange = () => setMatches(matchMedia.matches)
+
+    matchMedia.addEventListener("change", handleChange)
+
+    return () => {
+      matchMedia.removeEventListener("change", handleChange)
+    };
+  }, [query])
+
+  return matches
+}

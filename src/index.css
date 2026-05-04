@@ -1,0 +1,459 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Brand color scale — #153E40 at 800, mint-like light shades */
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --color-brand-50:  oklch(0.972 0.015 175);
+    --color-brand-100: oklch(0.940 0.038 178);
+    --color-brand-200: oklch(0.893 0.065 180);
+    --color-brand-300: oklch(0.820 0.090 182);
+    --color-brand-400: oklch(0.700 0.095 184);
+    --color-brand-500: oklch(0.560 0.085 187);
+    --color-brand-600: oklch(0.440 0.072 189);
+    --color-brand-700: oklch(0.350 0.062 191);
+    --color-brand-800: oklch(0.270 0.053 192); /* #153E40 */
+    --color-brand-900: oklch(0.205 0.040 193);
+    --color-brand-950: oklch(0.145 0.028 194);
+
+    --color-brand-green-50:  #ECFDF5;
+    --color-brand-green-100: #D1FAE5;
+    --color-brand-green-200: #A7F3D0;
+    --color-brand-green-300: #6EE7B7;
+    --color-brand-green-400: #34D399;
+    --color-brand-green-500: #10B981;
+    --color-brand-green-600: #059669;
+    --color-brand-green-700: #047857;
+    --color-brand-green-800: #065F46;
+    --color-brand-green-900: #064E3B;
+    --color-brand-green-950: #022C22;
+}
+
+@theme inline {
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --radius-2xl: calc(var(--radius) + 8px);
+    --radius-3xl: calc(var(--radius) + 12px);
+    --radius-4xl: calc(var(--radius) + 16px);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+    --radius: 0.625rem;
+    --background: #F9FAFB;
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: #003F42;
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);       /* neutral */
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);           /* neutral */
+    --muted-foreground: #64748B;
+    --accent: oklch(0.97 0 0);          /* neutral */
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);         /* neutral */
+    --input: oklch(0.922 0 0);          /* neutral */
+    --ring: oklch(0.270 0.053 192);     /* brand — focus rings match primary */
+    --chart-1: oklch(0.646 0.222 41.116);
+    --chart-2: oklch(0.6 0.118 184.704);
+    --chart-3: oklch(0.398 0.07 227.392);
+    --chart-4: oklch(0.828 0.189 84.429);
+    --chart-5: oklch(0.769 0.188 70.08);
+    --sidebar: #F3F4F6;
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.270 0.053 192); /* brand — active nav items */
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);  /* neutral hover */
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.270 0.053 192);
+}
+
+.dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.700 0.095 184);  /* brand-400 — lighter for dark bg */
+    --primary-foreground: oklch(0.145 0 0);
+    --secondary: oklch(0.269 0 0);      /* neutral */
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);          /* neutral */
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);         /* neutral */
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.700 0.095 184);     /* brand-400 */
+    --chart-1: oklch(0.488 0.243 264.376);
+    --chart-2: oklch(0.696 0.17 162.48);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.627 0.265 303.9);
+    --chart-5: oklch(0.645 0.246 16.439);
+    --sidebar: oklch(0.205 0 0);        /* neutral dark */
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.700 0.095 184); /* brand-400 — active nav */
+    --sidebar-primary-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.269 0 0); /* neutral hover */
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.700 0.095 184);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+}
+
+/* ─── DevExtreme FileManager overrides ───────────────────────────────────
+   Scoped under .ethos-filemanager to avoid leaking into any future DX widgets.
+   Goal: make DX feel native to the Ethos shadcn/Tailwind shell —
+   Inter type, brand accent, flat chrome, shadcn-table row conventions. */
+
+.ethos-filemanager .dx-filemanager,
+.ethos-filemanager .dx-widget,
+.ethos-filemanager .dx-widget input,
+.ethos-filemanager .dx-widget textarea {
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.ethos-filemanager .dx-filemanager {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  overflow: hidden;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.02);
+}
+
+/* Toolbar — flat, transparent, shadcn button vibe */
+.ethos-filemanager .dx-filemanager-toolbar {
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+  min-height: 48px;
+}
+.ethos-filemanager .dx-filemanager-toolbar.dx-filemanager-general-toolbar {
+  padding: 0.375rem 0.5rem;
+}
+.ethos-filemanager .dx-filemanager-toolbar .dx-toolbar-item-content {
+  font-size: 13px;
+}
+.ethos-filemanager .dx-toolbar .dx-button {
+  border-radius: calc(var(--radius) - 4px);
+  background: transparent;
+  border-color: transparent;
+  height: 32px;
+  padding: 0 0.625rem;
+  color: var(--foreground);
+  font-weight: 500;
+  font-size: 13px;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.ethos-filemanager .dx-toolbar .dx-button .dx-button-content {
+  padding: 0 0.25rem;
+}
+.ethos-filemanager .dx-toolbar .dx-button .dx-icon {
+  color: var(--muted-foreground);
+  font-size: 16px;
+}
+.ethos-filemanager .dx-toolbar .dx-button.dx-state-hover {
+  background: var(--muted);
+  border-color: transparent;
+}
+.ethos-filemanager .dx-toolbar .dx-button.dx-state-focused {
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--ring) 30%, transparent);
+}
+.ethos-filemanager .dx-toolbar .dx-button-mode-contained.dx-button-default {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+.ethos-filemanager .dx-toolbar .dx-button-mode-contained.dx-button-default .dx-icon {
+  color: var(--primary-foreground);
+}
+.ethos-filemanager .dx-toolbar .dx-button-mode-contained.dx-button-default.dx-state-hover {
+  background: color-mix(in oklab, var(--primary) 88%, #000);
+}
+
+/* Left tree panel — match sidebar language: subtle bg, quiet borders */
+.ethos-filemanager .dx-filemanager-container {
+  background: var(--background);
+}
+.ethos-filemanager .dx-filemanager-dirs-panel {
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  padding: 0.5rem 0.375rem;
+}
+.ethos-filemanager .dx-treeview {
+  font-size: 13px;
+}
+.ethos-filemanager .dx-treeview .dx-treeview-item {
+  border-radius: calc(var(--radius) - 4px);
+  padding: 0.375rem 0.5rem;
+  min-height: 32px;
+  color: var(--foreground);
+}
+.ethos-filemanager .dx-treeview .dx-treeview-item .dx-icon {
+  color: var(--muted-foreground);
+  font-size: 16px;
+}
+.ethos-filemanager .dx-treeview .dx-treeview-node.dx-state-hover > .dx-treeview-item,
+.ethos-filemanager .dx-treeview .dx-state-hover > .dx-treeview-item {
+  background: color-mix(in oklab, var(--foreground) 5%, transparent);
+}
+.ethos-filemanager .dx-treeview .dx-state-selected > .dx-treeview-item,
+.ethos-filemanager .dx-treeview .dx-treeview-node.dx-state-selected > .dx-treeview-item {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 500;
+}
+.ethos-filemanager .dx-treeview .dx-state-selected > .dx-treeview-item .dx-icon,
+.ethos-filemanager .dx-treeview .dx-treeview-node.dx-state-selected > .dx-treeview-item .dx-icon {
+  color: var(--primary-foreground);
+}
+.ethos-filemanager .dx-treeview .dx-treeview-toggle-item-visibility {
+  color: var(--muted-foreground);
+}
+
+/* Breadcrumbs — small, quiet, like page sub-navigation */
+.ethos-filemanager .dx-filemanager-breadcrumbs {
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+  padding: 0.5rem 0.75rem;
+  min-height: 40px;
+  font-size: 13px;
+}
+.ethos-filemanager .dx-filemanager-breadcrumbs .dx-button,
+.ethos-filemanager .dx-filemanager-breadcrumbs .dx-button-mode-contained {
+  color: var(--muted-foreground);
+  font-weight: 400;
+  height: 28px;
+}
+.ethos-filemanager .dx-filemanager-breadcrumbs .dx-button.dx-state-hover {
+  background: var(--muted);
+}
+.ethos-filemanager .dx-filemanager-breadcrumbs-separator {
+  color: var(--muted-foreground);
+  opacity: 0.6;
+}
+
+/* Data grid (details view) — match shadcn Table: underline dividers only,
+   muted headers, soft hover. */
+.ethos-filemanager .dx-datagrid,
+.ethos-filemanager .dx-datagrid-rowsview,
+.ethos-filemanager .dx-datagrid-headers,
+.ethos-filemanager .dx-datagrid-content {
+  background: var(--background);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.ethos-filemanager .dx-datagrid-headers {
+  background: var(--background);
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+}
+.ethos-filemanager .dx-datagrid-headers .dx-row > td {
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 0.625rem 0.75rem;
+  color: var(--muted-foreground);
+  border: 0;
+  height: 40px;
+}
+.ethos-filemanager .dx-datagrid-rowsview .dx-row > td {
+  border-bottom: 1px solid var(--border);
+  border-left: 0;
+  border-right: 0;
+  padding: 0.625rem 0.75rem;
+  font-size: 13.5px;
+  height: 44px;
+  vertical-align: middle;
+}
+.ethos-filemanager .dx-datagrid-rowsview .dx-row.dx-data-row.dx-state-hover > td {
+  background: color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+.ethos-filemanager .dx-datagrid-rowsview .dx-row.dx-selection > td,
+.ethos-filemanager .dx-datagrid-rowsview .dx-row.dx-selection.dx-row-focused > td {
+  background: color-mix(in oklab, var(--primary) 7%, transparent);
+  color: var(--foreground);
+  box-shadow: none;
+}
+.ethos-filemanager .dx-datagrid-rowsview .dx-row-focused:not(.dx-selection) > td {
+  background: transparent;
+}
+.ethos-filemanager .dx-datagrid-rowsview .dx-row-lines > td {
+  border-top: 0;
+}
+.ethos-filemanager .dx-datagrid-borders > .dx-datagrid-headers,
+.ethos-filemanager .dx-datagrid-borders > .dx-datagrid-rowsview,
+.ethos-filemanager .dx-datagrid-borders > .dx-datagrid-total-footer {
+  border: 0;
+}
+
+/* File / folder icons in the grid — quieter, consistent colour */
+.ethos-filemanager .dx-filemanager-details-item-thumbnail,
+.ethos-filemanager .dx-datagrid .dx-icon {
+  color: var(--muted-foreground);
+  opacity: 0.9;
+}
+.ethos-filemanager .dx-filemanager-details-item-thumbnail.dx-icon-folder,
+.ethos-filemanager .dx-datagrid .dx-icon-folder {
+  color: color-mix(in oklab, var(--primary) 65%, var(--muted-foreground));
+  opacity: 1;
+}
+
+/* Parent-folder (..) row — de-emphasise */
+.ethos-filemanager .dx-filemanager-details-item-is-parent-folder > td {
+  color: var(--muted-foreground);
+  font-style: normal;
+}
+
+/* Row actions button — move out of Name cell to the far right of the row
+   to match common table-action patterns. DX embeds the overflow trigger
+   inside the name cell wrapper by default. */
+.ethos-filemanager .dx-datagrid-rowsview .dx-data-row {
+  position: relative;
+}
+.ethos-filemanager .dx-filemanager-details-item-name-wrapper {
+  position: static;
+}
+.ethos-filemanager .dx-filemanager-file-actions-button {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+.ethos-filemanager .dx-filemanager-file-actions-button .dx-button {
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--radius) - 4px);
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+.ethos-filemanager .dx-filemanager-file-actions-button .dx-button.dx-state-hover {
+  background: var(--muted);
+}
+.ethos-filemanager .dx-filemanager-file-actions-button .dx-icon-overflow {
+  color: var(--muted-foreground);
+}
+/* Reserve room on the Completion cell so the bar + % doesn't collide
+   with the absolute-positioned actions button on hover. */
+.ethos-filemanager .dx-datagrid-rowsview td:has([data-ethos-bar="1"]) {
+  padding-right: 3.25rem;
+}
+
+
+/* Thumbnails view — soft cards with primary selection ring */
+.ethos-filemanager .dx-filemanager-thumbnails .dx-filemanager-item {
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid transparent;
+  background: var(--background);
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.ethos-filemanager .dx-filemanager-thumbnails .dx-filemanager-item.dx-state-hover {
+  background: var(--muted);
+}
+.ethos-filemanager .dx-filemanager-thumbnails .dx-filemanager-item.dx-item-selected {
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+  border-color: var(--primary);
+}
+.ethos-filemanager .dx-filemanager-item-thumbnail .dx-icon {
+  color: var(--muted-foreground);
+}
+.ethos-filemanager .dx-filemanager-item-thumbnail .dx-icon-folder {
+  color: color-mix(in oklab, var(--primary) 65%, var(--muted-foreground));
+}
+.ethos-filemanager .dx-filemanager-thumbnails .dx-filemanager-item .dx-filemanager-item-name {
+  font-size: 13px;
+  color: var(--foreground);
+}
+
+/* Checkboxes — approximate shadcn Checkbox */
+.ethos-filemanager .dx-checkbox-icon {
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  width: 16px;
+  height: 16px;
+}
+.ethos-filemanager .dx-checkbox.dx-state-hover .dx-checkbox-icon {
+  border-color: color-mix(in oklab, var(--primary) 50%, var(--border));
+}
+.ethos-filemanager .dx-checkbox.dx-checkbox-checked .dx-checkbox-icon {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Popups / dialogs that spawn from toolbar (upload, delete confirm, etc.) */
+.dx-overlay-wrapper .dx-popup-normal,
+.dx-overlay-wrapper .dx-context-menu {
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  border-radius: var(--radius);
+  border-color: var(--border);
+}
+.dx-overlay-wrapper .dx-popup-title {
+  background: var(--background);
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 14px;
+}
