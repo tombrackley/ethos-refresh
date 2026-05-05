@@ -17,9 +17,9 @@ import { IconBell } from '@central-icons-react/round-filled-radius-2-stroke-1.5/
 import { IconCalendar1 } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconCalendar1'
 
 // Pages whose content area is plain white — the topbar should match.
-const WHITE_BG_PATHS = new Set(['/home', '/vault'])
+const WHITE_BG_PATHS = new Set(['/vault'])
 // Sections where every sub-route renders on a white shell.
-const WHITE_BG_PREFIXES = ['/comply', '/govern', '/matters', '/respond', '/meet', '/work', '/learn', '/knowledge']
+const WHITE_BG_PREFIXES = ['/home', '/comply', '/govern', '/matters', '/respond', '/meet', '/work', '/learn', '/knowledge']
 
 function topbarBgClass(pathname) {
   if (WHITE_BG_PATHS.has(pathname)) return 'bg-white'

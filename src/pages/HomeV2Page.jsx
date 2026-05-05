@@ -69,7 +69,7 @@ function Section({ title, viewAllHref, items }) {
   )
 }
 
-export default function HomeChatPage() {
+export default function HomeV2Page() {
   const firstName = tenant.user?.name?.split(' ')[0] ?? 'there'
   const [input, setInput] = useState('')
   const inputRef = useRef(null)
@@ -104,7 +104,6 @@ export default function HomeChatPage() {
 
   function handleSubmit(e) {
     e.preventDefault()
-    // No-op for v1 — placeholder for chat backend wiring.
   }
 
   const upcoming = getUpcoming().slice(0, 3)
@@ -113,88 +112,90 @@ export default function HomeChatPage() {
 
   return (
     <div className="flex-1 overflow-auto bg-white">
-      <div className="mx-auto max-w-3xl px-6 pt-32 pb-12">
-        <div className="flex flex-col items-center gap-3">
-          <ComplianceStatusBadge />
-          <div className="text-center space-y-2">
-            <h1 className="text-[32px] font-medium tracking-[-0.03em] text-foreground">
-              {greetingPrefix()}, {firstName}
-            </h1>
-            <p className="text-base text-muted-foreground">
-              What would you like to work on today?
-            </p>
+      <div className="mx-auto max-w-6xl px-6 pt-32 pb-12 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-x-12 gap-y-10">
+        <div className="min-w-0">
+          <div className="flex flex-col items-center gap-3">
+            <ComplianceStatusBadge />
+            <div className="text-center space-y-2">
+              <h1 className="text-[32px] font-medium tracking-[-0.03em] text-foreground">
+                {greetingPrefix()}, {firstName}
+              </h1>
+              <p className="text-base text-muted-foreground">
+                What would you like to work on today?
+              </p>
+            </div>
           </div>
+
+          <form onSubmit={handleSubmit} className="mt-8">
+            <div className="flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 shadow-sm focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-200/50 transition-all">
+              <AskEthosSparkle className="size-5 shrink-0" />
+              <div className="relative flex-1">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  aria-label="Ask Ethos"
+                  className="block w-full bg-transparent text-sm text-foreground outline-none"
+                />
+                {input === '' && (
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'pointer-events-none absolute inset-y-0 left-0 flex items-center text-sm text-muted-foreground transition-opacity duration-300',
+                      placeholderVisible ? 'opacity-100' : 'opacity-0'
+                    )}
+                  >
+                    {PLACEHOLDER_SUGGESTIONS[placeholderIndex]}
+                  </span>
+                )}
+              </div>
+              <button
+                type="submit"
+                aria-label="Send"
+                disabled={!input.trim()}
+                className="size-8 flex items-center justify-center rounded-full bg-foreground text-background hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-opacity"
+              >
+                <ArrowUp className="size-4" />
+              </button>
+            </div>
+          </form>
+
+          <ul className="mt-8 divide-y divide-[#ECF2F5] border-t border-b border-[#ECF2F5]">
+            {shownPrompts.map((p) => {
+              const Icon = p.icon
+              return (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    onClick={() => applyPrompt(p.prompt)}
+                    className="group flex w-full items-center gap-3 px-1 py-3.5 text-left text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Icon className="size-4 shrink-0 text-foreground/70 group-hover:text-foreground transition-colors" />
+                    <span className="truncate">{renderLabel(p.label)}</span>
+                  </button>
+                </li>
+              )
+            })}
+            <li>
+              <button
+                type="button"
+                onClick={refreshPrompts}
+                className="group flex w-full items-center gap-3 px-1 py-3.5 text-left text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <RefreshCw className="size-4 shrink-0 text-foreground/70 group-hover:text-foreground transition-colors" />
+                <span className="flex-1">More suggestions</span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
+              </button>
+            </li>
+          </ul>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8">
-          <div className="flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 shadow-sm focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-200/50 transition-all">
-            <AskEthosSparkle className="size-5 shrink-0" />
-            <div className="relative flex-1">
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                aria-label="Ask Ethos"
-                className="block w-full bg-transparent text-sm text-foreground outline-none"
-              />
-              {input === '' && (
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    'pointer-events-none absolute inset-y-0 left-0 flex items-center text-sm text-muted-foreground transition-opacity duration-300',
-                    placeholderVisible ? 'opacity-100' : 'opacity-0'
-                  )}
-                >
-                  {PLACEHOLDER_SUGGESTIONS[placeholderIndex]}
-                </span>
-              )}
-            </div>
-            <button
-              type="submit"
-              aria-label="Send"
-              disabled={!input.trim()}
-              className="size-8 flex items-center justify-center rounded-full bg-foreground text-background hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-opacity"
-            >
-              <ArrowUp className="size-4" />
-            </button>
-          </div>
-        </form>
-
-        <ul className="mt-8 divide-y divide-[#ECF2F5] border-t border-b border-[#ECF2F5]">
-          {shownPrompts.map((p) => {
-            const Icon = p.icon
-            return (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  onClick={() => applyPrompt(p.prompt)}
-                  className="group flex w-full items-center gap-3 px-1 py-3.5 text-left text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Icon className="size-4 shrink-0 text-foreground/70 group-hover:text-foreground transition-colors" />
-                  <span className="truncate">{renderLabel(p.label)}</span>
-                </button>
-              </li>
-            )
-          })}
-          <li>
-            <button
-              type="button"
-              onClick={refreshPrompts}
-              className="group flex w-full items-center gap-3 px-1 py-3.5 text-left text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <RefreshCw className="size-4 shrink-0 text-foreground/70 group-hover:text-foreground transition-colors" />
-              <span className="flex-1">More suggestions</span>
-              <ChevronRight className="size-4 shrink-0 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
-            </button>
-          </li>
-        </ul>
-
-        <div className="mt-10 divide-y divide-[#ECF2F5] [&>section]:py-8 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
+        <aside className="space-y-8 lg:pt-2">
           <Section title="Upcoming meetings" items={upcoming} viewAllHref="/govern/meetings" />
           <Section title="To do" items={todo} viewAllHref="/work/time-efficiency" />
           <Section title="Recommended for you" items={recommended} viewAllHref="/insights" />
-        </div>
+        </aside>
       </div>
     </div>
   )

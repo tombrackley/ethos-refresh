@@ -10,6 +10,8 @@ import LoginPage from '@/pages/LoginPage'
 import EthikaAdminPage from '@/pages/EthikaAdminPage'
 import HomePage from '@/pages/HomePage'
 import HomeChatPage from '@/pages/HomeChatPage'
+import HomeV2Page from '@/pages/HomeV2Page'
+import HomeV3Page from '@/pages/HomeV3Page'
 import ControlPage from '@/pages/ControlPage'
 import WorkPage from '@/pages/WorkPage'
 import ComplyPage from '@/pages/ComplyPage'
@@ -70,12 +72,9 @@ function gatedRoute(path, flag, element) {
   return <Route key={path} path={path} element={element} />
 }
 
-/** Default redirect path — first available page */
+/** Default redirect path — home is the canonical landing page */
 function getDefaultPath() {
-  if (isEnabled('PAGE_CONTROL')) return '/'
-  if (isEnabled('PAGE_LEARN')) return '/learn'
-  if (isEnabled('PAGE_ADMIN')) return '/admin/organisation-profile'
-  return '/'
+  return '/home'
 }
 
 function AppLayout({ onLogout }) {
@@ -101,13 +100,14 @@ function AppLayout({ onLogout }) {
               <TopBar onLogout={onLogout} />
               <div className="flex-1 overflow-hidden flex">
               <Routes>
-                {isEnabled('PAGE_CONTROL') ? (
-                  <Route path="/" element={<ControlPage />} />
-                ) : (
-                  <Route path="/" element={<Navigate to={defaultPath} replace />} />
-                )}
-                <Route path="/home" element={<HomeChatPage />} />
+                <Route path="/" element={<Navigate to="/home" replace />} />
+                <Route path="/home" element={<HomeV3Page />} />
+                <Route path="/home/v2" element={<HomeV2Page />} />
+                <Route path="/home/v4" element={<HomeChatPage />} />
                 <Route path="/home/kanban" element={<HomePage />} />
+                {isEnabled('PAGE_CONTROL') && (
+                  <Route path="/control" element={<ControlPage />} />
+                )}
                 <Route element={<WorkShell />}>
                   {gatedRoute('/matters', 'PAGE_WORK', <WorkPage onNavigateMatter={navigateToMatter} />)}
                   {gatedRoute('/respond', 'PAGE_WORK_RESPOND', <RespondPage />)}

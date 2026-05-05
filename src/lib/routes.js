@@ -1,6 +1,6 @@
 // Map URL paths to page names (used by sidebar for active state)
 export const PATH_TO_PAGE = {
-  '/': 'Control',
+  '/control': 'Control',
   '/home': 'Home',
   '/home/kanban': 'Kanban',
   '/matters': 'Work',
