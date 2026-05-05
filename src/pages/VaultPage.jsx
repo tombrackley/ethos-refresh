@@ -184,7 +184,7 @@ const GOVERNANCE_FRAMEWORKS = [
 
 /* ───────────────────── Populated view ───────────────────── */
 
-function VaultHeader({ onPreviewEmpty, onOpenSettings }) {
+function VaultHeader({ onPreviewEmpty, onOpenSettings, emptyToggleLabel }) {
   return (
     <header className="flex items-start justify-between">
       <div>
@@ -199,7 +199,7 @@ function VaultHeader({ onPreviewEmpty, onOpenSettings }) {
           onClick={onPreviewEmpty}
           className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
-          <EyeOff className="size-3.5" /> Preview empty state
+          <EyeOff className="size-3.5" /> {emptyToggleLabel ?? 'Preview empty state'}
         </button>
         <div className="inline-flex h-8 items-center gap-2 rounded-[10px] bg-white border border-border px-3">
           <img src="/sharepoint-icon.png" alt="" className="h-3 w-auto" />
@@ -214,21 +214,30 @@ function VaultHeader({ onPreviewEmpty, onOpenSettings }) {
   )
 }
 
-function StatusHeroCard({ status }) {
-  const currentIdx = STAGES.findIndex(s => s.label === status.label)
+function StatusHeroCard({ status, mode = 'populated', uploadedCount = 0, baselineCount = 0 }) {
+  const isEmpty = mode === 'empty'
+  const headline = isEmpty ? "Let's set up your vault" : `Status: ${status.label || '—'}`
+  const body = isEmpty
+    ? `Add the foundational documents Ethos needs to understand your organisation. ${
+        uploadedCount > 0
+          ? `You're ${uploadedCount} of ${baselineCount} suggested documents in — every upload sharpens Ethos's recommendations.`
+          : `Each one you add unlocks more accurate risk and compliance recommendations.`
+      }`
+    : status.body
+  const currentIdx = isEmpty ? 0 : STAGES.findIndex(s => s.label === status.label)
   return (
     <div className="rounded-xl bg-[#f3fffa] p-6 space-y-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <span className="size-3 rounded bg-emerald-300" />
-          <p className="text-base font-medium text-foreground">Status: {status.label || '—'}</p>
+          <span className={cn('size-3 rounded', isEmpty ? 'bg-emerald-200' : 'bg-emerald-300')} />
+          <p className="text-base font-medium text-foreground">{headline}</p>
         </div>
-        {status.lastSynced ? (
+        {!isEmpty && status.lastSynced ? (
           <p className="text-xs text-muted-foreground">{status.lastSynced}</p>
         ) : null}
       </div>
-      {status.body ? (
-        <p className="max-w-[800px] text-sm text-foreground">{status.body}</p>
+      {body ? (
+        <p className="max-w-[800px] text-sm text-foreground">{body}</p>
       ) : null}
       <StageBar currentIdx={currentIdx} />
     </div>
@@ -437,6 +446,90 @@ function FileRow({ file, categoryName, onEdit, onRemove }) {
   )
 }
 
+function SuggestionRow({ name, onUpload }) {
+  return (
+    <TableRow className="group hover:bg-muted/20">
+      <TableCell className="px-3 py-2.5">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <FileText className="size-5 text-muted-foreground/50 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground/55 truncate">{name}</p>
+            <p className="text-xs text-muted-foreground/70 truncate">Not yet uploaded</p>
+          </div>
+        </div>
+      </TableCell>
+      <TableCell className="px-3 py-2.5">
+        <span
+          className="inline-flex items-center justify-center rounded-[4px] px-1.5 py-0.5 text-[12px] font-medium uppercase bg-slate-100 text-slate-500"
+          style={{ fontFamily: '"Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}
+        >
+          Suggested
+        </span>
+      </TableCell>
+      <TableCell className="px-3 py-2.5" />
+      <TableCell className="px-3 py-2.5">
+        <span className="text-sm text-muted-foreground/60">—</span>
+      </TableCell>
+      <TableCell className="px-3 py-2.5">
+        <div className="flex items-center justify-end gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity">
+          <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1" onClick={onUpload}>
+            <Upload className="size-3" /> Upload
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
+}
+
+function CategorySection({ category, files, suggestions, categoryNameById, onEdit, onRemove, onAdd }) {
+  const total = files.length + suggestions.length
+  if (total === 0) return null
+  return (
+    <section className="rounded-[10px] border border-border/70 bg-white overflow-hidden">
+      <header className="flex items-center justify-between gap-3 px-5 py-3 border-b border-border/70">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-sm font-semibold text-foreground">{category.name}</h3>
+            <span className="text-xs text-muted-foreground">
+              {files.length} uploaded
+              {suggestions.length > 0 ? ` · ${suggestions.length} suggested` : ''}
+            </span>
+          </div>
+          {category.description ? (
+            <p className="mt-0.5 text-xs text-muted-foreground">{category.description}</p>
+          ) : null}
+        </div>
+        <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={onAdd}>
+          <Plus className="size-3.5" /> Add to {category.name}
+        </Button>
+      </header>
+      <Table className="table-fixed">
+        <colgroup>
+          <col style={{ width: '38%' }} />
+          <col style={{ width: '15%' }} />
+          <col style={{ width: '17%' }} />
+          <col style={{ width: '18%' }} />
+          <col style={{ width: '12%' }} />
+        </colgroup>
+        <TableBody>
+          {files.map(f => (
+            <FileRow
+              key={f.id}
+              file={f}
+              categoryName={categoryNameById[f.categoryId]}
+              onEdit={onEdit}
+              onRemove={onRemove}
+            />
+          ))}
+          {suggestions.map((s, i) => (
+            <SuggestionRow key={`sug-${category.id}-${i}`} name={s.name} onUpload={onAdd} />
+          ))}
+        </TableBody>
+      </Table>
+    </section>
+  )
+}
+
 function FileTable({ files, totalRows, categoryNameById, onEdit, onRemove }) {
   // Reserve space for the full unfiltered set so the table doesn't reflow
   // when chips/search filter rows out. ~56px per row + 40px for the header.
@@ -549,7 +642,7 @@ function EditFileOverlay({ file, categories, onClose, onSave }) {
   )
 }
 
-function PopulatedView({ onPreviewEmpty, onAddFiles, onOpenSettings }) {
+function PopulatedView({ empty = false, onPreviewEmpty, onPreviewPopulated, onAddFiles, onAddCategory, onOpenSettings }) {
   const [selectedChipId, setSelectedChipId] = useState(null)
   const [search, setSearch] = useState('')
   const [editingFile, setEditingFile] = useState(null)
@@ -564,19 +657,42 @@ function PopulatedView({ onPreviewEmpty, onAddFiles, onOpenSettings }) {
   )
 
   const liveFiles = useMemo(() => {
+    if (empty) return []
     return FILES
       .filter(f => !removedIds.has(f.id))
       .map(f => fileEdits[f.id] ? { ...f, categoryId: fileEdits[f.id] } : f)
-  }, [fileEdits, removedIds])
+  }, [empty, fileEdits, removedIds])
 
-  const filtered = useMemo(() => {
+  // Suggested baseline documents grouped by category — pulled from the same
+  // mock list used by the upload flow so the empty state mirrors what users
+  // see when Ethos does the categorisation for them.
+  const suggestionsByCategory = useMemo(() => {
+    const uploadedNames = new Set(liveFiles.map(f => f.name.toLowerCase()))
+    const map = {}
+    for (const s of MOCK_DROP_FILES) {
+      if (uploadedNames.has(s.name.toLowerCase())) continue
+      ;(map[s.category] ??= []).push(s)
+    }
+    return map
+  }, [liveFiles])
+
+  const totalSuggested = MOCK_DROP_FILES.length
+
+  const visibleCategories = useMemo(() => {
+    return selectedChipId ? CATEGORIES.filter(c => c.id === selectedChipId) : CATEGORIES
+  }, [selectedChipId])
+
+  const sectionsData = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return liveFiles.filter(f => {
-      if (selectedChipId && f.categoryId !== selectedChipId) return false
-      if (q && !f.name.toLowerCase().includes(q)) return false
-      return true
+    return visibleCategories.map(c => {
+      const files = liveFiles
+        .filter(f => f.categoryId === c.id)
+        .filter(f => !q || f.name.toLowerCase().includes(q))
+      const suggestions = (suggestionsByCategory[c.id] ?? [])
+        .filter(s => !q || s.name.toLowerCase().includes(q))
+      return { category: c, files, suggestions }
     })
-  }, [liveFiles, selectedChipId, search])
+  }, [visibleCategories, liveFiles, suggestionsByCategory, search])
 
   function handleEdit(file) {
     setEditingFile(file)
@@ -597,8 +713,13 @@ function PopulatedView({ onPreviewEmpty, onAddFiles, onOpenSettings }) {
 
   return (
     <div className="space-y-6">
-      <VaultHeader onPreviewEmpty={onPreviewEmpty} onOpenSettings={onOpenSettings} />
-      <StatusHeroCard status={STATUS} />
+      <VaultHeader onPreviewEmpty={empty ? onPreviewPopulated : onPreviewEmpty} onOpenSettings={onOpenSettings} emptyToggleLabel={empty ? 'Preview filled state' : undefined} />
+      <StatusHeroCard
+        status={STATUS}
+        mode={empty ? 'empty' : 'populated'}
+        uploadedCount={liveFiles.length}
+        baselineCount={totalSuggested}
+      />
       <SearchAddRow search={search} onSearchChange={setSearch} onAdd={onAddFiles} />
       <CategoryChips
         categories={CATEGORIES}
@@ -608,13 +729,20 @@ function PopulatedView({ onPreviewEmpty, onAddFiles, onOpenSettings }) {
         hasFilters={Boolean(selectedChipId) || search.length > 0}
         onClearFilters={() => { setSelectedChipId(null); setSearch('') }}
       />
-      <FileTable
-        files={filtered}
-        totalRows={liveFiles.length}
-        categoryNameById={categoryNameById}
-        onEdit={handleEdit}
-        onRemove={handleRemove}
-      />
+      <div className="space-y-4">
+        {sectionsData.map(({ category, files, suggestions }) => (
+          <CategorySection
+            key={category.id}
+            category={category}
+            files={files}
+            suggestions={suggestions}
+            categoryNameById={categoryNameById}
+            onEdit={handleEdit}
+            onRemove={handleRemove}
+            onAdd={() => onAddCategory(category)}
+          />
+        ))}
+      </div>
       {editingFile ? (
         <EditFileOverlay
           file={editingFile}
@@ -1498,20 +1626,14 @@ export default function VaultPage() {
   return (
     <div className="flex-1 overflow-auto bg-white">
       <div className="mx-auto max-w-[1180px] px-8 py-8">
-        {mode === 'empty' && (
-          <VaultEmptyState
-            onAddCategory={openAddFiles}
-            onSmartSync={() => setSmartSyncOpen(true)}
-            onPreviewPopulated={goPopulated}
-          />
-        )}
-        {mode === 'populated' && (
-          <PopulatedView
-            onPreviewEmpty={goPreviewEmpty}
-            onAddFiles={() => openAddFiles(null)}
-            onOpenSettings={() => navigate('/admin/vault')}
-          />
-        )}
+        <PopulatedView
+          empty={mode === 'empty'}
+          onPreviewEmpty={goPreviewEmpty}
+          onPreviewPopulated={goPopulated}
+          onAddFiles={() => openAddFiles(null)}
+          onAddCategory={(cat) => openAddFiles(cat)}
+          onOpenSettings={() => navigate('/admin/vault')}
+        />
 
         <AddFilesModal
           open={addFilesOpen}
