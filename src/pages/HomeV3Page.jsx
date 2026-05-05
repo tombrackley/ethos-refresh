@@ -374,6 +374,7 @@ export default function HomeV3Page() {
   return (
     <div className="flex-1 overflow-auto bg-white">
       <div className="mx-auto max-w-[1200px] px-8 pt-20 pb-12 space-y-12">
+        <div>
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-[32px] font-normal tracking-[-0.03em] text-foreground">
             {greetingPrefix()}, {firstName}
@@ -381,7 +382,7 @@ export default function HomeV3Page() {
           <ComplianceStatusBadge />
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="mt-6">
           <div className="flex items-center gap-3 rounded-full border border-border bg-white px-6 py-4 shadow-sm focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-200/50 transition-all">
             <AskEthosSparkle className="size-5 shrink-0" />
             <div className="relative flex-1">
@@ -416,9 +417,10 @@ export default function HomeV3Page() {
           </div>
         </form>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+        <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
           <JumpBackInCard />
           <ComingUp />
+        </div>
         </div>
 
         <ExploreEthos />
