@@ -256,6 +256,10 @@ const configs = {
           { id: 'f-18', name: 'Modern Slavery Statement FY25',          type: 'document',    categoryId: 'strategy',   status: 'healthy', lastUpdated: '30 Jun 2025 at 3:18pm'  },
           { id: 'f-19', name: 'Sustainability Report FY25',             type: 'document',    categoryId: 'strategy',   status: 'healthy', lastUpdated: '15 Oct 2025 at 9:45am'  },
           { id: 'f-20', name: 'Audit & Risk Committee Annual Report',   type: 'document',    categoryId: 'strategy',   status: 'healthy', lastUpdated: '20 Oct 2025 at 11:00am' },
+          // Extras — uploaded beyond the baseline checklist.
+          { id: 'f-21', name: 'Q1 FY26 Risk Update',                    type: 'document',    categoryId: 'frameworks', status: 'healthy', lastUpdated: '02 Apr 2026 at 9:30am'  },
+          { id: 'f-22', name: 'Vendor Due Diligence Notes',             type: 'document',    categoryId: 'policies',   status: 'healthy', lastUpdated: '12 Mar 2026 at 4:15pm'  },
+          { id: 'f-23', name: 'Office Lease — 200 Queen St',            type: 'document',    categoryId: 'governing',  status: 'healthy', lastUpdated: '05 Feb 2026 at 11:00am' },
         ],
       },
 

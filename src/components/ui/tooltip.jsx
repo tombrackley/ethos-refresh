@@ -26,6 +26,7 @@ function TooltipTrigger({
 
 function TooltipContent({
   className,
+  arrowClassName,
   sideOffset = 0,
   children,
   ...props
@@ -42,7 +43,10 @@ function TooltipContent({
         {...props}>
         {children}
         <TooltipPrimitive.Arrow
-          className="bg-foreground fill-foreground z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
+          className={cn(
+            "bg-foreground fill-foreground z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]",
+            arrowClassName,
+          )} />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );

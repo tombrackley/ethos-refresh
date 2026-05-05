@@ -8,13 +8,14 @@ import {
 } from 'lucide-react'
 import { SiBox, SiDropbox, SiGoogledrive } from 'react-icons/si'
 import { TbBrandOnedrive } from 'react-icons/tb'
+import { IconFileText } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconFileText'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import tenant from '@/config/tenant'
 
@@ -48,35 +49,52 @@ function fileSource(file) {
   return 'SharePoint'
 }
 
-const FILE_STATUS = {
-  healthy: {
-    label: 'Healthy',
-    bg: 'bg-emerald-100',
-    text: 'text-[#151D2B]',
-    description: 'This document is current and reflects the latest version Ethos is using.',
-  },
-  stale: {
-    label: 'Stale',
-    bg: 'bg-amber-100',
-    text: 'text-[#151D2B]',
-    description: 'This document hasn\'t been reviewed in a while. Confirm it\'s still accurate or upload a refreshed version.',
-  },
-  check: {
-    label: 'Check Required',
-    bg: 'bg-rose-100',
-    text: 'text-[#151D2B]',
-    description: 'Ethos has flagged this document for review — content may need verification or an update.',
-  },
+const MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 }
+function parseFileDate(s) {
+  const m = s?.match(/^(\d+)\s+(\w+)\s+(\d+)\s+at\s+(\d+):(\d+)\s*(am|pm)$/i)
+  if (!m) return 0
+  const [, d, mon, y, hh, mm, ap] = m
+  let h = Number(hh) % 12
+  if (ap.toLowerCase() === 'pm') h += 12
+  return new Date(Number(y), MONTHS[mon.toLowerCase()] ?? 0, Number(d), h, Number(mm)).getTime()
 }
 
 /* Maturity-stage definitions for the status hero card.
  * Gradient palette tracks the Figma: dark teal → mint → cyan → grey. */
 const STAGES = [
-  { label: 'Baseline',     gradient: 'from-[#005b71] to-[#38a388]' },
-  { label: 'Good',         gradient: 'from-[#38a489] to-[#6ee7b7]' },
-  { label: 'Excellent',    gradient: 'from-[#6ee7b7] to-[#2fffff]' },
-  { label: 'Supercharged', gradient: null }, // greyed
+  {
+    label: 'Baseline',
+    requirements: [
+      'Upload at least 1 baseline document',
+    ],
+  },
+  {
+    label: 'Good',
+    requirements: [
+      '8 of 19 baseline documents uploaded',
+      'Coverage across at least 2 categories',
+    ],
+  },
+  {
+    label: 'Excellent',
+    requirements: [
+      '14 of 19 baseline documents uploaded',
+      'Coverage across all 4 categories',
+    ],
+  },
+  {
+    label: 'Supercharged',
+    requirements: [
+      'All 19 baseline documents uploaded',
+      'Documents kept up to date',
+    ],
+  },
 ]
+
+// One continuous gradient running across the entire bar. As the user
+// progresses (or hovers a future stage), more of this gradient is revealed
+// from the left. Stops align roughly to phase boundaries.
+const MASTER_GRADIENT = 'linear-gradient(90deg, #9EFFC6 0%, #2FFFFF 47.12%, #C384FF 73.56%, #FF56EE 100%)'
 
 /* ───────────────────── Empty-state DMS providers ───────────────────── */
 
@@ -120,12 +138,68 @@ const MOCK_DROP_FILES = [
 ]
 
 const DMS_FOLDER_MAPPING = [
-  { folder: 'Constitution & Governing Documents', target: 'governing',  docs: 12 },
-  { folder: 'Board & Committee Charters',          target: 'governing',  docs: 8  },
-  { folder: 'Policies & Code of Conduct',          target: 'policies',   docs: 47 },
-  { folder: 'Risk & Compliance Frameworks',        target: 'frameworks', docs: 24 },
-  { folder: 'Strategy & Annual Reporting',         target: 'strategy',   docs: 18 },
-  { folder: 'Misc & Archive',                       target: null,         docs: 56 },
+  {
+    folder: 'Constitution & Governing Documents',
+    target: 'governing',
+    docs: 12,
+    children: [
+      { name: 'Constitution_v3.pdf', size: '480 KB' },
+      { name: 'Shareholders_Deed_2024.pdf', size: '720 KB' },
+      { name: 'Delegations_of_Authority.xlsx', size: '92 KB' },
+      { name: 'Board_Resolutions_2025/', size: '— folder' },
+    ],
+  },
+  {
+    folder: 'Board & Committee Charters',
+    target: 'governing',
+    docs: 8,
+    children: [
+      { name: 'Board_Charter_v3.pdf', size: '210 KB' },
+      { name: 'Audit_Risk_Charter.pdf', size: '180 KB' },
+      { name: 'Remuneration_Charter.pdf', size: '160 KB' },
+    ],
+  },
+  {
+    folder: 'Policies & Code of Conduct',
+    target: 'policies',
+    docs: 47,
+    children: [
+      { name: 'Code_of_Conduct.pdf', size: '320 KB' },
+      { name: 'Whistleblower_Policy.pdf', size: '240 KB' },
+      { name: 'Privacy_Policy_v3.pdf', size: '290 KB' },
+      { name: 'HR_Policies/', size: '— 12 files' },
+    ],
+  },
+  {
+    folder: 'Risk & Compliance Frameworks',
+    target: 'frameworks',
+    docs: 24,
+    children: [
+      { name: 'Risk_Management_Framework_v2.pdf', size: '510 KB' },
+      { name: 'Compliance_Framework.pdf', size: '380 KB' },
+      { name: 'Cyber_Security_Framework.pdf', size: '440 KB' },
+    ],
+  },
+  {
+    folder: 'Strategy & Annual Reporting',
+    target: 'strategy',
+    docs: 18,
+    children: [
+      { name: 'Strategic_Plan_FY26-28.pdf', size: '1.2 MB' },
+      { name: 'Annual_Report_FY25.pdf', size: '4.6 MB' },
+      { name: 'Sustainability_Report_FY25.pdf', size: '2.8 MB' },
+    ],
+  },
+  {
+    folder: 'Misc & Archive',
+    target: null,
+    docs: 56,
+    children: [
+      { name: 'Old_Drafts/', size: '— 18 files' },
+      { name: 'Vendor_Quotes/', size: '— 22 files' },
+      { name: 'Christmas_Party_2023.pptx', size: '12 MB' },
+    ],
+  },
 ]
 
 /* Smart Sync — what Ethos finds and suggests after analysing the connected
@@ -214,59 +288,166 @@ function VaultHeader({ onPreviewEmpty, onOpenSettings, emptyToggleLabel }) {
   )
 }
 
-function StatusHeroCard({ status, mode = 'populated', uploadedCount = 0, baselineCount = 0 }) {
-  const isEmpty = mode === 'empty'
-  const headline = isEmpty ? "Let's set up your vault" : `Status: ${status.label || '—'}`
+function StatusHeroCard({ status, fulfilledCount = 0, baselineCount = 0 }) {
+  const pct = baselineCount > 0 ? fulfilledCount / baselineCount : 0
+  const stageIdx = stageIndexFor(pct)
+  const isEmpty = stageIdx === -1
+  const isSupercharged = stageIdx === STAGES.length - 1
+  const stageLabel = stageIdx >= 0 ? STAGES[stageIdx].label : null
+
+  const headline = isEmpty
+    ? "Let's set up your vault"
+    : `Status: ${stageLabel}`
   const body = isEmpty
-    ? `Add the foundational documents Ethos needs to understand your organisation. ${
-        uploadedCount > 0
-          ? `You're ${uploadedCount} of ${baselineCount} suggested documents in — every upload sharpens Ethos's recommendations.`
-          : `Each one you add unlocks more accurate risk and compliance recommendations.`
-      }`
-    : status.body
-  const currentIdx = isEmpty ? 0 : STAGES.findIndex(s => s.label === status.label)
+    ? `Add the foundational documents Ethos needs to understand your organisation. Each one you add unlocks more accurate risk and compliance recommendations.`
+    : `${fulfilledCount} of ${baselineCount} baseline documents added — every upload sharpens Ethos's recommendations.`
+
+  const bgClass = isEmpty
+    ? 'bg-[#F9F9F9]'
+    : isSupercharged
+      ? 'bg-[#FEF6FF]'
+      : 'bg-[#f3fffa]'
+
   return (
-    <div className="rounded-xl bg-[#f3fffa] p-6 space-y-4">
+    <div className={cn('rounded-xl p-6 space-y-4', bgClass)}>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <span className={cn('size-3 rounded', isEmpty ? 'bg-emerald-200' : 'bg-emerald-300')} />
+          <span
+            className={cn('size-3 rounded', isEmpty && 'bg-[#A2ACB9]', !isEmpty && !isSupercharged && 'bg-emerald-300')}
+            style={isSupercharged ? { background: 'linear-gradient(135deg, #C384FF 0%, #FF56EE 100%)' } : undefined}
+          />
           <p className="text-base font-medium text-foreground">{headline}</p>
         </div>
         {!isEmpty && status.lastSynced ? (
           <p className="text-xs text-muted-foreground">{status.lastSynced}</p>
         ) : null}
       </div>
-      {body ? (
-        <p className="max-w-[800px] text-sm text-foreground">{body}</p>
-      ) : null}
-      <StageBar currentIdx={currentIdx} />
+      <p className="max-w-[800px] text-sm text-foreground">{body}</p>
+      <StageBar currentIdx={stageIdx} />
     </div>
   )
 }
 
+function stageIndexFor(pct) {
+  if (pct <= 0)    return -1
+  if (pct < 0.40)  return 0
+  if (pct < 0.70)  return 1
+  if (pct < 1.0)   return 2
+  return 3
+}
+
 function StageBar({ currentIdx }) {
+  const [hoveredIdx, setHoveredIdx] = useState(null)
+  const fillIdx = Math.max(currentIdx, hoveredIdx ?? -1)
+  const fillPct = ((fillIdx + 1) / STAGES.length) * 100
+  const isHovering = hoveredIdx !== null
+
   return (
     <div className="relative pt-2">
-      <div className="flex h-3.5 gap-[3px]">
-        {STAGES.map((s, idx) => (
+      <div className="relative h-3.5 w-full">
+        {/* Greyed base — always visible behind everything */}
+        <div className="absolute inset-0 rounded-[2px] bg-[#d9d9d9] opacity-25" />
+
+        {/* Glow halo — sits behind the gradient and blooms outward from the
+            hovered segment so it reads as "lit up". */}
+        {isHovering && hoveredIdx !== null ? (
           <div
-            key={s.label}
-            className={cn(
-              'flex-1',
-              idx === 0 && 'rounded-l-[2px]',
-              idx === STAGES.length - 1 && 'rounded-r-[2px]',
-              s.gradient
-                ? `bg-gradient-to-r ${s.gradient}`
-                : 'bg-[#d9d9d9] opacity-25',
-            )}
+            className="absolute h-full rounded-[2px] pointer-events-none transition-[left] duration-300"
+            style={{
+              left: `${(hoveredIdx / STAGES.length) * 100}%`,
+              width: `${100 / STAGES.length}%`,
+              boxShadow:
+                '0 0 14px 2px rgba(255,255,255,0.85), 0 0 28px 6px rgba(255,255,255,0.45)',
+            }}
+          />
+        ) : null}
+
+        {/* Master gradient layer — single continuous gradient across the
+            full bar, revealed from the left via clip-path inset. */}
+        <div
+          className="absolute inset-0 rounded-[2px] transition-[clip-path,filter] duration-300 overflow-hidden"
+          style={{
+            background: MASTER_GRADIENT,
+            clipPath: `inset(0 ${100 - fillPct}% 0 0)`,
+            filter: isHovering ? 'brightness(1.15) saturate(1.25)' : 'none',
+          }}
+        >
+          {/* Liquid sheen — two stacked passes (offset in time) loop
+              continuously across the filled portion. Hover bumps their
+              intensity via the brightness filter on the parent. */}
+          <div
+            className="absolute inset-y-0 w-[55%] pointer-events-none animate-[liquid-shimmer_3s_ease-in-out_infinite]"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, rgba(255,255,255,${isHovering ? 0.7 : 0.45}) 50%, transparent 100%)`,
+            }}
+          />
+          <div
+            className="absolute inset-y-0 w-[35%] pointer-events-none animate-[liquid-shimmer_3s_ease-in-out_infinite] [animation-delay:0.9s]"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, rgba(255,255,255,${isHovering ? 0.5 : 0.3}) 50%, transparent 100%)`,
+            }}
+          />
+        </div>
+
+        {/* Visual segment dividers — three thin lines at the phase boundaries
+            so the seamless gradient still reads as four chunks. */}
+        {[25, 50, 75].map(pct => (
+          <div
+            key={pct}
+            className="absolute inset-y-0 w-[3px] bg-white pointer-events-none"
+            style={{ left: `calc(${pct}% - 1.5px)` }}
           />
         ))}
+
+        {/* Per-segment hover targets — invisible buttons stacked on top
+            for tooltip + hover detection. */}
+        <div className="absolute inset-0 flex">
+          {STAGES.map((s, idx) => {
+            const isFilledByProgress = idx <= currentIdx
+            return (
+              <Tooltip key={s.label} delayDuration={150}>
+                <TooltipTrigger asChild>
+                  <div
+                    onMouseEnter={() => setHoveredIdx(idx)}
+                    onMouseLeave={() => setHoveredIdx(null)}
+                    className="flex-1 cursor-pointer"
+                  />
+                </TooltipTrigger>
+                <TooltipContent
+                  side="bottom"
+                  sideOffset={8}
+                  className="max-w-[280px] bg-white text-foreground border border-border shadow-md p-3"
+                  arrowClassName="bg-white fill-white"
+                >
+                  <p className="text-sm font-semibold text-foreground">
+                    {isFilledByProgress ? `✓ ${s.label}` : s.label}
+                  </p>
+                  <p className="mt-2 text-xs font-mono uppercase tracking-wide text-muted-foreground">
+                    Requirements
+                  </p>
+                  <ul className="mt-1.5 space-y-1.5">
+                    {s.requirements.map(item => (
+                      <li key={item} className="flex items-start gap-1.5 text-xs text-foreground">
+                        {isFilledByProgress ? (
+                          <Check className="size-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        ) : (
+                          <span className="size-3.5 rounded-full border border-muted-foreground/50 shrink-0 mt-0.5" />
+                        )}
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </TooltipContent>
+              </Tooltip>
+            )
+          })}
+        </div>
       </div>
       <div className="relative h-6 mt-1.5">
         {STAGES.map((s, i) => {
           const left = `${((i + 0.5) / STAGES.length) * 100}%`
           const isCurrent = i === currentIdx
-          if (!isCurrent && i === currentIdx) return null
+          const isHovered = i === hoveredIdx
           return (
             <div
               key={s.label}
@@ -274,11 +455,15 @@ function StageBar({ currentIdx }) {
               style={{ left }}
             >
               {isCurrent ? (
-                <div className="size-0 border-x-[5px] border-x-transparent border-b-[6px] border-b-foreground/70 -mt-0.5" />
+                <div className="size-0 border-x-[5px] border-x-transparent border-b-[6px] border-b-foreground -mt-0.5" />
               ) : null}
               <span className={cn(
-                'text-sm leading-6',
-                isCurrent ? 'font-medium text-foreground/85' : 'text-foreground/60',
+                'text-sm leading-6 transition-colors',
+                isHovered
+                  ? 'font-medium text-foreground'
+                  : isCurrent
+                    ? 'font-medium text-foreground'
+                    : 'text-foreground/40',
               )}>
                 {s.label}
               </span>
@@ -370,13 +555,13 @@ function CategoryChips({ categories, selectedId, onSelect, files, hasFilters, on
 }
 
 function FileRow({ file, categoryName, onEdit, onRemove }) {
-  const Icon = FILE_TYPE_ICONS[file.type] ?? FileText
-  const status = FILE_STATUS[file.status] ?? FILE_STATUS.healthy
   return (
     <TableRow className="group hover:bg-muted/20">
       <TableCell className="px-3 py-2.5">
         <div className="flex items-center gap-2.5 min-w-0">
-          <Icon className="size-5 text-muted-foreground shrink-0" />
+          <div className="size-6 rounded-[6px] flex items-center justify-center shrink-0 bg-gray-100">
+            <IconFileText className="size-3.5 text-[#151D2B]" />
+          </div>
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
             <p className="text-xs text-muted-foreground truncate">
@@ -384,26 +569,6 @@ function FileRow({ file, categoryName, onEdit, onRemove }) {
             </p>
           </div>
         </div>
-      </TableCell>
-      <TableCell className="px-3 py-2.5">
-        <Tooltip delayDuration={150}>
-          <TooltipTrigger asChild>
-            <span
-              className={cn(
-                'inline-flex items-center justify-center rounded-[4px] px-1.5 py-0.5 cursor-help',
-                'text-[12px] font-medium uppercase',
-                status.bg, status.text,
-              )}
-              style={{ fontFamily: '"Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}
-            >
-              {status.label}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-xs">
-            <p className="font-medium">{status.label}</p>
-            <p className="text-[11px] opacity-90">{status.description}</p>
-          </TooltipContent>
-        </Tooltip>
       </TableCell>
       <TableCell className="px-3 py-2.5">
         <span className="inline-flex items-center justify-center rounded-md bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
@@ -446,12 +611,14 @@ function FileRow({ file, categoryName, onEdit, onRemove }) {
   )
 }
 
-function SuggestionRow({ name, onUpload }) {
+function SuggestionRow({ name, categoryName, onUpload }) {
   return (
     <TableRow className="group hover:bg-muted/20">
       <TableCell className="px-3 py-2.5">
         <div className="flex items-center gap-2.5 min-w-0">
-          <FileText className="size-5 text-muted-foreground/50 shrink-0" />
+          <div className="size-6 rounded-[6px] flex items-center justify-center shrink-0 bg-gray-100 opacity-60">
+            <IconFileText className="size-3.5 text-[#151D2B]" />
+          </div>
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground/55 truncate">{name}</p>
             <p className="text-xs text-muted-foreground/70 truncate">Not yet uploaded</p>
@@ -459,14 +626,12 @@ function SuggestionRow({ name, onUpload }) {
         </div>
       </TableCell>
       <TableCell className="px-3 py-2.5">
-        <span
-          className="inline-flex items-center justify-center rounded-[4px] px-1.5 py-0.5 text-[12px] font-medium uppercase bg-slate-100 text-slate-500"
-          style={{ fontFamily: '"Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}
-        >
-          Suggested
-        </span>
+        {categoryName ? (
+          <span className="inline-flex items-center justify-center rounded-md bg-muted/50 px-1.5 py-0.5 text-xs font-medium text-muted-foreground/60">
+            {categoryName}
+          </span>
+        ) : null}
       </TableCell>
-      <TableCell className="px-3 py-2.5" />
       <TableCell className="px-3 py-2.5">
         <span className="text-sm text-muted-foreground/60">—</span>
       </TableCell>
@@ -481,37 +646,75 @@ function SuggestionRow({ name, onUpload }) {
   )
 }
 
-function CategorySection({ category, files, suggestions, categoryNameById, onEdit, onRemove, onAdd }) {
-  const total = files.length + suggestions.length
-  if (total === 0) return null
+function SortDropdown({ sortId, onChange }) {
+  const current = SORT_OPTIONS.find(o => o.id === sortId) ?? SORT_OPTIONS[0]
   return (
-    <section className="rounded-[10px] border border-border/70 bg-white overflow-hidden">
-      <header className="flex items-center justify-between gap-3 px-5 py-3 border-b border-border/70">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-sm font-semibold text-foreground">{category.name}</h3>
-            <span className="text-xs text-muted-foreground">
-              {files.length} uploaded
-              {suggestions.length > 0 ? ` · ${suggestions.length} suggested` : ''}
-            </span>
-          </div>
-          {category.description ? (
-            <p className="mt-0.5 text-xs text-muted-foreground">{category.description}</p>
-          ) : null}
-        </div>
-        <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={onAdd}>
-          <Plus className="size-3.5" /> Add to {category.name}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="shrink-0">
+          <span className="text-muted-foreground">Sort:</span>
+          {current.label}
+          <ChevronDown className="size-3.5 text-muted-foreground" />
         </Button>
-      </header>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        {SORT_OPTIONS.map(o => (
+          <DropdownMenuItem
+            key={o.id}
+            className={cn('text-sm gap-2', o.id === sortId && 'bg-accent font-medium')}
+            onSelect={() => onChange(o.id)}
+          >
+            {o.label}
+            {o.id === sortId ? <Check className="ml-auto size-3.5" /> : null}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function BulkAddBar({ categoryName, onAdd }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2">
+      <p className="text-sm text-foreground">
+        Adding to <span className="font-medium">{categoryName}</span>
+        <span className="ml-1 text-muted-foreground">— drop a folder or pick multiple files at once.</span>
+      </p>
+      <Button size="sm" onClick={onAdd} className="h-8 gap-1.5 bg-[#005c58] hover:bg-[#004a47] shrink-0">
+        <Plus className="size-3.5" />
+        Add files to {categoryName}
+      </Button>
+    </div>
+  )
+}
+
+function FileTable({ outstanding = [], files = [], totalRows, categoryNameById, onEdit, onRemove, onUploadSuggestion }) {
+  // Reserve space for the full unfiltered set so the table doesn't reflow
+  // when chips/search filter rows out. ~56px per row + 40px for the header.
+  const minHeight = totalRows * 56 + 40
+  const isEmptyResult = outstanding.length + files.length === 0
+  return (
+    <div style={{ minHeight }}>
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: '38%' }} />
-          <col style={{ width: '15%' }} />
-          <col style={{ width: '17%' }} />
-          <col style={{ width: '18%' }} />
-          <col style={{ width: '12%' }} />
-        </colgroup>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="px-3 py-2 text-[13px] w-[45%]">
+              <span className="inline-flex items-center gap-1">File Name <ChevronDown className="size-3 text-muted-foreground" /></span>
+            </TableHead>
+            <TableHead className="px-3 py-2 text-[13px] w-[20%]">Category</TableHead>
+            <TableHead className="px-3 py-2 text-[13px] w-[20%]">Last updated</TableHead>
+            <TableHead className="px-3 py-2 w-[15%]" />
+          </TableRow>
+        </TableHeader>
         <TableBody>
+          {outstanding.map((s, i) => (
+            <SuggestionRow
+              key={`sug-${i}`}
+              name={s.name}
+              categoryName={categoryNameById[s.category]}
+              onUpload={() => onUploadSuggestion?.(s)}
+            />
+          ))}
           {files.map(f => (
             <FileRow
               key={f.id}
@@ -521,47 +724,9 @@ function CategorySection({ category, files, suggestions, categoryNameById, onEdi
               onRemove={onRemove}
             />
           ))}
-          {suggestions.map((s, i) => (
-            <SuggestionRow key={`sug-${category.id}-${i}`} name={s.name} onUpload={onAdd} />
-          ))}
-        </TableBody>
-      </Table>
-    </section>
-  )
-}
-
-function FileTable({ files, totalRows, categoryNameById, onEdit, onRemove }) {
-  // Reserve space for the full unfiltered set so the table doesn't reflow
-  // when chips/search filter rows out. ~56px per row + 40px for the header.
-  const minHeight = totalRows * 56 + 40
-  return (
-    <div style={{ minHeight }}>
-      <Table className="table-fixed">
-        <TableHeader>
-          <TableRow>
-            <TableHead className="px-3 py-2 text-[13px] w-[38%]">
-              <span className="inline-flex items-center gap-1">File Name <ChevronDown className="size-3 text-muted-foreground" /></span>
-            </TableHead>
-            <TableHead className="px-3 py-2 text-[13px] w-[15%]">Status</TableHead>
-            <TableHead className="px-3 py-2 text-[13px] w-[17%]">Category</TableHead>
-            <TableHead className="px-3 py-2 text-[13px] w-[18%]">Last updated</TableHead>
-            <TableHead className="px-3 py-2 w-[12%]" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {files.length > 0 ? (
-            files.map(f => (
-              <FileRow
-                key={f.id}
-                file={f}
-                categoryName={categoryNameById[f.categoryId]}
-                onEdit={onEdit}
-                onRemove={onRemove}
-              />
-            ))
-          ) : (
+          {isEmptyResult && (
             <TableRow className="hover:bg-transparent border-0">
-              <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
+              <TableCell colSpan={4} className="py-10 text-center text-sm text-muted-foreground">
                 No files match the current filters.
               </TableCell>
             </TableRow>
@@ -623,7 +788,7 @@ function EditFileOverlay({ file, categories, onClose, onSave }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-background">
+      <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-white">
         <p className="text-xs text-muted-foreground">
           {categoryId === file.categoryId ? 'No changes to save' : 'Category will be updated'}
         </p>
@@ -642,9 +807,16 @@ function EditFileOverlay({ file, categories, onClose, onSave }) {
   )
 }
 
-function PopulatedView({ empty = false, onPreviewEmpty, onPreviewPopulated, onAddFiles, onAddCategory, onOpenSettings }) {
+const SORT_OPTIONS = [
+  { id: 'recommended', label: 'Recommended first' },
+  { id: 'alphabetical', label: 'Alphabetical' },
+  { id: 'recent', label: 'Recently added' },
+]
+
+function PopulatedView({ empty = false, onPreviewEmpty, onPreviewPopulated, onAddFiles, onAddCategory, onUploadSpecific, onOpenSettings }) {
   const [selectedChipId, setSelectedChipId] = useState(null)
   const [search, setSearch] = useState('')
+  const [sortId, setSortId] = useState('recommended')
   const [editingFile, setEditingFile] = useState(null)
   // Local edits + soft-removals — keep changes within the session without
   // mutating the tenant config source data.
@@ -663,36 +835,62 @@ function PopulatedView({ empty = false, onPreviewEmpty, onPreviewPopulated, onAd
       .map(f => fileEdits[f.id] ? { ...f, categoryId: fileEdits[f.id] } : f)
   }, [empty, fileEdits, removedIds])
 
-  // Suggested baseline documents grouped by category — pulled from the same
-  // mock list used by the upload flow so the empty state mirrors what users
-  // see when Ethos does the categorisation for them.
-  const suggestionsByCategory = useMemo(() => {
-    const uploadedNames = new Set(liveFiles.map(f => f.name.toLowerCase()))
-    const map = {}
-    for (const s of MOCK_DROP_FILES) {
-      if (uploadedNames.has(s.name.toLowerCase())) continue
-      ;(map[s.category] ??= []).push(s)
-    }
-    return map
-  }, [liveFiles])
-
   const totalSuggested = MOCK_DROP_FILES.length
 
-  const visibleCategories = useMemo(() => {
-    return selectedChipId ? CATEGORIES.filter(c => c.id === selectedChipId) : CATEGORIES
-  }, [selectedChipId])
+  // Match uploaded files to baseline recommendations by case-insensitive name.
+  const baselineNames = useMemo(
+    () => new Set(MOCK_DROP_FILES.map(s => s.name.toLowerCase())),
+    [],
+  )
+  const uploadedNames = useMemo(
+    () => new Set(liveFiles.map(f => f.name.toLowerCase())),
+    [liveFiles],
+  )
+  const fulfilledCount = useMemo(
+    () => liveFiles.filter(f => baselineNames.has(f.name.toLowerCase())).length,
+    [liveFiles, baselineNames],
+  )
 
-  const sectionsData = useMemo(() => {
+  // Outstanding baselines: any recommendation not yet uploaded. Always shown.
+  const outstandingSuggestions = useMemo(
+    () => MOCK_DROP_FILES.filter(s => !uploadedNames.has(s.name.toLowerCase())),
+    [uploadedNames],
+  )
+
+  const filteredOutstanding = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return visibleCategories.map(c => {
-      const files = liveFiles
-        .filter(f => f.categoryId === c.id)
-        .filter(f => !q || f.name.toLowerCase().includes(q))
-      const suggestions = (suggestionsByCategory[c.id] ?? [])
-        .filter(s => !q || s.name.toLowerCase().includes(q))
-      return { category: c, files, suggestions }
+    return outstandingSuggestions.filter(s => {
+      if (selectedChipId && s.category !== selectedChipId) return false
+      if (q && !s.name.toLowerCase().includes(q)) return false
+      return true
     })
-  }, [visibleCategories, liveFiles, suggestionsByCategory, search])
+  }, [outstandingSuggestions, selectedChipId, search])
+
+  // Real files filtered + sorted per the current sort mode.
+  const sortedFiles = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    const filtered = liveFiles.filter(f => {
+      if (selectedChipId && f.categoryId !== selectedChipId) return false
+      if (q && !f.name.toLowerCase().includes(q)) return false
+      return true
+    })
+    if (sortId === 'alphabetical') {
+      return filtered.slice().sort((a, b) => a.name.localeCompare(b.name))
+    }
+    if (sortId === 'recent') {
+      return filtered.slice().sort((a, b) => parseFileDate(b.lastUpdated) - parseFileDate(a.lastUpdated))
+    }
+    // 'recommended' default — fulfilled baselines first, then extras, alpha within each.
+    const fulfilled = []
+    const extras = []
+    for (const f of filtered) {
+      if (baselineNames.has(f.name.toLowerCase())) fulfilled.push(f)
+      else extras.push(f)
+    }
+    fulfilled.sort((a, b) => a.name.localeCompare(b.name))
+    extras.sort((a, b) => a.name.localeCompare(b.name))
+    return [...fulfilled, ...extras]
+  }, [liveFiles, baselineNames, selectedChipId, search, sortId])
 
   function handleEdit(file) {
     setEditingFile(file)
@@ -716,33 +914,38 @@ function PopulatedView({ empty = false, onPreviewEmpty, onPreviewPopulated, onAd
       <VaultHeader onPreviewEmpty={empty ? onPreviewPopulated : onPreviewEmpty} onOpenSettings={onOpenSettings} emptyToggleLabel={empty ? 'Preview filled state' : undefined} />
       <StatusHeroCard
         status={STATUS}
-        mode={empty ? 'empty' : 'populated'}
-        uploadedCount={liveFiles.length}
+        fulfilledCount={fulfilledCount}
         baselineCount={totalSuggested}
       />
       <SearchAddRow search={search} onSearchChange={setSearch} onAdd={onAddFiles} />
-      <CategoryChips
-        categories={CATEGORIES}
-        selectedId={selectedChipId}
-        onSelect={setSelectedChipId}
-        files={liveFiles}
-        hasFilters={Boolean(selectedChipId) || search.length > 0}
-        onClearFilters={() => { setSelectedChipId(null); setSearch('') }}
-      />
-      <div className="space-y-4">
-        {sectionsData.map(({ category, files, suggestions }) => (
-          <CategorySection
-            key={category.id}
-            category={category}
-            files={files}
-            suggestions={suggestions}
-            categoryNameById={categoryNameById}
-            onEdit={handleEdit}
-            onRemove={handleRemove}
-            onAdd={() => onAddCategory(category)}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <CategoryChips
+            categories={CATEGORIES}
+            selectedId={selectedChipId}
+            onSelect={setSelectedChipId}
+            files={liveFiles}
+            hasFilters={Boolean(selectedChipId) || search.length > 0}
+            onClearFilters={() => { setSelectedChipId(null); setSearch('') }}
           />
-        ))}
+        </div>
+        <SortDropdown sortId={sortId} onChange={setSortId} />
       </div>
+      {selectedChipId ? (
+        <BulkAddBar
+          categoryName={categoryNameById[selectedChipId]}
+          onAdd={() => onAddCategory(CATEGORIES.find(c => c.id === selectedChipId) ?? null)}
+        />
+      ) : null}
+      <FileTable
+        outstanding={filteredOutstanding}
+        files={sortedFiles}
+        totalRows={outstandingSuggestions.length + liveFiles.length}
+        categoryNameById={categoryNameById}
+        onEdit={handleEdit}
+        onRemove={handleRemove}
+        onUploadSuggestion={(s) => onUploadSpecific?.(s)}
+      />
       {editingFile ? (
         <EditFileOverlay
           file={editingFile}
@@ -928,9 +1131,9 @@ function CategoryDropdown({ value, onChange, options }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="inline-flex items-center gap-1 rounded-md border border-border bg-white px-2 py-1 text-xs font-medium text-foreground hover:bg-muted/50">
-          {current?.name ?? '—'}
-          <ChevronDown className="size-3 text-muted-foreground" />
+        <button className="inline-flex items-center gap-1 rounded-md border border-border bg-white px-2 py-1 text-xs font-medium text-foreground hover:bg-muted/50 whitespace-nowrap max-w-full">
+          <span className="truncate">{current?.name ?? '—'}</span>
+          <ChevronDown className="size-3 text-muted-foreground shrink-0" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-52">
@@ -950,17 +1153,17 @@ function ConfirmCategorisation({ files, onBack, onConfirm }) {
   const lowConfidence = items.filter(i => i.confidence < 80).length
 
   function setCategory(idx, cat) {
-    setItems(prev => prev.map((it, i) => i === idx ? { ...it, category: cat, overridden: true } : it))
+    setItems(prev => prev.map((it, i) => i === idx ? { ...it, category: cat } : it))
   }
 
   return (
-    <div className="space-y-6">
-      <header>
+    <div className="space-y-5">
+      <header className="px-5">
         <Button size="sm" variant="ghost" onClick={onBack} className="gap-1.5 -ml-2 mb-3 text-muted-foreground">
           <ArrowLeft className="size-3.5" /> Back
         </Button>
-        <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Review categorisation</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <h1 className="text-2xl font-medium leading-tight tracking-[-0.03em] text-foreground">Review categorisation</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
           Ethos categorised {items.length} documents.
           {lowConfidence > 0 && (
             <span className="ml-1 text-amber-700">{lowConfidence} {lowConfidence === 1 ? 'item' : 'items'} need a closer look.</span>
@@ -968,25 +1171,23 @@ function ConfirmCategorisation({ files, onBack, onConfirm }) {
         </p>
       </header>
 
-      <div className="rounded-lg border border-border bg-white overflow-hidden">
+      <div className="border-y border-border bg-white">
         <div className="grid grid-cols-12 gap-3 px-5 py-2.5 border-b border-border bg-muted/30 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
           <div className="col-span-6">Document</div>
-          <div className="col-span-3">Category</div>
+          <div className="col-span-4">Category</div>
           <div className="col-span-2">Confidence</div>
-          <div className="col-span-1" />
         </div>
         {items.map((it, idx) => {
           const low = it.confidence < 80
           return (
             <div key={it.name} className="grid grid-cols-12 gap-3 items-center px-5 py-3 border-b border-border last:border-b-0 hover:bg-muted/20">
               <div className="col-span-6 flex items-center gap-3 min-w-0">
-                <div className="flex size-7 items-center justify-center rounded bg-muted text-muted-foreground shrink-0">
-                  <FileText className="size-3.5" />
+                <div className="size-6 rounded-[6px] flex items-center justify-center shrink-0 bg-gray-100">
+                  <IconFileText className="size-3.5 text-[#151D2B]" />
                 </div>
                 <p className="text-sm text-foreground truncate">{it.name}</p>
               </div>
-              <div className="col-span-3 flex items-center gap-2">
-                <FileText className="size-3.5 text-brand-800" />
+              <div className="col-span-4 min-w-0">
                 <CategoryDropdown
                   value={it.category}
                   onChange={cat => setCategory(idx, cat)}
@@ -1004,19 +1205,12 @@ function ConfirmCategorisation({ files, onBack, onConfirm }) {
                   {it.confidence}%
                 </span>
               </div>
-              <div className="col-span-1 flex justify-end">
-                {it.overridden ? (
-                  <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-brand-200 bg-brand-50 text-brand-700">
-                    Edited
-                  </Badge>
-                ) : null}
-              </div>
             </div>
           )
         })}
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-5">
         <p className="text-xs text-muted-foreground">All documents will be added to your Vault and tagged by source.</p>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={onBack}>Cancel</Button>
@@ -1029,12 +1223,12 @@ function ConfirmCategorisation({ files, onBack, onConfirm }) {
 
 /* ───────────── DMS scan modal (D) ───────────── */
 
-function ModalShell({ open, onClose, children, width = 'max-w-2xl' }) {
+function ModalShell({ open, onClose, children, width = 'max-w-2xl', className }) {
   if (!open) return null
   return (
     <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
-      <div className={cn('relative w-full rounded-xl border border-border bg-background shadow-xl flex flex-col max-h-[85vh] overflow-hidden', width)}>
+      <div className={cn('relative w-full rounded-xl border border-border bg-background shadow-xl flex flex-col max-h-[85vh] overflow-hidden', width, className)}>
         {children}
       </div>
     </div>
@@ -1055,16 +1249,55 @@ function DmsScanModal({ provider, open, onClose, onConfirm }) {
 }
 
 function DmsScanModalInner({ provider, open, onClose, onConfirm }) {
-  const [phase, setPhase] = useState('scanning') // scanning | review
+  // Phases: scanning (1.6s loader) → picking (top-level folder tree with
+  // checkboxes; expandable for read-only preview) → mapping (review the
+  // proposed category mapping for the selected folders).
+  const [phase, setPhase] = useState('scanning')
+  const [selected, setSelected] = useState(() => new Set(DMS_FOLDER_MAPPING.map(r => r.folder)))
+  const [expanded, setExpanded] = useState(() => new Set())
+  // Per-row target overrides — lets the user remap a folder to a different
+  // category in the review step. Key: folder name. Value: categoryId | null.
+  // null means "don't import / unmapped".
+  const [targetOverrides, setTargetOverrides] = useState({})
+
+  function effectiveTargetId(row) {
+    return targetOverrides[row.folder] !== undefined ? targetOverrides[row.folder] : row.target
+  }
+  function setTarget(folder, categoryId) {
+    setTargetOverrides(prev => ({ ...prev, [folder]: categoryId }))
+  }
+
   useEffect(() => {
-    const id = setTimeout(() => setPhase('review'), 1800)
+    const id = setTimeout(() => setPhase('picking'), 1600)
     return () => clearTimeout(id)
   }, [])
 
   const { Icon } = provider
+  const totalFolders = DMS_FOLDER_MAPPING.length
+  const selectedFolders = useMemo(
+    () => DMS_FOLDER_MAPPING.filter(r => selected.has(r.folder)),
+    [selected],
+  )
+  const selectedDocCount = selectedFolders.reduce((sum, r) => sum + r.docs, 0)
+
+  function toggleSelect(folder) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(folder)) next.delete(folder); else next.add(folder)
+      return next
+    })
+  }
+
+  function toggleExpand(folder) {
+    setExpanded(prev => {
+      const next = new Set(prev)
+      if (next.has(folder)) next.delete(folder); else next.add(folder)
+      return next
+    })
+  }
 
   return (
-    <ModalShell open={open} onClose={onClose}>
+    <ModalShell open={open} onClose={onClose} className="bg-white">
       <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
         <div className="flex items-center gap-3">
           <Icon className="size-5" style={{ color: provider.color }} />
@@ -1075,7 +1308,7 @@ function DmsScanModalInner({ provider, open, onClose, onConfirm }) {
         </button>
       </div>
 
-      {phase === 'scanning' ? (
+      {phase === 'scanning' && (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-800 animate-pulse">
             <Sparkles className="size-6" />
@@ -1083,13 +1316,91 @@ function DmsScanModalInner({ provider, open, onClose, onConfirm }) {
           <p className="mt-5 text-base font-medium text-foreground">Scanning {provider.name}…</p>
           <p className="mt-1.5 text-sm text-muted-foreground">Reading your folder structure</p>
         </div>
-      ) : (
+      )}
+
+      {phase === 'picking' && (
         <>
           <div className="px-5 py-4 border-b border-border bg-muted/20">
             <p className="text-sm text-foreground">
-              Found <span className="font-medium">412 documents</span> across <span className="font-medium">18 folders</span>.
+              Select the folders Ethos should import.
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Review the proposed mapping below — Ethos will sync these on confirmation.</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {selected.size} of {totalFolders} folders selected · {selectedDocCount} documents
+            </p>
+          </div>
+          <div className="flex-1 overflow-auto">
+            {DMS_FOLDER_MAPPING.map(row => {
+              const target = CATEGORIES.find(c => c.id === row.target)
+              const isOpen = expanded.has(row.folder)
+              const isChecked = selected.has(row.folder)
+              return (
+                <div key={row.folder} className="border-b border-border last:border-b-0">
+                  <div className="flex items-center gap-3 px-5 py-3 hover:bg-muted/20">
+                    <button
+                      type="button"
+                      onClick={() => toggleExpand(row.folder)}
+                      aria-label={isOpen ? 'Collapse folder' : 'Expand folder'}
+                      className="flex size-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground shrink-0"
+                    >
+                      <ChevronDown className={cn('size-4 transition-transform', !isOpen && '-rotate-90')} />
+                    </button>
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => toggleSelect(row.folder)}
+                      aria-label={`Select ${row.folder}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleExpand(row.folder)}
+                      className="flex items-center gap-2 min-w-0 flex-1 text-left"
+                    >
+                      <FolderOpen className="size-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm text-foreground truncate">{row.folder}</span>
+                      <span className="text-xs text-muted-foreground shrink-0">{row.docs} docs</span>
+                    </button>
+                    <div className="shrink-0">
+                      {target ? (
+                        <Badge variant="outline" className="text-[11px] h-5 px-1.5 font-normal text-muted-foreground">
+                          → {target.name}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 text-[11px] h-5 px-1.5">
+                          Unmapped
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  {isOpen && row.children?.length > 0 && (
+                    <div className="bg-muted/10 border-t border-border/60 px-5 py-2 pl-[68px] space-y-1.5">
+                      {row.children.map(child => (
+                        <div key={child.name} className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <FileText className="size-3.5 shrink-0" />
+                          <span className="truncate">{child.name}</span>
+                          <span className="ml-auto shrink-0 opacity-70">{child.size}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-white">
+            <Button size="sm" variant="ghost" onClick={onClose}>Cancel</Button>
+            <Button size="sm" onClick={() => setPhase('mapping')} disabled={selected.size === 0}>
+              Continue → Review mapping
+            </Button>
+          </div>
+        </>
+      )}
+
+      {phase === 'mapping' && (
+        <>
+          <div className="px-5 py-4 border-b border-border bg-muted/20">
+            <p className="text-sm text-foreground">
+              Review the proposed mapping for <span className="font-medium">{selected.size} folders</span> ({selectedDocCount} documents).
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">Ethos will sync these on confirmation.</p>
           </div>
           <div className="flex-1 overflow-auto">
             <div className="grid grid-cols-12 gap-3 px-5 py-2.5 border-b border-border bg-muted/30 text-[10px] font-medium uppercase tracking-wider text-muted-foreground sticky top-0">
@@ -1097,37 +1408,67 @@ function DmsScanModalInner({ provider, open, onClose, onConfirm }) {
               <div className="col-span-5">Mapped to</div>
               <div className="col-span-2 text-right">Documents</div>
             </div>
-            {DMS_FOLDER_MAPPING.map(row => {
-              const target = CATEGORIES.find(c => c.id === row.target)
+            {selectedFolders.map(row => {
+              const targetId = effectiveTargetId(row)
+              const target = CATEGORIES.find(c => c.id === targetId)
               return (
                 <div key={row.folder} className="grid grid-cols-12 gap-3 items-center px-5 py-3 border-b border-border last:border-b-0 hover:bg-muted/20">
                   <div className="col-span-5 flex items-center gap-2 min-w-0">
                     <FolderOpen className="size-4 text-muted-foreground shrink-0" />
                     <span className="text-sm text-foreground truncate">{row.folder}</span>
                   </div>
-                  <div className="col-span-5 flex items-center gap-2 min-w-0">
-                    {target ? (
-                      <>
-                        <FileText className="size-3.5 text-brand-800" />
-                        <span className="text-sm text-foreground truncate">{target.name}</span>
-                      </>
-                    ) : (
-                      <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 text-[10px] h-5 px-1.5">
-                        Unmapped — review manually
-                      </Badge>
-                    )}
+                  <div className="col-span-5 min-w-0">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className={cn(
+                            'inline-flex items-center gap-2 rounded-md border px-2.5 h-8 hover:bg-muted/40 transition-colors max-w-full',
+                            target ? 'border-border bg-white' : 'border-amber-200 bg-amber-50',
+                          )}
+                        >
+                          {target ? (
+                            <>
+                              <FileText className="size-3.5 text-brand-800 shrink-0" />
+                              <span className="text-sm text-foreground truncate">{target.name}</span>
+                            </>
+                          ) : (
+                            <span className="text-sm text-amber-700">Don't import</span>
+                          )}
+                          <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-56">
+                        {CATEGORIES.map(c => (
+                          <DropdownMenuItem
+                            key={c.id}
+                            className={cn('text-sm gap-2', targetId === c.id && 'bg-accent font-medium')}
+                            onSelect={() => setTarget(row.folder, c.id)}
+                          >
+                            <FileText className="size-3.5 text-brand-800" />
+                            <span>{c.name}</span>
+                            {targetId === c.id ? <Check className="ml-auto size-3.5" /> : null}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className={cn('text-sm text-muted-foreground', targetId === null && 'bg-accent font-medium')}
+                          onSelect={() => setTarget(row.folder, null)}
+                        >
+                          Don't import
+                          {targetId === null ? <Check className="ml-auto size-3.5" /> : null}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   <div className="col-span-2 text-right text-sm text-muted-foreground">{row.docs}</div>
                 </div>
               )
             })}
           </div>
-          <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-background">
-            <p className="text-xs text-muted-foreground">You can re-run mapping any time after connecting.</p>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={onClose}>Cancel</Button>
-              <Button size="sm" onClick={onConfirm}>Confirm mapping</Button>
-            </div>
+          <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-white">
+            <Button size="sm" variant="ghost" onClick={() => setPhase('picking')}>← Back</Button>
+            <Button size="sm" onClick={onConfirm}>Confirm mapping</Button>
           </div>
         </>
       )}
@@ -1228,7 +1569,7 @@ function StarterPackModal({ open, onClose, onApply }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-background">
+      <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-white">
         <p className="text-xs text-muted-foreground">Ethos will pre-fill 14 expected policies, 6 contracts and 4 register items.</p>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={onClose}>Cancel</Button>
@@ -1410,7 +1751,7 @@ function SmartSyncModalInner({ onClose, onConfirm, alreadyConnected }) {
               )
             })}
           </div>
-          <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-background">
+          <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-white">
             <p className="text-xs text-muted-foreground">
               <span className="font-medium text-foreground">{selectedCount}</span> of {total} selected
             </p>
@@ -1429,20 +1770,19 @@ function SmartSyncModalInner({ onClose, onConfirm, alreadyConnected }) {
 
 /* ───────────── Add Files modal — overlay variant of the empty-state flow ───────────── */
 
-function AddFilesModal({ open, onClose, onConnectDms, onStarterPack, category }) {
+function AddFilesModal({ open, onClose, onConnectDms, category }) {
   if (!open) return null
   return (
     <AddFilesModalInner
       key={category?.id ?? 'general'}
       onClose={onClose}
       onConnectDms={onConnectDms}
-      onStarterPack={onStarterPack}
       category={category}
     />
   )
 }
 
-function AddFilesModalInner({ onClose, onConnectDms, onStarterPack, category }) {
+function AddFilesModalInner({ onClose, onConnectDms, category }) {
   // Phases:
   //   choose       — drop zone + DMS rail (entry state)
   //   categorising — unscoped flow only: AI sorting loader
@@ -1480,7 +1820,7 @@ function AddFilesModalInner({ onClose, onConnectDms, onStarterPack, category }) 
   }
 
   return (
-    <ModalShell open={true} onClose={onClose} width="max-w-3xl">
+    <ModalShell open={true} onClose={onClose} width="max-w-3xl" className="bg-white">
       <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
         <div className="flex items-center gap-3">
           <div className="flex size-8 items-center justify-center rounded-md bg-brand-50 text-brand-800">
@@ -1499,8 +1839,8 @@ function AddFilesModalInner({ onClose, onConnectDms, onStarterPack, category }) 
 
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-foreground">Or connect a source</span>
-              <span className="text-xs text-muted-foreground">— Ethos will scan and map your existing folders</span>
+              <span className="text-sm font-medium text-foreground">Upload from a cloud drive</span>
+              <span className="text-xs text-muted-foreground">— pull from your organisation's connected workspace</span>
               <div className="flex-1 h-px bg-border" />
             </div>
             <div className="grid grid-cols-5 gap-3">
@@ -1510,20 +1850,6 @@ function AddFilesModalInner({ onClose, onConnectDms, onStarterPack, category }) 
             </div>
           </div>
 
-          {!category && (
-            <div className="rounded-lg border border-border bg-muted/30 px-5 py-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex size-9 items-center justify-center rounded-lg bg-brand-50 text-brand-800 shrink-0">
-                  <Wand2 className="size-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">Don't have documents to add yet?</p>
-                  <p className="text-xs text-muted-foreground">Tell Ethos about your organisation and we'll suggest a starter pack.</p>
-                </div>
-              </div>
-              <Button size="sm" variant="outline" onClick={onStarterPack}>Get started</Button>
-            </div>
-          )}
         </div>
       )}
 
@@ -1532,7 +1858,7 @@ function AddFilesModalInner({ onClose, onConnectDms, onStarterPack, category }) 
       )}
 
       {phase === 'confirming' && (
-        <div className="overflow-auto px-5 py-5">
+        <div className="overflow-auto py-5">
           <ConfirmCategorisation
             files={filesForConfirm}
             onBack={() => setPhase('choose')}
@@ -1559,6 +1885,236 @@ function AddFilesModalInner({ onClose, onConnectDms, onStarterPack, category }) 
   )
 }
 
+/* ───────────── Per-row Upload modal — fulfils one specific baseline doc ───────────── */
+
+// Mock SharePoint search results. Returns 3-4 files inspired by the query
+// so the demo feels like a real search hit.
+function mockSharepointResults(query) {
+  const q = (query || '').toLowerCase().trim()
+  const all = [
+    { name: `${query}.pdf`,                  path: '/Legal & Governance/Constitution & Governing/', lastModified: '14 Mar 2026' },
+    { name: `${query} (signed copy).pdf`,    path: '/Legal & Governance/Executed/',                  lastModified: '02 Feb 2026' },
+    { name: `${query} - Draft v2.docx`,      path: '/Working Drafts/2025/',                          lastModified: '18 Nov 2025' },
+    { name: `${query} - Archive 2023.pdf`,   path: '/Archive/2023/',                                 lastModified: '21 Dec 2023' },
+  ]
+  if (!q) return all.slice(0, 3)
+  return all
+}
+
+function UploadSpecificDocModal({ suggestion, sharepointConnected, onClose }) {
+  if (!suggestion) return null
+  return (
+    <UploadSpecificDocModalInner
+      key={suggestion.name}
+      suggestion={suggestion}
+      sharepointConnected={sharepointConnected}
+      onClose={onClose}
+    />
+  )
+}
+
+function UploadSpecificDocModalInner({ suggestion, sharepointConnected, onClose }) {
+  const [search, setSearch] = useState(suggestion.name)
+  const [picked, setPicked] = useState(null) // { source: 'computer' | 'sharepoint', name?: string, path?: string }
+  const [phase, setPhase] = useState('choose') // choose | sharepoint | uploading
+  const category = CATEGORIES.find(c => c.id === suggestion.category)
+  const results = useMemo(() => mockSharepointResults(search), [search])
+
+  function handleConfirm() {
+    setPhase('uploading')
+    setTimeout(() => onClose(), 1200)
+  }
+
+  return (
+    <ModalShell open={true} onClose={onClose} width="max-w-lg" className="bg-white">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+        <div className="flex items-center gap-3 min-w-0">
+          {phase === 'sharepoint' ? (
+            <button
+              onClick={() => setPhase('choose')}
+              aria-label="Back"
+              className="flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground shrink-0"
+            >
+              <ArrowLeft className="size-4" />
+            </button>
+          ) : (
+            <div className="flex size-8 items-center justify-center rounded-md bg-brand-50 text-brand-800 shrink-0">
+              <Upload className="size-4" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">
+              {phase === 'sharepoint' ? `Search SharePoint for ${suggestion.name}` : `Upload ${suggestion.name}`}
+            </p>
+            {phase !== 'sharepoint' && category ? (
+              <p className="text-xs text-muted-foreground truncate">Fulfils a {category.name} baseline</p>
+            ) : null}
+          </div>
+        </div>
+        <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground shrink-0">
+          <X className="size-4" />
+        </button>
+      </div>
+
+      {phase === 'choose' && (
+        <div className="px-5 py-5 space-y-5 overflow-auto bg-white">
+          {/* Section 1 — From your computer (drop zone) */}
+          <section className="space-y-2">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">From your computer</p>
+            <button
+              type="button"
+              onClick={() => setPicked({ source: 'computer', name: `${suggestion.name}.pdf` })}
+              className={cn(
+                'w-full rounded-lg border-2 border-dashed px-5 py-6 text-left transition-all flex items-center gap-3',
+                picked?.source === 'computer'
+                  ? 'border-brand-700 bg-brand-50/50'
+                  : 'border-border hover:border-brand-400 hover:bg-muted/30',
+              )}
+            >
+              <div className="flex size-9 items-center justify-center rounded-full bg-brand-50 text-brand-800 shrink-0">
+                <Upload className="size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                {picked?.source === 'computer' ? (
+                  <>
+                    <p className="text-sm font-medium text-foreground truncate">{picked.name}</p>
+                    <p className="text-xs text-muted-foreground">Ready to upload</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium text-foreground">Drop the file here, or click to browse</p>
+                    <p className="text-xs text-muted-foreground">PDF, DOCX, XLSX, PPTX up to 50 MB</p>
+                  </>
+                )}
+              </div>
+              {picked?.source === 'computer' ? (
+                <Check className="size-4 text-brand-700 shrink-0" />
+              ) : null}
+            </button>
+          </section>
+
+          {/* Section 2 — From SharePoint (card → next screen) */}
+          <section className="space-y-2">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">From SharePoint</p>
+            {sharepointConnected ? (
+              <button
+                type="button"
+                onClick={() => setPhase('sharepoint')}
+                className={cn(
+                  'w-full rounded-lg border px-4 py-3 text-left transition-colors flex items-center gap-3',
+                  picked?.source === 'sharepoint'
+                    ? 'border-brand-700 bg-brand-50/50'
+                    : 'border-border hover:border-brand-400 hover:bg-muted/30',
+                )}
+              >
+                <div className="flex size-9 items-center justify-center rounded-md bg-muted text-foreground shrink-0">
+                  <Search className="size-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  {picked?.source === 'sharepoint' ? (
+                    <>
+                      <p className="text-sm font-medium text-foreground truncate">{picked.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{picked.path}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium text-foreground">Upload from SharePoint</p>
+                      <p className="text-xs text-muted-foreground">Search your connected SharePoint workspace</p>
+                    </>
+                  )}
+                </div>
+                {picked?.source === 'sharepoint' ? (
+                  <Check className="size-4 text-brand-700 shrink-0" />
+                ) : (
+                  <ChevronDown className="-rotate-90 size-4 text-muted-foreground shrink-0" />
+                )}
+              </button>
+            ) : (
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 flex items-center gap-3">
+                <div className="size-8 flex items-center justify-center rounded bg-brand-50 text-brand-800 shrink-0">
+                  <Sparkles className="size-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">Connect SharePoint to search your existing docs</p>
+                  <p className="text-xs text-muted-foreground">Available once you've connected a source.</p>
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+
+      {phase === 'sharepoint' && (
+        <div className="px-5 py-5 space-y-3 overflow-auto bg-white">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search SharePoint"
+              className="h-9 pl-9"
+              autoFocus
+            />
+          </div>
+          <div className="rounded-lg border border-border overflow-hidden">
+            {results.length === 0 ? (
+              <p className="px-4 py-6 text-center text-xs text-muted-foreground">No matches.</p>
+            ) : results.map(r => {
+              const isSelected = picked?.source === 'sharepoint' && picked.name === r.name
+              return (
+                <button
+                  key={r.name + r.path}
+                  type="button"
+                  onClick={() => setPicked({ source: 'sharepoint', name: r.name, path: r.path })}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2.5 border-b border-border last:border-b-0 text-left transition-colors',
+                    isSelected ? 'bg-brand-50' : 'hover:bg-muted/30',
+                  )}
+                >
+                  <FileText className="size-4 text-muted-foreground shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{r.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{r.path}</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0">{r.lastModified}</span>
+                  {isSelected ? <Check className="size-4 text-brand-700 shrink-0" /> : null}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {phase === 'uploading' && (
+        <div className="flex flex-col items-center justify-center py-14 bg-white">
+          <div className="flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-800 animate-pulse">
+            <Upload className="size-6" />
+          </div>
+          <p className="mt-5 text-base font-medium text-foreground">Adding {suggestion.name}…</p>
+          <p className="mt-1.5 text-xs text-muted-foreground">From {picked?.source === 'sharepoint' ? 'SharePoint' : 'your computer'}</p>
+        </div>
+      )}
+
+      {phase !== 'uploading' && (
+        <div className="flex items-center justify-between gap-2 border-t border-border px-5 py-3 bg-white">
+          {phase === 'sharepoint' ? (
+            <Button size="sm" variant="ghost" onClick={() => setPhase('choose')}>← Back</Button>
+          ) : (
+            <Button size="sm" variant="ghost" onClick={onClose}>Cancel</Button>
+          )}
+          <Button
+            size="sm"
+            onClick={phase === 'sharepoint' ? () => { setPhase('choose') } : handleConfirm}
+            disabled={phase === 'sharepoint' ? picked?.source !== 'sharepoint' : !picked}
+          >
+            {phase === 'sharepoint' ? 'Confirm selection' : 'Upload'}
+          </Button>
+        </div>
+      )}
+    </ModalShell>
+  )
+}
+
 /* ───────────── Page (state machine) ───────────── */
 
 export default function VaultPage() {
@@ -1571,7 +2127,8 @@ export default function VaultPage() {
   const [addFilesOpen, setAddFilesOpen] = useState(false)
   const [addFilesCategory, setAddFilesCategory] = useState(null) // null = unscoped (populated "Add Files")
   const [smartSyncOpen, setSmartSyncOpen] = useState(false)
-  const [smartSyncConnected, setSmartSyncConnected] = useState(false)
+  const [smartSyncConnected, setSmartSyncConnected] = useState(true)
+  const [uploadSpecificFor, setUploadSpecificFor] = useState(null)
 
   const mode = forceEmpty ? 'empty' : 'populated'
 
@@ -1625,13 +2182,14 @@ export default function VaultPage() {
 
   return (
     <div className="flex-1 overflow-auto bg-white">
-      <div className="mx-auto max-w-[1180px] px-8 py-8">
+      <div className="mx-auto max-w-[1200px] px-8 py-8">
         <PopulatedView
           empty={mode === 'empty'}
           onPreviewEmpty={goPreviewEmpty}
           onPreviewPopulated={goPopulated}
           onAddFiles={() => openAddFiles(null)}
           onAddCategory={(cat) => openAddFiles(cat)}
+          onUploadSpecific={(s) => setUploadSpecificFor(s)}
           onOpenSettings={() => navigate('/admin/vault')}
         />
 
@@ -1639,7 +2197,6 @@ export default function VaultPage() {
           open={addFilesOpen}
           onClose={closeAddFiles}
           onConnectDms={openDms}
-          onStarterPack={() => setStarterOpen(true)}
           category={addFilesCategory}
         />
         <SmartSyncModal
@@ -1653,6 +2210,11 @@ export default function VaultPage() {
           open={!!dmsProvider}
           onClose={() => setDmsProvider(null)}
           onConfirm={confirmDms}
+        />
+        <UploadSpecificDocModal
+          suggestion={uploadSpecificFor}
+          sharepointConnected={smartSyncConnected}
+          onClose={() => setUploadSpecificFor(null)}
         />
         <StarterPackModal
           open={starterOpen}

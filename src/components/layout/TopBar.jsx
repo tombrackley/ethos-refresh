@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { PATH_TO_PAGE } from '@/lib/routes'
 import tenant from '@/config/tenant'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { User, Settings, UserCog, LogOut } from 'lucide-react'
+import { User, Settings, UserCog, LogOut, ChevronLeft } from 'lucide-react'
 import { IconBell } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconBell'
 import { IconCalendar1 } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconCalendar1'
 
@@ -27,69 +27,50 @@ function topbarBgClass(pathname) {
   return 'bg-background'
 }
 
-// Display overrides for awkward leaf names (parent prefix duplicated, etc).
-const BREADCRUMB_OVERRIDES = {
-  'Govern Meetings': 'Meetings',
+// Direct parent overrides for routes whose parent can't be inferred by
+// walking up segments (e.g. `/matter/:id` lives under the `/matters` listing).
+const PARENT_OVERRIDES = {
+  '/matter': '/matters',
 }
 
-function displayLabel(label) {
-  if (!label) return ''
-  if (label.startsWith('Admin:')) return label.replace('Admin:', '')
-  return BREADCRUMB_OVERRIDES[label] ?? label
-}
-
-function breadcrumbsFromPath(pathname) {
-  if (pathname === '/' && PATH_TO_PAGE['/']) {
-    return [{ label: PATH_TO_PAGE['/'], path: '/' }]
+// Returns the parent path for a "go back" action, or null when this is a
+// landing page / tab inside a shell (i.e., already a known top-level route).
+// Sibling tabs within a shell (e.g. `/govern/meetings`) are NOT back-navigable;
+// the back chevron only activates when you've navigated INTO a detail page.
+function getParentPath(pathname) {
+  // Explicit override prefixes win.
+  for (const [prefix, parent] of Object.entries(PARENT_OVERRIDES)) {
+    if (pathname.startsWith(`${prefix}/`)) return parent
   }
-
+  // Known routes (section roots and tabs) have no "back" — they're peers.
+  if (PATH_TO_PAGE[pathname]) return null
+  // Otherwise walk up segments looking for the nearest known parent route.
   const segments = pathname.split('/').filter(Boolean)
-  const crumbs = []
-
-  // Admin routes always read "Admin / <Page>". The Admin root has no route, so
-  // its crumb falls back to the first admin page.
-  if (segments[0] === 'admin') {
-    crumbs.push({ label: 'Admin', path: '/admin/organisation-profile' })
-    const tryPath = '/' + segments.join('/')
-    const label = PATH_TO_PAGE[tryPath]
-    if (label) crumbs.push({ label: displayLabel(label), path: tryPath })
-    return crumbs
-  }
-
-  for (let i = 1; i <= segments.length; i++) {
+  for (let i = segments.length - 1; i >= 1; i--) {
     const tryPath = '/' + segments.slice(0, i).join('/')
-    const label = PATH_TO_PAGE[tryPath]
-    if (label) crumbs.push({ label: displayLabel(label), path: tryPath })
+    if (PATH_TO_PAGE[tryPath]) return tryPath
   }
-
-  return crumbs.filter((c, i) => c.label !== crumbs[i - 1]?.label)
+  return null
 }
 
 export function TopBar({ onLogout }) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const [askEthosOpen, setAskEthosOpen] = useState(false)
-  const crumbs = breadcrumbsFromPath(pathname)
+  const parentPath = getParentPath(pathname)
+  const canGoBack = parentPath !== null
 
   return (
     <header className={`flex h-11 shrink-0 items-center justify-between border-b border-[#EFEFEF] px-4 ${topbarBgClass(pathname)}`}>
-      <nav aria-label="Breadcrumb" className="flex items-center text-xs font-medium text-[#A1A1A1]">
-        {crumbs.map((c, i) => {
-          const isLast = i === crumbs.length - 1
-          return (
-            <span key={`${c.path}-${i}`} className="flex items-center">
-              {i > 0 && <span className="mx-1.5 text-[#A1A1A1]/60">/</span>}
-              {isLast ? (
-                <span className="text-foreground/70" aria-current="page">{c.label}</span>
-              ) : (
-                <Link to={c.path} className="hover:text-foreground transition-colors">
-                  {c.label}
-                </Link>
-              )}
-            </span>
-          )
-        })}
-      </nav>
+      <button
+        type="button"
+        onClick={() => canGoBack && navigate(parentPath)}
+        disabled={!canGoBack}
+        aria-label="Back"
+        className="flex size-7 items-center justify-center rounded-md text-foreground/70 hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-foreground/70"
+      >
+        <ChevronLeft className="size-4" />
+      </button>
       <div className="flex items-center gap-3">
         <button
           type="button"

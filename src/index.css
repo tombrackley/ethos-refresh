@@ -460,3 +460,8 @@ html {
   font-weight: 600;
   font-size: 14px;
 }
+
+@keyframes liquid-shimmer {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(280%); }
+}
