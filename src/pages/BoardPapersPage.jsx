@@ -12,6 +12,8 @@ import tenant from '@/config/tenant'
 
 const PAPERS = tenant.pages.govern.boardPapers ?? []
 const MEETINGS = tenant.pages.govern.meetings ?? []
+const BOARDS = tenant.pages.govern.boards ?? []
+const BOARDS_COMMITTEES = tenant.pages.govern.boardsCommittees ?? []
 
 const STAGE_STYLE = {
   Draft:           'border-slate-200 bg-slate-50 text-slate-700',

@@ -156,7 +156,10 @@ export function PackAssemblyCard({ meeting, papers, initiallyExpanded = false })
   const [pushedAt, setPushedAt] = useState(null)
   const [chaseToast, setChaseToast] = useState(null)
 
-  const agenda = meeting.agenda ?? []
+  const agenda = useMemo(
+    () => (Array.isArray(meeting.agenda) ? meeting.agenda : []),
+    [meeting.agenda],
+  )
   const date = parseMeetingDate(meeting.dateTime)
   const daysUntil = daysFromNow(date)
 
