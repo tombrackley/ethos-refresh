@@ -1,4 +1,4 @@
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { SubsectionRail } from '@/components/shared/SubsectionRail'
 import { Badge } from '@/components/ui/badge'
 import tenant from '@/config/tenant'
 
@@ -175,46 +175,20 @@ function DeedsTab() {
   )
 }
 
-const TABS = [
-  { value: 'entities',       label: 'Entity Structure',  Component: EntitiesTab       },
-  { value: 'directors',      label: 'Director Register', Component: DirectorsTab      },
-  { value: 'officers',       label: 'Officer Register',  Component: OfficersTab       },
-  { value: 'related',        label: 'Related Parties',   Component: RelatedPartiesTab },
-  { value: 'deeds',          label: 'Deeds',             Component: DeedsTab          },
+const SECTIONS = [
+  { id: 'entities',  label: 'Entity Structure',  render: () => <EntitiesTab /> },
+  { id: 'directors', label: 'Director Register', render: () => <DirectorsTab /> },
+  { id: 'officers',  label: 'Officer Register',  render: () => <OfficersTab /> },
+  { id: 'related',   label: 'Related Parties',   render: () => <RelatedPartiesTab /> },
+  { id: 'deeds',     label: 'Deeds',             render: () => <DeedsTab /> },
 ]
 
 export default function CompanyRegisterPage() {
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-
-          <div>
-            <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Company register</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Entities, directors, officers, related parties, and deeds.
-            </p>
-          </div>
-
-          <Tabs defaultValue="directors" className="w-full">
-            <TabsList variant="line" className="border-b border-border w-full justify-start">
-              {TABS.map(t => (
-                <TabsTrigger key={t.value} value={t.value} className="h-9 px-4 text-sm grow-0 basis-auto">
-                  {t.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {TABS.map(t => {
-              const C = t.Component
-              return (
-                <TabsContent key={t.value} value={t.value} className="mt-6 focus-visible:outline-none">
-                  <C />
-                </TabsContent>
-              )
-            })}
-          </Tabs>
-
+    <div className="flex flex-1">
+      <div className="flex-1 p-6">
+        <div className="max-w-7xl mx-auto">
+          <SubsectionRail items={SECTIONS} defaultId="directors" />
         </div>
       </div>
     </div>

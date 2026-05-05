@@ -1,4 +1,4 @@
-# Design: Feature Flags for a Static SPA (Vite + Amplify)
+# Design: Feature Flags for a Static SPA (Vite)
 
 **Status:** Implemented
 **Owner:** leon@ethikagroup.com.au
@@ -269,7 +269,7 @@ Legend: ✅ = done, ⬜ = not started.
 
 ### Phase 3 — Env-specific CI (deferred)
 
-- ⬜ Extend `.github/workflows/deploy-amplify.yml` to pass `--mode` per branch (§4). Only needed when we want a non-`main` branch to deploy with a different flag set.
+- ⬜ Extend the deploy workflow to pass `--mode` per branch (§4). Only needed when we want a non-`main` branch to deploy with a different flag set.
 - ⬜ Add an env-specific override driven from CI to prove the axis end-to-end.
 
 ### Phase 4 — Cleanup discipline (ongoing)

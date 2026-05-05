@@ -1,4 +1,4 @@
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { SubsectionRail } from '@/components/shared/SubsectionRail'
 import { Badge } from '@/components/ui/badge'
 import tenant from '@/config/tenant'
 
@@ -83,33 +83,17 @@ function ApprovalMatrix() {
   )
 }
 
+const SECTIONS = [
+  { id: 'register', label: 'Register',        render: () => <RegisterTable /> },
+  { id: 'matrix',   label: 'Approval matrix', render: () => <ApprovalMatrix /> },
+]
+
 export default function DelegationsPage() {
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-
-          <div>
-            <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Delegations of authority</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Active delegations register and the approval matrix across roles and categories.
-            </p>
-          </div>
-
-          <Tabs defaultValue="register" className="w-full">
-            <TabsList variant="line" className="border-b border-border w-full justify-start">
-              <TabsTrigger value="register" className="h-9 px-4 text-sm grow-0 basis-auto">Register</TabsTrigger>
-              <TabsTrigger value="matrix"   className="h-9 px-4 text-sm grow-0 basis-auto">Approval matrix</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="register" className="mt-6 focus-visible:outline-none">
-              <RegisterTable />
-            </TabsContent>
-            <TabsContent value="matrix" className="mt-6 focus-visible:outline-none">
-              <ApprovalMatrix />
-            </TabsContent>
-          </Tabs>
-
+    <div className="flex flex-1">
+      <div className="flex-1 p-6">
+        <div className="max-w-7xl mx-auto">
+          <SubsectionRail items={SECTIONS} />
         </div>
       </div>
     </div>

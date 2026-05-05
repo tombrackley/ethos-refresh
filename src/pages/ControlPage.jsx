@@ -29,6 +29,7 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { AiSummaryBar } from '@/components/shared/AiSummaryBar'
+import { MetricsStrip } from '@/components/shared/MetricsStrip'
 import Feature from '@/components/Feature'
 import tenant from '@/config/tenant'
 
@@ -171,21 +172,8 @@ export default function ControlPage() {
             </span>
           </div>
 
-          {/* AI Summary */}
-          <Feature flag="FEATURE_AI_SUMMARY_BAR">
-            <AiSummaryBar points={AI_SUMMARY} onOpenDrawer={() => setDrawerOpen(true)} />
-          </Feature>
-
           {/* KPI row */}
-          <div className="grid grid-cols-4 divide-x divide-border/60 border border-border/60 rounded overflow-hidden bg-white">
-            {KPIS.map(k => (
-              <div key={k.label} className="px-5 py-4">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">{k.label}</p>
-                <p className={`font-medium tracking-tight mb-1.5 ${k.primary ? 'text-3xl text-brand-800' : 'text-2xl text-foreground'}`}>{k.value}</p>
-                <Delta dir={k.dir} delta={k.delta} />
-              </div>
-            ))}
-          </div>
+          <MetricsStrip items={KPIS} />
 
           {/* Matters Overview */}
           <div className="border border-border/60 overflow-hidden rounded bg-white">

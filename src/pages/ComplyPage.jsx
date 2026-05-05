@@ -3,9 +3,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { AiSummaryBar } from '@/components/shared/AiSummaryBar'
+import { MetricsStrip } from '@/components/shared/MetricsStrip'
 import Feature from '@/components/Feature'
 import {
-  CheckCircle2, AlertCircle, Clock, ChevronRight, Sparkles,
+  CheckCircle2, AlertCircle, Clock, ChevronRight, ChevronDown, Sparkles,
   AlertTriangle, ShieldCheck, Scale, GraduationCap, Flame,
   ClipboardCheck, Check, TrendingUp, TrendingDown, Minus, FileText,
   X, ListChecks, Flag,
@@ -280,38 +281,27 @@ export default function ComplyPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto p-6">
+    <div className="flex flex-1">
+      <div className="flex-1 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Comply</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Know what applies to you, what applies to your clients, what must be done, and prove compliance instantly.
-            </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Compliance Level</span>
+            <span className="inline-flex items-center gap-1.5 h-6 px-2 rounded-full border border-border bg-white text-xs font-medium text-foreground">
+              <span className="size-1.5 rounded-full bg-emerald-500" />
+              Good
+            </span>
           </div>
-          <Button size="sm" className="gap-1.5">
+
+          <Button variant="outline" size="sm" className="gap-1.5">
             <ClipboardCheck className="size-4" /> Prepare Report
           </Button>
         </div>
 
-        {/* AI Summary */}
-        <Feature flag="FEATURE_AI_SUMMARY_BAR">
-          <AiSummaryBar points={COMPLY_AI_POINTS} onOpenDrawer={() => setDrawerOpen(true)} />
-        </Feature>
-
         {/* KPI row */}
-        <div className={`grid ${KPIS.length === 5 ? 'grid-cols-5' : 'grid-cols-4'} divide-x divide-border/60 border border-border/60 rounded overflow-hidden bg-white`}>
-          {KPIS.map(k => (
-            <div key={k.label} className="px-5 py-4">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">{k.label}</p>
-              <p className={`font-medium tracking-tight mb-1.5 ${k.primary ? 'text-3xl text-brand-800' : 'text-2xl text-foreground'}`}>{k.value}</p>
-              <Delta dir={k.dir} delta={k.delta} invert={k.invert} />
-            </div>
-          ))}
-        </div>
+        <MetricsStrip items={KPIS} />
 
         {/* Row 1: Compliance Breakdown + Nearest Deadlines */}
         <div className="border border-border/60 overflow-hidden rounded bg-white">

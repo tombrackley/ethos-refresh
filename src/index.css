@@ -12,6 +12,7 @@ html {
 /* Brand color scale — #153E40 at 800, mint-like light shades */
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     --color-brand-50:  oklch(0.972 0.015 175);
     --color-brand-100: oklch(0.940 0.038 178);
     --color-brand-200: oklch(0.893 0.065 180);
@@ -74,6 +75,7 @@ html {
     --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
     --color-sidebar-accent: var(--sidebar-accent);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-nav-muted: var(--sidebar-nav-muted);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
 }
@@ -107,8 +109,9 @@ html {
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: oklch(0.270 0.053 192); /* brand — active nav items */
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);  /* neutral hover */
-    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-accent: #EBEDF0;          /* active / hover bg, slightly darker than sidebar */
+    --sidebar-accent-foreground: #090909; /* active nav item icon + label */
+    --sidebar-nav-muted: #828C9B;       /* inactive nav item icon + label */
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.270 0.053 192);
 }

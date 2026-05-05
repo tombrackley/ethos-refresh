@@ -104,8 +104,8 @@ export default function TimeEfficiencyPage() {
   const [activeTab, setActiveTab] = useState('Time Entry')
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto px-6 pt-[60px] pb-6">
+    <div className="flex flex-1">
+      <div className="flex-1 px-6 pt-[60px] pb-6">
         <div className="max-w-7xl mx-auto space-y-10">
 
           {/* ── Gradient Hero ─────────────────────────────────────── */}
@@ -114,11 +114,7 @@ export default function TimeEfficiencyPage() {
             <div className="relative space-y-6">
 
               {/* Header row */}
-              <div className="flex items-end justify-between">
-                <div className="space-y-[9px]">
-                  <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Time &amp; Effort</h1>
-                  <p className="text-sm text-muted-foreground">Understand where time and effort are being spent across matters and identify opportunities to improve efficiency.</p>
-                </div>
+              <div className="flex items-end justify-end">
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="h-6 gap-1 text-xs">
                     <Clock className="size-3" /> RescueTime

@@ -483,8 +483,8 @@ export default function LearnPage() {
     const loggedCount = elements.filter(e => learningLogs[e.id]).length
 
     return (
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 overflow-auto px-6 pt-[60px] pb-6">
+      <div className="flex flex-1">
+        <div className="flex-1 px-6 pt-[60px] pb-6">
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Back */}
             <button onClick={() => setViewingJourney(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -515,8 +515,8 @@ export default function LearnPage() {
 
   // ── Main Learn Page ──
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto px-6 pt-[60px] pb-6">
+    <div className="flex flex-1">
+      <div className="flex-1 px-6 pt-[60px] pb-6">
         <div className="max-w-7xl mx-auto space-y-[60px]">
 
           {/* ── Hero: Header + Learning Profile ─────────────────────── */}
@@ -525,11 +525,7 @@ export default function LearnPage() {
           <div className="absolute left-[calc(-50vw+50%)] right-[calc(-50vw+50%)] top-[-60px] h-[422px] bg-gradient-to-b from-[rgba(209,250,229,0.1)] to-[#F9FAFB] pointer-events-none" />
 
           {/* ── Header ──────────────────────────────────────────────── */}
-          <div className="flex items-end justify-between relative">
-            <div className="space-y-[9px]">
-              <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Your Learning Overview</h1>
-              <p className="text-sm text-muted-foreground">CPD tracking, skills development &amp; learning pathways</p>
-            </div>
+          <div className="flex items-end justify-end relative">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="size-3.5" />
               CPD period ends {CPD_SUMMARY.periodEnd}

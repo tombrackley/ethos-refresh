@@ -207,8 +207,8 @@ export default function CPDTrackerPage() {
   }
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto px-6 pt-[60px] pb-6">
+    <div className="flex flex-1">
+      <div className="flex-1 px-6 pt-[60px] pb-6">
         <div className="max-w-7xl mx-auto space-y-10">
 
           {/* ── Gradient Hero ─────────────────────────────────────── */}
@@ -217,11 +217,7 @@ export default function CPDTrackerPage() {
             <div className="relative space-y-6">
 
               {/* Header row */}
-              <div className="flex items-end justify-between">
-                <div className="space-y-[9px]">
-                  <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">CPD Tracker</h1>
-                  <p className="text-sm text-muted-foreground">CPD tracking, skills development & learning pathways</p>
-                </div>
+              <div className="flex items-end justify-end">
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Clock className="size-3.5" /> CPD period ends 30 Jun 2026

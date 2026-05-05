@@ -73,8 +73,8 @@ export default function ObligationsPage() {
   }, [filterId, regulatorFilter, search])
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto p-6">
+    <div className="flex flex-1">
+      <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
 
           <div className="flex items-start justify-between gap-4">

@@ -227,8 +227,8 @@ export default function RiskRegisterPage() {
   const selectCls = 'h-7 text-xs px-2.5 rounded border border-border/60 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-brand-300 cursor-pointer'
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto p-6">
+    <div className="flex flex-1">
+      <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
 
           {/* Header */}

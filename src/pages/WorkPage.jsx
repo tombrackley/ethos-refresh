@@ -5,6 +5,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import { AiSummaryBar } from '@/components/shared/AiSummaryBar'
+import { MetricsStrip } from '@/components/shared/MetricsStrip'
 import Feature from '@/components/Feature'
 import {
   TrendingUp, Plus, Search, Filter, CalendarDays, AlertTriangle,
@@ -39,10 +40,10 @@ const DUE_THIS_WEEK_COUNT  = WORK_DEADLINES.filter(d => {
 const OVERDUE_COUNT = WORK_MATTERS.filter(m => m.status === 'Behind').length
 
 const KPI_TILES = [
-  { label: 'Active Matters',         value: String(ACTIVE_MATTER_COUNT)        },
-  { label: 'Team Utilisation',       value: `${TEAM_UTILISATION_AVG}%`         },
-  { label: 'Matters Due This Week',  value: String(DUE_THIS_WEEK_COUNT)        },
-  { label: 'Overdue',                value: String(OVERDUE_COUNT), tone: 'amber' },
+  { label: 'Active Matters',        value: String(ACTIVE_MATTER_COUNT),     prev: '45 last month',  delta: '+2',   dir: 'up', primary: true },
+  { label: 'Team Utilisation',      value: `${TEAM_UTILISATION_AVG}%`,      prev: '74.8% last month', delta: '+3.2%', dir: 'up' },
+  { label: 'Matters Due This Week', value: String(DUE_THIS_WEEK_COUNT),     prev: '8 last month',   delta: '-2',   dir: 'down', invert: true },
+  { label: 'Overdue',               value: String(OVERDUE_COUNT),           prev: '4 last month',   delta: '-1',   dir: 'down', invert: true },
 ]
 
 const DEADLINE_DATE_STYLE = {
@@ -206,35 +207,19 @@ export default function WorkPage({ onNavigateMatter }) {
   }, {})
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto p-6">
+    <div className="flex flex-1">
+      <div className="flex-1 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">{t.title}</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">{t.description}</p>
-          </div>
+        <div className="flex items-start justify-end">
           <Button size="sm" className="gap-1.5">
             <Plus className="size-4" /> {t.newButton}
           </Button>
         </div>
 
-        {/* AI Summary Bar */}
-        <Feature flag="FEATURE_AI_SUMMARY_BAR">
-          <AiSummaryBar points={WORK_AI_POINTS} onOpenDrawer={() => setDrawerOpen(true)} />
-        </Feature>
-
         {/* KPI tiles */}
-        <div className="grid grid-cols-4 divide-x divide-border/60 border border-border/60 rounded overflow-hidden bg-white">
-          {KPI_TILES.map(k => (
-            <div key={k.label} className="px-5 py-4">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">{k.label}</p>
-              <p className={`text-3xl font-medium tracking-tight ${k.tone === 'amber' ? 'text-amber-600' : 'text-foreground'}`}>{k.value}</p>
-            </div>
-          ))}
-        </div>
+        <MetricsStrip items={KPI_TILES} />
 
         {/* Matters Overview + Performance */}
         <div className="grid grid-cols-2 divide-x divide-border/60 border border-border/60 overflow-hidden rounded bg-white">

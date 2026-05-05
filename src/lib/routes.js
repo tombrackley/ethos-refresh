@@ -1,7 +1,9 @@
 // Map URL paths to page names (used by sidebar for active state)
 export const PATH_TO_PAGE = {
   '/': 'Control',
-  '/matters': 'Matters',
+  '/home': 'Home',
+  '/home/kanban': 'Kanban',
+  '/matters': 'Work',
   '/matter/:id': 'MatterDetail',
   '/respond': 'Respond',
   '/meet': 'Meet',
@@ -15,7 +17,6 @@ export const PATH_TO_PAGE = {
   '/comply/legislation': 'Legislation & Regulatory Landscape',
   '/comply/obligations': 'Obligations Register',
   '/govern': 'Govern',
-  '/govern/boards-committees': 'Boards & Committees',
   '/govern/meetings': 'Govern Meetings',
   '/govern/board-papers': 'Board Papers',
   '/govern/policies': 'Policies & Procedures',
@@ -27,7 +28,7 @@ export const PATH_TO_PAGE = {
   '/insights': 'Insights',
   '/learn': 'Learn',
   '/learn/journeys': 'Learning Journeys',
-  '/learn/knowledge': 'Knowledge Centre',
+  '/knowledge': 'Knowledge Centre',
   '/learn/cpd': 'CPD Tracker',
   '/learn/cpd/events': 'CPD Events',
   '/learn/skills': 'Skills Profile',

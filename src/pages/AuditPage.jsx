@@ -303,9 +303,9 @@ export default function AuditPage() {
   const [assuranceTab, setAssuranceTab] = useState(0)
 
   return (
-    <div className="flex flex-1 overflow-hidden">
+    <div className="flex flex-1">
       {/* Main content */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
 
           {/* Page Header */}

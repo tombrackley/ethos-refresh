@@ -86,11 +86,11 @@ Pick a mode based on what the customer gets.
 
 ### Mode A — one shared build, path-prefix URLs (default)
 
-One build serves every tenant. Customers reach their app at `https://<shared-host>/<tenant-id>`. This is what Amplify is currently wired to do and is the lowest-effort path for internal demos and multi-tenant previews.
+One build serves every tenant. Customers reach their app at `https://<shared-host>/<tenant-id>`. This is the lowest-effort path for internal demos and multi-tenant previews.
 
 **Requirements:**
 - `npm run build` (no `VITE_TENANT` needed). All `configs.*` ship in the bundle.
-- SPA rewrite that sends every unknown path to `/index.html` so `/<tenant-id>` loads the app instead of 404'ing. Amplify: already applied (see the Amplify design doc). Vercel: `rewrites: [{ source: "/(.*)", destination: "/index.html" }]`.
+- SPA rewrite that sends every unknown path to `/index.html` so `/<tenant-id>` loads the app instead of 404'ing. On Vercel: `rewrites: [{ source: "/(.*)", destination: "/index.html" }]`.
 
 **How resolution works at runtime:** `tenant.js` checks, in order: `location.pathname` → `sessionStorage.ethos_auth.tenant` (from login) → `VITE_TENANT` → `default`. Path wins, so bookmarked URLs beat any stale login session.
 
@@ -101,7 +101,6 @@ One build serves every tenant. Customers reach their app at `https://<shared-hos
 Use when a customer wants a dedicated hostname and no path prefix — e.g. `blackmores.app.example.com/`. Set `VITE_TENANT=<id>` in the deploy target's environment variables, then build with `npm run build:<id>` (or just `npm run build` since the env var is read at build time). The pathname resolver still works on top, so `/<other-tenant>` would still switch — avoid linking to those paths on customer-branded deploys if you want them to feel single-tenant.
 
 **Vercel:** set `VITE_TENANT=<id>` in the project's Environment Variables.
-**Amplify:** split into per-tenant apps, or parameterise the build command in the app's build settings.
 
 ## Common scenarios
 

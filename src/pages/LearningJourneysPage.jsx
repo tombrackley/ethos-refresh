@@ -326,8 +326,8 @@ export default function LearningJourneysPage() {
     const loggedCount = elements.filter(e => learningLogs[e.id]).length
 
     return (
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 overflow-auto px-6 pt-[60px] pb-6">
+      <div className="flex flex-1">
+        <div className="flex-1 px-6 pt-[60px] pb-6">
           <div className="max-w-4xl mx-auto space-y-6">
             <button onClick={() => setViewingJourney(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="size-4" /> Back to Learning Journeys
@@ -360,22 +360,14 @@ export default function LearningJourneysPage() {
   const completedJourneys = ALL_JOURNEYS.filter(j => j.status === 'completed')
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto px-6 pt-[60px] pb-6">
+    <div className="flex flex-1">
+      <div className="flex-1 px-6 pt-[60px] pb-6">
         <div className="max-w-7xl mx-auto space-y-[60px]">
 
           {/* ── Gradient Hero ─────────────────────────────────────── */}
           <div className="relative -mx-6 -mt-[60px] px-6 pt-[60px] pb-6">
             <div className="pointer-events-none absolute inset-0 left-[calc(-50vw+50%)] w-screen bg-gradient-to-b from-[rgba(209,250,229,0.1)] to-[#F9FAFB]" />
             <div className="relative space-y-6">
-
-              {/* Header row */}
-              <div className="flex items-end justify-between">
-                <div className="space-y-[9px]">
-                  <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Learning Journeys</h1>
-                  <p className="text-sm text-muted-foreground">Structured pathways to develop your professional skills and knowledge</p>
-                </div>
-              </div>
 
               {/* ── Your Journeys Card ──────────────────────────────────── */}
               <div className="rounded-[6px] border border-[#E2E8F0] bg-white p-6 space-y-5">

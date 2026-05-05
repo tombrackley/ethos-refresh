@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { AiSummaryBar } from '@/components/shared/AiSummaryBar'
+import { MetricsStrip } from '@/components/shared/MetricsStrip'
 import Feature from '@/components/Feature'
 import tenant from '@/config/tenant'
 
@@ -123,35 +124,12 @@ export default function GovernPage() {
   const committees = BOARDS.filter(b => /committee/i.test(b.name))
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto p-6">
+    <div className="flex flex-1">
+      <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
 
-          {/* Header */}
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Govern</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Governance health, upcoming meetings, and open actions across all boards.
-              </p>
-            </div>
-          </div>
-
-          {/* AI Summary */}
-          <Feature flag="FEATURE_AI_SUMMARY_BAR">
-            <AiSummaryBar points={AI_POINTS} onOpenDrawer={() => setDrawerOpen(true)} />
-          </Feature>
-
           {/* KPI row */}
-          <div className="grid grid-cols-4 divide-x divide-border/60 border border-border/60 rounded overflow-hidden bg-white">
-            {KPIS.map(k => (
-              <div key={k.label} className="px-5 py-4">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">{k.label}</p>
-                <p className={`font-medium tracking-tight mb-1.5 ${k.primary ? 'text-3xl text-brand-800' : 'text-2xl text-foreground'}`}>{k.value}</p>
-                <Delta dir={k.dir} delta={k.delta} invert={k.invert} />
-              </div>
-            ))}
-          </div>
+          <MetricsStrip items={KPIS} />
 
           {/* Main + right rail */}
           <div className="flex gap-6">

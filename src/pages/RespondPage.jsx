@@ -238,24 +238,20 @@ export default function RespondPage() {
   const [policyUpliftOpen, setPolicyUpliftOpen] = useState(false)
 
   return (
-    <div className="flex flex-1 overflow-hidden">
+    <div className="flex flex-1">
 
       {/* Main content */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 p-6">
         <div className="max-w-5xl mx-auto space-y-5">
 
           {/* Header */}
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Respond</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">Draft, review and respond with intelligence and confidence. Use pre-built AI agents to make work forward safely.</p>
-            </div>
-            {!aiPanelOpen && (
+          {!aiPanelOpen && (
+            <div className="flex items-start justify-end">
               <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 shrink-0" onClick={() => setAiPanelOpen(true)}>
                 <Zap className="size-3.5 text-brand-600" /> AI Context
               </Button>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* ── 1. Drafting & Analysis ── */}
           <div className="border border-border/60 rounded overflow-hidden bg-white">

@@ -10,6 +10,7 @@ import AdminCPDEventsPage from './AdminCPDEventsPage'
 import AdminTeamCapabilityPage from './AdminTeamCapabilityPage'
 import AdminKnowledgeCentrePage from './AdminKnowledgeCentrePage'
 import AdminResourceLibraryPage from './AdminResourceLibraryPage'
+import AdminVaultPage from './AdminVaultPage'
 import AdminCPDRegimesPage from './AdminCPDRegimesPage'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -788,7 +789,7 @@ const ADMIN_PAGES = {
   'Billing':           () => <PlanBillingPage />,
   'AI Settings':       () => <AISettingsPage />,
   'Integrations':      () => <IntegrationsPage />,
-  'Vault':             () => <AdminPlaceholderPage title="Vault" description="Configure document vault settings" />,
+  'Vault':             () => <AdminVaultPage />,
   'Resources':         () => <AdminResourceLibraryPage />,
   'Knowledge Settings': () => <AdminPlaceholderPage title="Knowledge Settings" description="Configure knowledge module settings and content" />,
   'Talent':            () => <AdminPlaceholderPage title="Talent" description="Configure talent module settings" />,

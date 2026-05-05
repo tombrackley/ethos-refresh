@@ -3,9 +3,13 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AppSidebar } from '@/components/layout/AppSidebar'
+import { TopBar } from '@/components/layout/TopBar'
+import { CommandPalette } from '@/components/CommandPalette'
 import { isEnabled } from '@/config/flags'
 import LoginPage from '@/pages/LoginPage'
 import EthikaAdminPage from '@/pages/EthikaAdminPage'
+import HomePage from '@/pages/HomePage'
+import HomeChatPage from '@/pages/HomeChatPage'
 import ControlPage from '@/pages/ControlPage'
 import WorkPage from '@/pages/WorkPage'
 import ComplyPage from '@/pages/ComplyPage'
@@ -27,7 +31,6 @@ import LearnPage from '@/pages/LearnPage'
 import IntegrationsPage from '@/pages/IntegrationsPage'
 import GovernPage from '@/pages/GovernPage'
 import BoardDetailPage from '@/pages/BoardDetailPage'
-import BoardsCommitteesPage from '@/pages/BoardsCommitteesPage'
 import GovernMeetingsPage from '@/pages/GovernMeetingsPage'
 import BoardPapersPage from '@/pages/BoardPapersPage'
 import PoliciesProceduresPage from '@/pages/PoliciesProceduresPage'
@@ -37,6 +40,9 @@ import MeetingAgendaPage from '@/pages/MeetingAgendaPage'
 import MeetingMinutesPage from '@/pages/MeetingMinutesPage'
 import BoardPaperReviewPage from '@/pages/BoardPaperReviewPage'
 import { GovernShell } from '@/components/layout/GovernShell'
+import { ComplyShell } from '@/components/layout/ComplyShell'
+import { WorkShell } from '@/components/layout/WorkShell'
+import { LearnShell } from '@/components/layout/LearnShell'
 import AdminPage from '@/pages/AdminPage'
 import ExternalContentViewer from '@/pages/ExternalContentViewer'
 import ProfilePage from '@/pages/ProfilePage'
@@ -75,6 +81,7 @@ function getDefaultPath() {
 function AppLayout({ onLogout }) {
   const navigate = useNavigate()
   const [selectedMatter, setSelectedMatter] = useState(null)
+  const [commandOpen, setCommandOpen] = useState(false)
   const defaultPath = getDefaultPath()
 
   function navigateToMatter(matter) {
@@ -86,49 +93,52 @@ function AppLayout({ onLogout }) {
     <TooltipProvider>
       <SidebarProvider>
         <div className="flex h-screen w-full bg-sidebar">
-          <AppSidebar onLogout={onLogout} />
+          <AppSidebar onSearchClick={() => setCommandOpen(true)} />
+          <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
 
           <div className="flex flex-1 flex-col overflow-hidden p-2">
-            <main className="flex-1 overflow-hidden flex rounded-lg bg-background border border-[#E2E8F0]">
+            <main className="flex-1 overflow-hidden flex flex-col rounded-lg bg-background border border-[#E2E8F0]">
+              <TopBar onLogout={onLogout} />
+              <div className="flex-1 overflow-hidden flex">
               <Routes>
                 {isEnabled('PAGE_CONTROL') ? (
                   <Route path="/" element={<ControlPage />} />
                 ) : (
                   <Route path="/" element={<Navigate to={defaultPath} replace />} />
                 )}
-                {gatedRoute('/matters', 'PAGE_WORK', <WorkPage onNavigateMatter={navigateToMatter} />)}
+                <Route path="/home" element={<HomeChatPage />} />
+                <Route path="/home/kanban" element={<HomePage />} />
+                <Route element={<WorkShell />}>
+                  {gatedRoute('/matters', 'PAGE_WORK', <WorkPage onNavigateMatter={navigateToMatter} />)}
+                  {gatedRoute('/respond', 'PAGE_WORK_RESPOND', <RespondPage />)}
+                  {gatedRoute('/meet', 'PAGE_WORK_MEET', <MeetPage />)}
+                  {gatedRoute('/work/time-efficiency', 'PAGE_WORK_TIME_EFFICIENCY', <TimeEfficiencyPage />)}
+                </Route>
                 {isEnabled('PAGE_MATTER_DETAIL') && (
                   <Route path="/matter/:id" element={
                     selectedMatter ? <MatterDetailPage matter={selectedMatter} onBack={() => navigate('/matters')} /> : <Navigate to="/matters" replace />
                   } />
                 )}
-                {gatedRoute('/respond', 'PAGE_WORK_RESPOND', <RespondPage />)}
-                {gatedRoute('/meet', 'PAGE_WORK_MEET', <MeetPage />)}
-                {gatedRoute('/work/time-efficiency', 'PAGE_WORK_TIME_EFFICIENCY', <TimeEfficiencyPage />)}
-                {gatedRoute('/comply', 'PAGE_COMPLY', <ComplyPage />)}
-                {gatedRoute('/comply/contracts', 'PAGE_COMPLY_CONTRACTS', <ContractsPage />)}
-                {gatedRoute('/comply/conflicts', 'PAGE_COMPLY_CONFLICTS', <ConflictPage />)}
-                {gatedRoute('/comply/risk', 'PAGE_COMPLY_RISK', <RiskRegisterPage />)}
-                {gatedRoute('/comply/incidents', 'PAGE_COMPLY_INCIDENTS', <IncidentPage />)}
-                {gatedRoute('/comply/audit', 'PAGE_COMPLY_AUDIT', <AuditPage />)}
-                {gatedRoute('/comply/legislation', 'PAGE_COMPLY_LEGISLATION', <LegislationPage />)}
-                {gatedRoute('/comply/obligations', 'PAGE_COMPLY_OBLIGATIONS', <ObligationsPage />)}
+                {isEnabled('PAGE_COMPLY') && (
+                  <Route path="/comply" element={<ComplyShell />}>
+                    <Route index element={<ComplyPage />} />
+                    {isEnabled('PAGE_COMPLY_CONTRACTS') && <Route path="contracts" element={<ContractsPage />} />}
+                    {isEnabled('PAGE_COMPLY_CONFLICTS') && <Route path="conflicts" element={<ConflictPage />} />}
+                    {isEnabled('PAGE_COMPLY_RISK') && <Route path="risk" element={<RiskRegisterPage />} />}
+                    {isEnabled('PAGE_COMPLY_INCIDENTS') && <Route path="incidents" element={<IncidentPage />} />}
+                    {isEnabled('PAGE_COMPLY_AUDIT') && <Route path="audit" element={<AuditPage />} />}
+                    {isEnabled('PAGE_COMPLY_LEGISLATION') && <Route path="legislation" element={<LegislationPage />} />}
+                    {isEnabled('PAGE_COMPLY_OBLIGATIONS') && <Route path="obligations" element={<ObligationsPage />} />}
+                  </Route>
+                )}
                 {isEnabled('PAGE_GOVERN') && (
                   <Route path="/govern" element={<GovernShell />}>
                     <Route index element={<GovernPage />} />
-                    {isEnabled('PAGE_GOVERN_BOARDS_COMMITTEES') && (
-                      <Route path="boards-committees" element={<BoardsCommitteesPage />} />
-                    )}
                     {isEnabled('PAGE_GOVERN_MEETINGS') && (
                       <Route path="meetings" element={<GovernMeetingsPage />} />
                     )}
-                    <Route path="meetings/:meetingId" element={<MeetingAgendaPage />} />
-                    <Route path="meetings/:meetingId/minutes" element={<MeetingMinutesPage />} />
                     {isEnabled('PAGE_GOVERN_BOARD_PAPERS') && (
                       <Route path="board-papers" element={<BoardPapersPage />} />
-                    )}
-                    {isEnabled('PAGE_GOVERN_BOARD_PAPERS') && (
-                      <Route path="board-papers/:paperId" element={<BoardPaperReviewPage />} />
                     )}
                     {isEnabled('PAGE_GOVERN_POLICIES') && (
                       <Route path="policies" element={<PoliciesProceduresPage />} />
@@ -136,25 +146,38 @@ function AppLayout({ onLogout }) {
                     {isEnabled('PAGE_GOVERN_DELEGATIONS') && (
                       <Route path="delegations" element={<DelegationsPage />} />
                     )}
-                    <Route path="boards/:boardId" element={<BoardDetailPage />} />
                     {isEnabled('PAGE_GOVERN_COMPANY_REGISTER') && (
                       <Route path="company-register" element={<CompanyRegisterPage />} />
                     )}
                   </Route>
                 )}
+                {isEnabled('PAGE_GOVERN') && (
+                  <>
+                    <Route path="/govern/meetings/:meetingId" element={<MeetingAgendaPage />} />
+                    <Route path="/govern/meetings/:meetingId/minutes" element={<MeetingMinutesPage />} />
+                    {isEnabled('PAGE_GOVERN_BOARD_PAPERS') && (
+                      <Route path="/govern/board-papers/:paperId" element={<BoardPaperReviewPage />} />
+                    )}
+                    <Route path="/govern/boards/:boardId" element={<BoardDetailPage />} />
+                  </>
+                )}
                 {gatedRoute('/vault', 'PAGE_VAULT', <VaultPage />)}
                 {gatedRoute('/resources', 'PAGE_RESOURCES', <ResourceLibraryPage />)}
                 {gatedRoute('/talent', 'PAGE_TALENT', <TalentPage />)}
                 {gatedRoute('/insights', 'PAGE_INSIGHTS', <InsightsPage />)}
-                {gatedRoute('/learn', 'PAGE_LEARN', <LearnPage />)}
-                {gatedRoute('/learn/journeys', 'PAGE_LEARN_JOURNEYS', <LearningJourneysPage />)}
-                {gatedRoute('/learn/knowledge', 'PAGE_LEARN_KNOWLEDGE_CENTRE', <KnowledgeCentrePage />)}
+                {isEnabled('PAGE_LEARN') && (
+                  <Route path="/learn" element={<LearnShell />}>
+                    <Route index element={<LearnPage />} />
+                    {isEnabled('PAGE_LEARN_JOURNEYS') && <Route path="journeys" element={<LearningJourneysPage />} />}
+                    {isEnabled('PAGE_LEARN_CPD') && <Route path="cpd" element={<CPDTrackerPage />} />}
+                    {isEnabled('PAGE_LEARN_CPD_EVENTS') && <Route path="cpd/events" element={<CPDEventsPage />} />}
+                    {isEnabled('PAGE_LEARN_SKILLS') && <Route path="skills" element={<SkillsProfilePage />} />}
+                  </Route>
+                )}
+                {gatedRoute('/knowledge', 'PAGE_LEARN_KNOWLEDGE_CENTRE', <KnowledgeCentrePage />)}
                 {isEnabled('PAGE_LEARN_KNOWLEDGE_CENTRE') && (
                   <Route path="/knowledge-demo" element={<KnowledgeCentreDemoPage />} />
                 )}
-                {gatedRoute('/learn/cpd', 'PAGE_LEARN_CPD', <CPDTrackerPage />)}
-                {gatedRoute('/learn/cpd/events', 'PAGE_LEARN_CPD_EVENTS', <CPDEventsPage />)}
-                {gatedRoute('/learn/skills', 'PAGE_LEARN_SKILLS', <SkillsProfilePage />)}
                 {gatedRoute('/community', 'PAGE_COMMUNITY', <CommunityPage />)}
                 {gatedRoute('/integrations', 'PAGE_INTEGRATIONS', <IntegrationsPage />)}
                 {gatedRoute('/settings', 'PAGE_SETTINGS', <PlaceholderPage title="Settings" />)}
@@ -164,6 +187,7 @@ function AppLayout({ onLogout }) {
                 <Route path="/view/:contentId" element={<ExternalContentViewer />} />
                 <Route path="*" element={<Navigate to={defaultPath} replace />} />
               </Routes>
+              </div>
             </main>
           </div>
 

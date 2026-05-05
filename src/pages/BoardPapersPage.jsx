@@ -1,29 +1,17 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, Table as TableIcon, LayoutGrid, AlertCircle, AlertTriangle, Filter, Layers } from 'lucide-react'
+import { Plus, Table as TableIcon, LayoutGrid, AlertCircle, AlertTriangle, Layers } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
-} from '@/components/ui/dropdown-menu'
 import { ViewToggle } from '@/components/shared/ViewToggle'
 import { BoardPapersDirectorView } from '@/components/shared/BoardPapersDirectorView'
 import { PackAssemblyView } from '@/components/shared/PackAssemblyView'
-import { IntegrationStatusBanner } from '@/components/shared/IntegrationStatusBanner'
 import { cn } from '@/lib/utils'
 import tenant from '@/config/tenant'
 
 const PAPERS = tenant.pages.govern.boardPapers ?? []
 const MEETINGS = tenant.pages.govern.meetings ?? []
-const BOARDS = tenant.pages.govern.boards ?? []
-const BOARDS_COMMITTEES = tenant.pages.govern.boardsCommittees ?? []
-
-const FILTER_BOARDS = [
-  { id: null, name: 'All boards' },
-  ...BOARDS.map(b => ({ id: b.id, name: b.name })),
-  ...BOARDS_COMMITTEES.filter(b => !BOARDS.find(x => x.id === b.id)).map(b => ({ id: b.id, name: b.name })),
-]
 
 const STAGE_STYLE = {
   Draft:           'border-slate-200 bg-slate-50 text-slate-700',
@@ -198,28 +186,16 @@ export default function BoardPapersPage() {
   const meetingParam = searchParams.get('meeting')
   const [view, setView] = useState('assembly')
   const [groupBy, setGroupBy] = useState('all')
-  const [boardFilter, setBoardFilter] = useState(null)
 
-  const activeBoardLabel = FILTER_BOARDS.find(b => b.id === boardFilter)?.name ?? 'All boards'
   const handleFlagClick = (p) => navigate(`/govern/board-papers/${p.id}`)
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto">
-        <IntegrationStatusBanner
-          name="Diligent"
-          message="packs sync to your director portal automatically when you push from each meeting."
-        />
+    <div className="flex flex-1">
+      <div className="flex-1">
         <div className="p-6">
           <div className="max-w-7xl mx-auto space-y-6">
 
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Board papers</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Compile board packs from each meeting's agenda, track papers, and push to Diligent.
-              </p>
-            </div>
+          <div className="flex items-start justify-end gap-4">
             <div className="flex items-center gap-2">
               <ViewToggle
                 value={view}
@@ -236,48 +212,29 @@ export default function BoardPapersPage() {
             </div>
           </div>
 
-          {view !== 'director' && (
-            <div className="flex items-center justify-between gap-3">
-              {view === 'admin' ? (
-                <div className="flex items-center gap-1 border border-border/60 bg-white rounded-md w-fit p-0.5">
-                  {GROUP_OPTIONS.map(opt => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setGroupBy(opt.value)}
-                      className={cn(
-                        'px-3 h-7 text-xs font-medium rounded transition-colors',
-                        groupBy === opt.value
-                          ? 'bg-muted text-foreground'
-                          : 'text-muted-foreground hover:bg-muted/40',
-                      )}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              ) : <div />}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-1.5">
-                    <Filter className="size-3.5" />
-                    {activeBoardLabel}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {FILTER_BOARDS.map(b => (
-                    <DropdownMenuItem key={b.id ?? 'all'} onClick={() => setBoardFilter(b.id)}>
-                      {b.name}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+          {view === 'admin' && (
+            <div className="flex items-center gap-1 border border-border/60 bg-white rounded-md w-fit p-0.5">
+              {GROUP_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setGroupBy(opt.value)}
+                  className={cn(
+                    'px-3 h-7 text-xs font-medium rounded transition-colors',
+                    groupBy === opt.value
+                      ? 'bg-muted text-foreground'
+                      : 'text-muted-foreground hover:bg-muted/40',
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
           )}
 
-          {view === 'assembly' && <PackAssemblyView boardId={boardFilter} meetingId={meetingParam} />}
-          {view === 'director' && <BoardPapersDirectorView boardId={boardFilter} />}
-          {view === 'admin' && <AdminTable groupBy={groupBy} boardFilter={boardFilter} onFlagClick={handleFlagClick} />}
+          {view === 'assembly' && <PackAssemblyView boardId={null} meetingId={meetingParam} />}
+          {view === 'director' && <BoardPapersDirectorView boardId={null} />}
+          {view === 'admin' && <AdminTable groupBy={groupBy} boardFilter={null} onFlagClick={handleFlagClick} />}
 
           </div>
         </div>

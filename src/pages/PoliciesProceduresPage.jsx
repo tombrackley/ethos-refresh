@@ -1,11 +1,8 @@
 import { useState } from 'react'
-import { Plus, List, Columns3, Filter } from 'lucide-react'
+import { Plus, List, Columns3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
-} from '@/components/ui/dropdown-menu'
 import { ViewToggle } from '@/components/shared/ViewToggle'
 import { StagePips } from '@/components/shared/StagePips'
 import PolicyUpliftOverlay from '@/components/PolicyUpliftOverlay'
@@ -13,22 +10,7 @@ import { cn } from '@/lib/utils'
 import tenant from '@/config/tenant'
 
 const POLICIES = tenant.pages.govern.policies ?? []
-const BOARDS = tenant.pages.govern.boards ?? []
-const BOARDS_COMMITTEES = tenant.pages.govern.boardsCommittees ?? []
 const STAGES = ['Identify', 'Draft', 'Review', 'Approve', 'Publish']
-
-const FILTER_BOARDS = [
-  { id: null, name: 'All boards' },
-  ...BOARDS.map(b => ({ id: b.id, name: b.name })),
-  ...BOARDS_COMMITTEES.filter(b => !BOARDS.find(x => x.id === b.id)).map(b => ({ id: b.id, name: b.name })),
-]
-
-// A policy with no boardId is treated as group-wide and visible under every board filter.
-function matchesBoard(policy, boardId) {
-  if (!boardId) return true
-  if (!policy.boardId || policy.boardId === 'all') return true
-  return policy.boardId === boardId
-}
 
 const STATUS_STYLE = {
   'On Track': 'border-emerald-200 bg-emerald-50 text-emerald-700',
@@ -154,26 +136,50 @@ function StageBoard({ policies }) {
 export default function PoliciesProceduresPage() {
   const [view, setView] = useState('priority')
   const [filterId, setFilterId] = useState('all')
-  const [boardFilter, setBoardFilter] = useState(null)
   const [upliftOpen, setUpliftOpen] = useState(false)
 
   const activeFilter = FILTERS.find(f => f.id === filterId) ?? FILTERS[0]
-  const activeBoardLabel = FILTER_BOARDS.find(b => b.id === boardFilter)?.name ?? 'All boards'
-  const filtered = POLICIES.filter(p => activeFilter.test(p) && matchesBoard(p, boardFilter))
+  const filtered = POLICIES.filter(p => activeFilter.test(p))
   const sorted = [...filtered].sort((a, b) => (STATUS_RANK[a.status] ?? 9) - (STATUS_RANK[b.status] ?? 9))
   const showRegulator = POLICIES.some(p => p.regulator)
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto p-6">
+    <div className="flex flex-1">
+      <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
 
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Policies &amp; procedures</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Policy register with lifecycle stage, RAG status, and current blockers.
-              </p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-1.5">
+              {FILTERS.map(f => {
+                const active = filterId === f.id
+                const count = POLICIES.filter(f.test).length
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setFilterId(f.id)}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 h-8 border transition-colors',
+                      active
+                        ? 'bg-[#dffff2] border-[rgba(14,95,91,0.5)]'
+                        : 'bg-muted/60 hover:bg-muted border-transparent',
+                    )}
+                  >
+                    <span className={cn(
+                      'text-sm font-medium tracking-[-0.28px]',
+                      active ? 'text-[#0e5f5b]' : 'text-foreground',
+                    )}>
+                      {f.label}
+                    </span>
+                    <span className={cn(
+                      'text-xs',
+                      active ? 'text-[rgba(14,95,91,0.5)]' : 'text-muted-foreground',
+                    )}>
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
             <div className="flex items-center gap-2">
               <ViewToggle
@@ -184,45 +190,10 @@ export default function PoliciesProceduresPage() {
                   { value: 'board',    label: 'Stages',   icon: Columns3 },
                 ]}
               />
-              <Button size="sm" className="gap-1.5" onClick={() => setUpliftOpen(true)}>
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setUpliftOpen(true)}>
                 <Plus className="size-4" /> Initiate Uplift
               </Button>
             </div>
-          </div>
-
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5">
-              {FILTERS.map(f => (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => setFilterId(f.id)}
-                  className={cn(
-                    'h-7 px-3 rounded-md text-xs font-medium transition-colors',
-                    filterId === f.id
-                      ? 'bg-foreground text-background'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/60',
-                  )}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1.5">
-                  <Filter className="size-3.5" />
-                  {activeBoardLabel}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {FILTER_BOARDS.map(b => (
-                  <DropdownMenuItem key={b.id ?? 'all'} onClick={() => setBoardFilter(b.id)}>
-                    {b.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
 
           {view === 'priority' ? <PriorityTable policies={sorted} showRegulator={showRegulator} /> : <StageBoard policies={filtered} />}

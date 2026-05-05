@@ -15,7 +15,7 @@ export function ViewToggle({ value, onChange, options }) {
             aria-label={opt.label}
             aria-pressed={active}
             className={cn(
-              'flex items-center gap-1.5 px-3 h-8 text-xs font-medium transition-colors',
+              'flex items-center gap-1.5 px-3 h-8 text-sm font-medium transition-colors',
               active ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted/40',
             )}
           >

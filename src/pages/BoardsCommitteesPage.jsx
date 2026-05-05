@@ -73,18 +73,9 @@ export default function BoardsCommitteesPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 overflow-auto p-6">
+    <div className="flex flex-1">
+      <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
-
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Boards &amp; Committees</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Organisation boards and committees with composition, meeting cadence, and current health.
-              </p>
-            </div>
-          </div>
 
           {BOARDS_COMMITTEES.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-muted/20 p-12 text-center">

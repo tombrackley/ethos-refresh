@@ -36,15 +36,11 @@ export default function MeetPage() {
   const meetings = tab === 'upcoming' ? UPCOMING : PAST
 
   return (
-    <div className="flex-1 overflow-auto p-6">
+    <div className="flex-1 p-6">
       <div className="max-w-7xl mx-auto space-y-5">
 
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Meet</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Manage meetings, board packs and governance actions</p>
-          </div>
+        <div className="flex items-start justify-end">
           <div className="flex items-center gap-2 shrink-0">
             <button className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 h-9 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-colors">
               <span className="size-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />

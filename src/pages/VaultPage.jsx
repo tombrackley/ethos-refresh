@@ -1,1716 +1,1543 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ShieldCheck, FileText, Upload, CheckCircle2, X, ChevronDown, ChevronUp, RotateCcw, Users, Lock, Plug, Plug2, Search, Folder, ChevronRight, ArrowLeft, Sparkles, Check } from 'lucide-react'
-import { SiGoogledrive, SiBox, SiDropbox } from 'react-icons/si'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  FileText, FileSpreadsheet, Image as ImageIcon, Presentation,
+  Sparkles, Upload, X, ArrowLeft, ChevronDown, Check,
+  Wand2, Eye, EyeOff, Settings, Search, Plus, MoreHorizontal,
+  FolderOpen, Zap,
+} from 'lucide-react'
+import { SiBox, SiDropbox, SiGoogledrive } from 'react-icons/si'
 import { TbBrandOnedrive } from 'react-icons/tb'
-import FileManager, { Permissions, ItemView, Details, Column, Toolbar, Item, FileSelectionItem, ContextMenu, ContextMenuItem } from 'devextreme-react/file-manager'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import tenant from '@/config/tenant'
-import { readResourceSaves } from '@/lib/vaultSaves'
-import 'devextreme/dist/css/dx.light.css'
 
-const t = tenant.pages.vault
+const t = tenant.pages.vault ?? {}
+const STATUS = t.status ?? {}
+const CATEGORIES = t.categories ?? []
+const FILES = t.files ?? []
 
-const STAGES = t.stages
-const FOLDERS = t.folders
-const FILES = t.files
-const SUGGESTION_LIMIT = 4
-const UNDO_WINDOW_MS = 5000
-const ROLES = ['Board Member', 'Company Secretary', 'Org Admin', 'User']
-const UPLOADER_NAMES = {
-  RR: 'Robert Ramsay',
-  JW: 'James Whitfield',
-  SM: 'Sarah Mitchell',
-  KL: 'Kate Lovell',
+const FILE_TYPE_ICONS = {
+  document:     FileText,
+  image:        ImageIcon,
+  spreadsheet:  FileSpreadsheet,
+  presentation: Presentation,
 }
-const CURRENT_USER_NAME = 'Tom Bradley'
 
-/* DMS providers. Only SharePoint is available in this prototype; the rest
-   show as "Coming soon" and are disabled on the picker. */
-const DMS_PROVIDERS = [
-  { id: 'sharepoint',  name: 'SharePoint',     vendor: 'Microsoft', available: true  },
-  { id: 'onedrive',    name: 'OneDrive',       vendor: 'Microsoft', available: false },
-  { id: 'gdrive',      name: 'Google Drive',   vendor: 'Google',    available: false },
-  { id: 'box',         name: 'Box',            vendor: 'Box',       available: false },
-  { id: 'dropbox',     name: 'Dropbox',        vendor: 'Dropbox',   available: false },
+/* Display-format label per file. Documents default to PDF; templates and
+ * agreements are typically distributed as DOCX. Spreadsheets/images/decks
+ * map cleanly to their typical formats. */
+function fileFormat(file) {
+  if (file.type === 'spreadsheet')  return 'XLSX'
+  if (file.type === 'image')        return 'PNG'
+  if (file.type === 'presentation') return 'PPTX'
+  if (/template|standard|agreement|\bMSA\b|playbook|attestation log/i.test(file.name)) return 'DOCX'
+  return 'PDF'
+}
+
+/* Provenance label. Most foundational docs flow from the connected DMS
+ * (SharePoint in the prototype); user-authored templates are Upload. */
+function fileSource(file) {
+  if (/template|standard|playbook|attestation log/i.test(file.name)) return 'Upload'
+  return 'SharePoint'
+}
+
+const FILE_STATUS = {
+  healthy: {
+    label: 'Healthy',
+    bg: 'bg-emerald-100',
+    text: 'text-[#151D2B]',
+    description: 'This document is current and reflects the latest version Ethos is using.',
+  },
+  stale: {
+    label: 'Stale',
+    bg: 'bg-amber-100',
+    text: 'text-[#151D2B]',
+    description: 'This document hasn\'t been reviewed in a while. Confirm it\'s still accurate or upload a refreshed version.',
+  },
+  check: {
+    label: 'Check Required',
+    bg: 'bg-rose-100',
+    text: 'text-[#151D2B]',
+    description: 'Ethos has flagged this document for review — content may need verification or an update.',
+  },
+}
+
+/* Maturity-stage definitions for the status hero card.
+ * Gradient palette tracks the Figma: dark teal → mint → cyan → grey. */
+const STAGES = [
+  { label: 'Baseline',     gradient: 'from-[#005b71] to-[#38a388]' },
+  { label: 'Good',         gradient: 'from-[#38a489] to-[#6ee7b7]' },
+  { label: 'Excellent',    gradient: 'from-[#6ee7b7] to-[#2fffff]' },
+  { label: 'Supercharged', gradient: null }, // greyed
 ]
 
-/* Brand colors approximate the official product palette. */
-const PROVIDER_BRAND = {
-  sharepoint: { color: '#036C70' },
-  onedrive:   { color: '#0364B8' },
-  gdrive:     { color: '#1FA463' },
-  box:        { color: '#0061D5' },
-  dropbox:    { color: '#0061FF' },
-}
+/* ───────────────────── Empty-state DMS providers ───────────────────── */
 
-function SharePointGlyph({ className }) {
-  // SharePoint doesn't ship with react-icons; hand-drawn stylised "S" as a
-  // recognisable placeholder in the brand teal.
+function SharepointGlyph({ className }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-      <path d="M13.5 4a6.5 6.5 0 0 0-6.264 4.784A4.5 4.5 0 0 0 8.75 17.5h.25a6.5 6.5 0 0 0 4.5-11.5V4Zm-1.6 2.55a1.45 1.45 0 0 1 1 2.47l-.09.08c-.35.3-.6.5-.6.85 0 .25.2.45.5.6l.4.2c.9.4 1.2 1 1.2 1.75 0 1.05-.85 1.8-2 1.8a2.7 2.7 0 0 1-1.4-.4l.3-1a2 2 0 0 0 1.1.35c.45 0 .75-.2.75-.55 0-.25-.15-.4-.55-.6l-.45-.2c-.85-.4-1.2-.95-1.2-1.7 0-.95.8-1.65 1.94-1.7Z"/>
+    <svg viewBox="0 0 32 32" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M22.16 5a8.5 8.5 0 0 0-8.41 7.27 7 7 0 0 0-6.5 6.95 6.92 6.92 0 0 0 .54 2.7A6 6 0 0 0 13.5 28h.06a8.51 8.51 0 0 0 8.6-2.4 8.49 8.49 0 0 0 0-12 8.5 8.5 0 0 0 0-8.6Z" />
     </svg>
   )
 }
 
-function ProviderBrandIcon({ providerId, className }) {
-  switch (providerId) {
-    case 'sharepoint': return <SharePointGlyph className={className} />
-    case 'onedrive':   return <TbBrandOnedrive className={className} />
-    case 'gdrive':     return <SiGoogledrive className={className} />
-    case 'box':        return <SiBox className={className} />
-    case 'dropbox':    return <SiDropbox className={className} />
-    default:           return null
-  }
-}
-
-/* Mock SharePoint site tree. Shape mirrors what a dev would get from
-   Microsoft Graph — each node is either a folder (`items` children) or
-   a file (with id, owner, modified, ext). Dev replaces this with Graph
-   calls: /sites → /drives → /root/children. */
-const SHAREPOINT_ROOT = {
-  name: 'Your SharePoint',
-  items: [
-    {
-      type: 'folder', name: 'Corporate',
-      items: [
-        { type: 'file', id: 'sp-cr-1', name: 'Constitution v4.pdf',        modified: '2026-02-12', owner: 'Sarah Mitchell' },
-        { type: 'file', id: 'sp-cr-2', name: 'Shareholder Register.xlsx',   modified: '2026-03-20', owner: 'Robert Ramsay' },
-        { type: 'file', id: 'sp-cr-3', name: 'Directors Register.xlsx',     modified: '2026-01-08', owner: 'Robert Ramsay' },
-        { type: 'file', id: 'sp-cr-4', name: 'Delegation of Authority.pdf', modified: '2025-11-19', owner: 'James Whitfield' },
-        {
-          type: 'folder', name: 'AGM',
-          items: [
-            { type: 'file', id: 'sp-cr-5', name: '2025 AGM Minutes.pdf',   modified: '2025-11-04', owner: 'Kate Lovell' },
-            { type: 'file', id: 'sp-cr-6', name: '2024 AGM Minutes.pdf',   modified: '2024-11-06', owner: 'Kate Lovell' },
-          ],
-        },
-      ],
-    },
-    {
-      type: 'folder', name: 'Board',
-      items: [
-        { type: 'file', id: 'sp-bd-1', name: 'Board Charter 2026.docx',      modified: '2026-03-02', owner: 'James Whitfield' },
-        { type: 'file', id: 'sp-bd-2', name: 'Audit Committee Charter.pdf',  modified: '2026-02-22', owner: 'Sarah Mitchell' },
-        { type: 'file', id: 'sp-bd-3', name: 'Risk Committee Charter.pdf',   modified: '2026-02-22', owner: 'Sarah Mitchell' },
-        { type: 'file', id: 'sp-bd-4', name: 'Board Evaluation 2025.pdf',    modified: '2025-12-18', owner: 'Robert Ramsay' },
-      ],
-    },
-    {
-      type: 'folder', name: 'Policies',
-      items: [
-        { type: 'file', id: 'sp-pol-1', name: 'Privacy Policy v4.pdf',              modified: '2026-03-18', owner: 'Robert Ramsay' },
-        { type: 'file', id: 'sp-pol-2', name: 'Code of Ethics 2026.pdf',            modified: '2026-01-30', owner: 'Sarah Mitchell' },
-        { type: 'file', id: 'sp-pol-3', name: 'Whistleblower Protection Policy.pdf', modified: '2025-10-11', owner: 'James Whitfield' },
-        { type: 'file', id: 'sp-pol-4', name: 'Acceptable Use Policy.docx',         modified: '2025-09-22', owner: 'Kate Lovell' },
-      ],
-    },
-    {
-      type: 'folder', name: 'Contracts',
-      items: [
-        { type: 'file', id: 'sp-ct-1', name: 'Master Services Agreement Template.docx', modified: '2026-02-28', owner: 'Sarah Mitchell' },
-        { type: 'file', id: 'sp-ct-2', name: 'Supplier Agreement 2025.pdf',             modified: '2025-12-04', owner: 'James Whitfield' },
-        { type: 'file', id: 'sp-ct-3', name: 'Office Lease — Sydney HQ.pdf',            modified: '2025-07-11', owner: 'Robert Ramsay' },
-      ],
-    },
-    {
-      type: 'folder', name: 'Compliance',
-      items: [
-        { type: 'file', id: 'sp-cmp-1', name: 'AML-CTF Framework.pdf',            modified: '2026-01-14', owner: 'Kate Lovell' },
-        { type: 'file', id: 'sp-cmp-2', name: 'Sanctions Screening Procedure.docx', modified: '2025-11-27', owner: 'Kate Lovell' },
-        { type: 'file', id: 'sp-cmp-3', name: 'Annual Compliance Report 2025.pdf', modified: '2025-12-30', owner: 'Sarah Mitchell' },
-      ],
-    },
-  ],
-}
-
-/* Flatten the tree for search. Returns every file with its full path. */
-function flattenDmsFiles(node, path = []) {
-  const here = path.concat(node.name)
-  const files = []
-  for (const item of node.items || []) {
-    if (item.type === 'folder') {
-      files.push(...flattenDmsFiles({ name: item.name, items: item.items }, here))
-    } else {
-      files.push({ ...item, path: here })
-    }
-  }
-  return files
-}
-
-function dmsNodeAt(path) {
-  let node = SHAREPOINT_ROOT
-  for (let i = 1; i < path.length; i++) {
-    const next = (node.items || []).find((it) => it.type === 'folder' && it.name === path[i])
-    if (!next) return null
-    node = next
-  }
-  return node
-}
-
-/* Token-match every unfulfilled suggestion across all folders against the
-   mocked DMS tree. Returns a map of placeholderId → best DMS file match.
-   Each DMS file is used at most once — if two suggestions match the same
-   file, the higher-scoring one wins. */
-function aiMatchSuggestions(folders, uploads, dismissals) {
-  const allDmsFiles = flattenDmsFiles(SHAREPOINT_ROOT)
-  const scored = []
-  folders.forEach((folder) => {
-    const ff = folderFulfillment(folder, uploads, dismissals)
-    ff.suggested.forEach((s) => {
-      if (ff.effective.has(s.id)) return
-      const tokens = s.label.toLowerCase().split(/\s+/).filter((t) => t.length > 2)
-      for (const f of allDmsFiles) {
-        const hay = f.name.toLowerCase()
-        let score = 0
-        for (const t of tokens) if (hay.includes(t)) score += 1
-        if (score > 0) scored.push({ placeholderId: s.id, folder: folder.name, file: f, score })
-      }
-    })
-  })
-  scored.sort((a, b) => b.score - a.score)
-  const usedFileIds = new Set()
-  const usedPlaceholders = new Set()
-  const matches = []
-  for (const row of scored) {
-    if (usedFileIds.has(row.file.id) || usedPlaceholders.has(row.placeholderId)) continue
-    usedFileIds.add(row.file.id)
-    usedPlaceholders.add(row.placeholderId)
-    matches.push(row)
-  }
-  return matches
-}
-
-/* Pick a deterministic sample PDF to back each DMS file for preview. */
-const DMS_SAMPLE_PDFS = [
-  'aml-ctf-policy.pdf',
-  'board-governance-policy.pdf',
-  'conflict-of-interest-playbook.pdf',
-  'corporations-act-key-provisions.pdf',
-  'data-breach-playbook.pdf',
-  'erm-guide.pdf',
-  'modern-slavery-guide.pdf',
-  'nda-template.pdf',
-  'whistleblower-policy.pdf',
+const DMS_PROVIDERS = [
+  { id: 'sharepoint', name: 'SharePoint',   color: '#036C70', Icon: SharepointGlyph },
+  { id: 'onedrive',   name: 'OneDrive',     color: '#0364B8', Icon: TbBrandOnedrive },
+  { id: 'gdrive',     name: 'Google Drive', color: '#1FA463', Icon: SiGoogledrive   },
+  { id: 'box',        name: 'Box',          color: '#0061D5', Icon: SiBox           },
+  { id: 'dropbox',    name: 'Dropbox',      color: '#0061FF', Icon: SiDropbox       },
 ]
-function dmsSamplePdf(id) {
-  let hash = 0
-  for (const c of id) hash = (hash * 31 + c.charCodeAt(0)) >>> 0
-  return `/sample-documents/${DMS_SAMPLE_PDFS[hash % DMS_SAMPLE_PDFS.length]}`
-}
 
-function accessForFile(fileAccess, fileKey) {
-  return fileAccess[fileKey] ?? { mode: 'all', roles: [] }
-}
+const MOCK_DROP_FILES = [
+  { name: 'Company Constitution',                  category: 'governing',  confidence: 97 },
+  { name: 'Shareholders Deed (2024 Amendment)',     category: 'governing',  confidence: 96 },
+  { name: 'Board Charter v3',                       category: 'governing',  confidence: 94 },
+  { name: 'Audit & Risk Committee Charter',         category: 'governing',  confidence: 93 },
+  { name: 'Delegations of Authority Matrix',       category: 'governing',  confidence: 91 },
+  { name: 'Code of Conduct',                        category: 'policies',   confidence: 98 },
+  { name: 'Conflict of Interest Policy',            category: 'policies',   confidence: 96 },
+  { name: 'Whistleblower Policy',                   category: 'policies',   confidence: 95 },
+  { name: 'Anti-Bribery & Corruption Policy',       category: 'policies',   confidence: 92 },
+  { name: 'Privacy Policy v3',                      category: 'policies',   confidence: 94 },
+  { name: 'Risk Management Framework v2',           category: 'frameworks', confidence: 96 },
+  { name: 'Risk Appetite Statement FY26',           category: 'frameworks', confidence: 93 },
+  { name: 'Compliance Management Framework',        category: 'frameworks', confidence: 91 },
+  { name: 'Cyber Security Framework',               category: 'frameworks', confidence: 88 },
+  { name: 'ESG Framework',                          category: 'frameworks', confidence: 64 },
+  { name: 'Strategic Plan FY26-28',                 category: 'strategy',   confidence: 95 },
+  { name: 'Annual Report FY25',                     category: 'strategy',   confidence: 97 },
+  { name: 'Modern Slavery Statement FY25',          category: 'strategy',   confidence: 92 },
+  { name: 'Sustainability Report FY25',             category: 'strategy',   confidence: 89 },
+  { name: 'Audit & Risk Committee Annual Report',   category: 'strategy',   confidence: 90 },
+]
 
-function accessSummary(access) {
-  if (access.mode === 'all') return 'Everyone'
-  if (access.roles.length === 0) return 'No access'
-  if (access.roles.length === 1) return access.roles[0]
-  return `${access.roles.length} roles`
-}
+const DMS_FOLDER_MAPPING = [
+  { folder: 'Constitution & Governing Documents', target: 'governing',  docs: 12 },
+  { folder: 'Board & Committee Charters',          target: 'governing',  docs: 8  },
+  { folder: 'Policies & Code of Conduct',          target: 'policies',   docs: 47 },
+  { folder: 'Risk & Compliance Frameworks',        target: 'frameworks', docs: 24 },
+  { folder: 'Strategy & Annual Reporting',         target: 'strategy',   docs: 18 },
+  { folder: 'Misc & Archive',                       target: null,         docs: 56 },
+]
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  }[c]))
-}
+/* Smart Sync — what Ethos finds and suggests after analysing the connected
+ * source. ~18 entries, mostly high-confidence with a couple of amber outliers
+ * to demo the confidence bar. Grouped client-side by category. */
+const SMART_SYNC_SUGGESTIONS = [
+  // Governing Documents
+  { name: 'Company Constitution',                     category: 'governing',  confidence: 96 },
+  { name: 'Shareholders Deed (2024 Amendment)',        category: 'governing',  confidence: 94 },
+  { name: 'Board Charter v3',                          category: 'governing',  confidence: 92 },
+  { name: 'Audit & Risk Committee Charter',            category: 'governing',  confidence: 88 },
+  { name: 'Delegations of Authority Matrix',           category: 'governing',  confidence: 91 },
+  // Policies
+  { name: 'Code of Conduct',                           category: 'policies',   confidence: 98 },
+  { name: 'Conflict of Interest Policy',               category: 'policies',   confidence: 95 },
+  { name: 'Whistleblower Policy',                      category: 'policies',   confidence: 93 },
+  { name: 'Anti-Bribery & Corruption Policy',          category: 'policies',   confidence: 64 },
+  { name: 'Privacy Policy v3',                         category: 'policies',   confidence: 94 },
+  // Frameworks
+  { name: 'Risk Management Framework v2',              category: 'frameworks', confidence: 96 },
+  { name: 'Risk Appetite Statement FY26',              category: 'frameworks', confidence: 90 },
+  { name: 'Compliance Management Framework',           category: 'frameworks', confidence: 89 },
+  { name: 'Cyber Security Framework',                  category: 'frameworks', confidence: 86 },
+  // Strategy & Reporting
+  { name: 'Strategic Plan FY26-28',                    category: 'strategy',   confidence: 95 },
+  { name: 'Annual Report FY25',                        category: 'strategy',   confidence: 97 },
+  { name: 'Modern Slavery Statement FY25',             category: 'strategy',   confidence: 91 },
+  { name: 'Sustainability Report FY25',                category: 'strategy',   confidence: 68 },
+]
 
-function relativeTime(date) {
-  if (!date) return ''
-  const d = date instanceof Date ? date.getTime() : new Date(date).getTime()
-  if (isNaN(d)) return ''
-  const diff = Date.now() - d
-  if (diff < 30_000) return 'just now'
-  if (diff < 60_000) return `${Math.max(1, Math.floor(diff / 1_000))}s ago`
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`
-  return `${Math.floor(diff / 86_400_000)}d ago`
-}
+const INDUSTRIES = [
+  'Electrical wholesale & distribution',
+  'Insurance & claims management',
+  'Health & wellness',
+  'Legal practice — corporate',
+  'Migration practice',
+  'Foundation / non-profit',
+  'Financial services (APRA-regulated)',
+  'Other',
+]
+const SIZES = ['Under 50 employees', '50–500 employees', '500–5,000 employees', '5,000+ employees']
+const GOVERNANCE_FRAMEWORKS = [
+  'ASIC / Corporations Act',
+  'APRA',
+  'ACNC',
+  'ACCC / Australian Consumer Law',
+  'OAIC / Privacy Act',
+  'WHS Act',
+  'Modern Slavery Act',
+  'ASX-listed obligations',
+  'AASB S2 / climate',
+  'MARA',
+  'TGA',
+  'Other',
+]
 
-function parseModified(str) {
-  const d = new Date(str)
-  return isNaN(d) ? new Date() : d
-}
+/* ───────────────────── Populated view ───────────────────── */
 
-function sizeFromId(id) {
-  return 12_000 + (id * 37_000) % 480_000
-}
-
-/* Returns per-folder suggestion state:
-   - uploaded: user-uploaded fulfilments
-   - seeded:   seed files that fulfil a placeholder
-   - dismissed: user dismissed (not applicable / already uploaded manually)
-   - effective: union of all three — counts toward "done" */
-function folderFulfillment(folder, uploads, dismissals) {
-  const suggested = folder.suggested || []
-  const suggestedIds = new Set(suggested.map((s) => s.id))
-  const seedFiles = FILES.filter((f) => f.folder === folder.name)
-  const seeded = new Set(
-    seedFiles.map((f) => f.fulfills).filter((id) => id && suggestedIds.has(id)),
-  )
-  const uploaded = new Set(Object.keys(uploads).filter((id) => suggestedIds.has(id)))
-  const dismissed = new Set([...dismissals].filter((id) => suggestedIds.has(id)))
-  const effective = new Set([...seeded, ...uploaded, ...dismissed])
-  return { suggested, seeded, uploaded, dismissed, effective }
-}
-
-function vaultStats(folders, uploads, dismissals) {
-  let total = 0, done = 0
-  folders.forEach((folder) => {
-    const { suggested, effective } = folderFulfillment(folder, uploads, dismissals)
-    total += suggested.length
-    done += effective.size
-  })
-  return { total, done }
-}
-
-/* Round-robin across folders — one item from the largest-gap folder, then
-   one from the next, etc. Surfaces variety rather than burying everything
-   behind the most incomplete folder. */
-function topUnfulfilled(folders, uploads, dismissals, limit) {
-  const queues = folders
-    .map((folder) => {
-      const { suggested, effective } = folderFulfillment(folder, uploads, dismissals)
-      return { folder, missing: suggested.filter((s) => !effective.has(s.id)) }
-    })
-    .filter((q) => q.missing.length > 0)
-    .sort((a, b) => {
-      if (b.missing.length !== a.missing.length) return b.missing.length - a.missing.length
-      return a.folder.name.localeCompare(b.folder.name)
-    })
-    .map((q) => ({ ...q, missing: [...q.missing] }))
-
-  const rows = []
-  while (rows.length < limit && queues.some((q) => q.missing.length > 0)) {
-    for (const q of queues) {
-      if (q.missing.length === 0) continue
-      const s = q.missing.shift()
-      rows.push({ id: s.id, label: s.label, folderName: q.folder.name })
-      if (rows.length >= limit) break
-    }
-  }
-  return rows
-}
-
-function countTotalUnfulfilled(folders, uploads, dismissals) {
-  return folders.reduce((acc, f) => {
-    const { suggested, effective } = folderFulfillment(f, uploads, dismissals)
-    return acc + (suggested.length - effective.size)
-  }, 0)
-}
-
-/* Build the FileManager tree from tenant seed data + runtime uploads. */
-function buildFileSystem(folders, baseFiles, uploads, dmsDirectAdditions = {}, resourceSaves = {}) {
-  return folders.map((folder) => {
-    const { suggested, effective } = folderFulfillment(folder, uploads, new Set())
-
-    const realSeedFiles = baseFiles
-      .filter((f) => f.folder === folder.name)
-      .map((f) => ({
-        name: f.name,
-        isDirectory: false,
-        size: sizeFromId(f.id),
-        dateModified: parseModified(f.modified),
-        uploader: UPLOADER_NAMES[f.uploader] ?? f.uploader,
-        viewerId: `vault-${f.id}`,
-        fileKey: `vault-${f.id}`,
-      }))
-
-    const uploadedFiles = Object.entries(uploads)
-      .filter(([id]) => suggested.some((s) => s.id === id))
-      .map(([id, info]) => ({
-        name: info.name,
-        isDirectory: false,
-        size: info.size ?? 0,
-        dateModified: info.modifiedAt,
-        uploader: info.source === 'sharepoint' ? 'SharePoint' : CURRENT_USER_NAME,
-        blobUrl: info.url,
-        viewerId: info.source === 'sharepoint' ? undefined : undefined,
-        dmsUrl: info.source === 'sharepoint' ? dmsSamplePdf(info.dmsId ?? id) : undefined,
-        source: info.source,
-        lastSyncedAt: info.lastSyncedAt,
-        fileKey: id,
-      }))
-
-    const dmsFolderAdditions = (dmsDirectAdditions[folder.name] || []).map((f) => ({
-      name: f.name,
-      isDirectory: false,
-      size: 0,
-      dateModified: new Date(f.modified || Date.now()),
-      uploader: 'SharePoint',
-      dmsUrl: dmsSamplePdf(f.id),
-      source: 'sharepoint',
-      lastSyncedAt: f.lastSyncedAt,
-      fileKey: `dms-${f.id}`,
-    }))
-
-    const resourceItems = Object.entries(resourceSaves)
-      .filter(([, save]) => save.folderName === folder.name)
-      .map(([resourceId, save]) => {
-        const ext = (save.fileType || 'pdf').toLowerCase()
-        const displayName = save.title?.toLowerCase().endsWith(`.${ext}`)
-          ? save.title
-          : `${save.title}.${ext}`
-        return {
-          name: displayName,
-          isDirectory: false,
-          size: 0,
-          dateModified: new Date(save.savedAt),
-          uploader: 'Resource Library',
-          viewerId: resourceId,
-          source: 'resource-library',
-          fileKey: `resource-${resourceId}`,
-        }
-      })
-
-    const completion = suggested.length ? effective.size / suggested.length : null
-    const items = [...realSeedFiles, ...uploadedFiles, ...dmsFolderAdditions, ...resourceItems]
-
-    return {
-      name: folder.name,
-      isDirectory: true,
-      completion,
-      fileCount: items.length,
-      items,
-    }
-  })
-}
-
-function completionTone(pct) {
-  if (pct >= 80) return 'bg-emerald-500'
-  if (pct >= 60) return 'bg-brand-500'
-  if (pct >= 40) return 'bg-amber-500'
-  return 'bg-rose-500'
-}
-
-/* DX FileManager's Details column strips all non-whitelisted props
-   (see __internal/.../item_list.details.js — only alignment/caption/
-   dataField/dataType/hidingPriority/sortIndex/sortOrder/visible/
-   visibleIndex/width survive). So cellRender is ignored. We inject the
-   progress bar markup into cells via MutationObserver, matching columns
-   by aria-colindex which is consistent across header and row cells. */
-function renderCompletionCells(root) {
-  if (!root) return
-  const headers = root.querySelectorAll('.dx-datagrid-headers [role="columnheader"]')
-  let targetColIndex = null
-  headers.forEach((h) => {
-    if (/^completion$/i.test(h.textContent.trim())) {
-      targetColIndex = h.getAttribute('aria-colindex')
-    }
-  })
-  if (!targetColIndex) return
-
-  const cells = root.querySelectorAll(
-    `.dx-datagrid-rowsview .dx-data-row [aria-colindex="${targetColIndex}"]`,
-  )
-  cells.forEach((cell) => {
-    if (cell.querySelector('[data-ethos-bar="1"]')) return
-    const row = cell.closest('.dx-data-row')
-    const isParentFolderRow = row?.classList.contains('dx-filemanager-parent-directory-item')
-    const raw = cell.textContent.trim()
-    if (isParentFolderRow || !raw) {
-      cell.innerHTML = '<span data-ethos-bar="1" class="text-xs text-muted-foreground/40">—</span>'
-      return
-    }
-    const num = parseFloat(raw)
-    if (isNaN(num)) return
-    const pct = num <= 1 ? Math.round(num * 100) : Math.round(num)
-    const tone = completionTone(pct)
-    cell.innerHTML = `
-      <div data-ethos-bar="1" class="flex items-center gap-2">
-        <div class="h-1.5 w-20 rounded-full bg-muted overflow-hidden">
-          <div class="h-full rounded-full ${tone}" style="width:${pct}%"></div>
-        </div>
-        <span class="text-xs text-muted-foreground tabular-nums">${pct}%</span>
-      </div>
-    `
-  })
-}
-
-/* Inject styled access pills into the Access column cells. Each cell's
-   contents become a clickable button tagged with data-access-file-key;
-   a global click listener reads that and opens the modal. State changes
-   to `fileAccess` tear down the observer and re-inject, so the summary
-   stays in sync. Parent-folder (..) rows are shown as an em dash. */
-function renderAccessCells(root, ctx) {
-  if (!root) return
-  const { currentFolder, fileAccess } = ctx
-  if (!currentFolder) return
-
-  const headers = root.querySelectorAll('.dx-datagrid-headers [role="columnheader"]')
-  let colIdx = null
-  headers.forEach((h) => {
-    if (/^access$/i.test(h.textContent.trim())) colIdx = h.getAttribute('aria-colindex')
-  })
-  if (!colIdx) return
-
-  const itemsByName = new Map(currentFolder.items.map((i) => [i.name, i]))
-
-  const cells = root.querySelectorAll(
-    `.dx-datagrid-rowsview .dx-data-row [aria-colindex="${colIdx}"]`,
-  )
-  cells.forEach((cell) => {
-    const row = cell.closest('.dx-data-row')
-    if (row?.classList.contains('dx-filemanager-parent-directory-item')) {
-      if (cell.dataset.ethosAccessState !== 'parent') {
-        cell.dataset.ethosAccessState = 'parent'
-        cell.innerHTML = '<span class="text-xs text-muted-foreground/40">—</span>'
-      }
-      return
-    }
-    const fileName = row?.querySelector('.dx-filemanager-details-item-name')?.textContent.trim()
-    const item = fileName ? itemsByName.get(fileName) : null
-    if (!item?.fileKey) return
-    const access = accessForFile(fileAccess, item.fileKey)
-    const state = JSON.stringify({ k: item.fileKey, a: access })
-    if (cell.dataset.ethosAccessState === state) return
-    cell.dataset.ethosAccessState = state
-    const isRestricted = access.mode === 'roles'
-    const summary = accessSummary(access)
-    const icon = isRestricted
-      ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11V7a5 5 0 0 1 10 0v4"/><rect x="5" y="11" width="14" height="10" rx="2"/></svg>'
-      : '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
-    const toneCls = isRestricted
-      ? 'text-brand-900 border-brand-300 bg-brand-50/50'
-      : 'text-muted-foreground border-transparent'
-    cell.innerHTML = `
-      <button type="button"
-        data-access-file-key="${escapeHtml(item.fileKey)}"
-        data-access-file-name="${escapeHtml(item.name)}"
-        class="inline-flex items-center gap-1.5 text-xs rounded border ${toneCls} hover:border-brand-300 hover:bg-brand-100/60 hover:text-brand-900 px-1.5 py-0.5 transition-colors"
-      >${icon}<span>${escapeHtml(summary)}</span></button>
-    `
-  })
-}
-
-/* Decorate the Source cell for DMS-sourced files: keeps the "SharePoint"
-   label but adds a small "synced X ago" pill beneath it. Non-DMS rows are
-   left alone (plain text is fine). */
-function renderSourceCells(root, ctx) {
-  if (!root) return
-  const { currentFolder } = ctx
-  if (!currentFolder) return
-
-  const headers = root.querySelectorAll('.dx-datagrid-headers [role="columnheader"]')
-  let colIdx = null
-  headers.forEach((h) => {
-    if (/^source$/i.test(h.textContent.trim())) colIdx = h.getAttribute('aria-colindex')
-  })
-  if (!colIdx) return
-
-  const itemsByName = new Map(currentFolder.items.map((i) => [i.name, i]))
-  const cells = root.querySelectorAll(
-    `.dx-datagrid-rowsview .dx-data-row [aria-colindex="${colIdx}"]`,
-  )
-  cells.forEach((cell) => {
-    const row = cell.closest('.dx-data-row')
-    if (row?.classList.contains('dx-filemanager-parent-directory-item')) return
-    const fileName = row?.querySelector('.dx-filemanager-details-item-name')?.textContent.trim()
-    const item = fileName ? itemsByName.get(fileName) : null
-    if (!item || item.source !== 'sharepoint') {
-      // Non-DMS: make sure we haven't previously decorated this cell
-      if (cell.dataset.ethosSourceState) {
-        cell.dataset.ethosSourceState = ''
-        cell.innerHTML = escapeHtml(String(item?.uploader ?? ''))
-      }
-      return
-    }
-    const synced = relativeTime(item.lastSyncedAt)
-    const state = `sp:${synced}`
-    if (cell.dataset.ethosSourceState === state) return
-    cell.dataset.ethosSourceState = state
-    cell.innerHTML = `
-      <div class="flex flex-col gap-0.5 leading-tight">
-        <span class="text-sm text-foreground">SharePoint</span>
-        <span class="inline-flex items-center gap-1 text-[10px] font-medium text-brand-800">
-          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg>
-          Synced ${escapeHtml(synced)}
-        </span>
-      </div>
-    `
-  })
-}
-
-function AccessModal({ open, fileName, initial, onClose, onSave }) {
-  const [mode, setMode] = useState('all')
-  const [roles, setRoles] = useState([])
-
-  useEffect(() => {
-    if (open && initial) {
-      setMode(initial.mode)
-      setRoles(initial.roles)
-    }
-  }, [open, initial])
-
-  if (!open) return null
-  const canSave = mode === 'all' || roles.length > 0
-
+function VaultHeader({ onPreviewEmpty, onOpenSettings }) {
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-lg border bg-background shadow-lg p-5 space-y-4">
-        <div>
-          <p className="text-base font-semibold text-foreground">Manage access</p>
-          <p className="text-sm text-muted-foreground mt-0.5 truncate">{fileName}</p>
+    <header className="flex items-start justify-between">
+      <div>
+        <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Vault</h1>
+        <p className="mt-2 text-sm text-foreground/80">
+          Manage the access Ethos has to your organisation’s foundational documents
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onPreviewEmpty}
+          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+        >
+          <EyeOff className="size-3.5" /> Preview empty state
+        </button>
+        <div className="inline-flex h-8 items-center gap-2 rounded-[10px] bg-white border border-border px-3">
+          <img src="/sharepoint-icon.png" alt="" className="h-3 w-auto" />
+          <span className="text-xs font-medium text-foreground">Connected</span>
         </div>
+        <Button size="sm" variant="outline" onClick={onOpenSettings} className="h-8 gap-1.5">
+          <Settings className="size-3.5" />
+          Settings
+        </Button>
+      </div>
+    </header>
+  )
+}
 
-        <div className="space-y-2">
-          <label className="flex items-start gap-2.5 rounded-md border border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors aria-checked:border-brand-300 aria-checked:bg-brand-50/50" aria-checked={mode === 'all'}>
-            <input type="radio" name="access-mode" className="mt-0.5 accent-brand-800" checked={mode === 'all'} onChange={() => setMode('all')} />
-            <div className="flex-1">
-              <div className="flex items-center gap-1.5">
-                <Users className="size-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-foreground">Everyone</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">Any user with access to the vault can view this file.</p>
+function StatusHeroCard({ status }) {
+  const currentIdx = STAGES.findIndex(s => s.label === status.label)
+  return (
+    <div className="rounded-xl bg-[#f3fffa] p-6 space-y-4">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <span className="size-3 rounded bg-emerald-300" />
+          <p className="text-base font-medium text-foreground">Status: {status.label || '—'}</p>
+        </div>
+        {status.lastSynced ? (
+          <p className="text-xs text-muted-foreground">{status.lastSynced}</p>
+        ) : null}
+      </div>
+      {status.body ? (
+        <p className="max-w-[800px] text-sm text-foreground">{status.body}</p>
+      ) : null}
+      <StageBar currentIdx={currentIdx} />
+    </div>
+  )
+}
+
+function StageBar({ currentIdx }) {
+  return (
+    <div className="relative pt-2">
+      <div className="flex h-3.5 gap-[3px]">
+        {STAGES.map((s, idx) => (
+          <div
+            key={s.label}
+            className={cn(
+              'flex-1',
+              idx === 0 && 'rounded-l-[2px]',
+              idx === STAGES.length - 1 && 'rounded-r-[2px]',
+              s.gradient
+                ? `bg-gradient-to-r ${s.gradient}`
+                : 'bg-[#d9d9d9] opacity-25',
+            )}
+          />
+        ))}
+      </div>
+      <div className="relative h-6 mt-1.5">
+        {STAGES.map((s, i) => {
+          const left = `${((i + 0.5) / STAGES.length) * 100}%`
+          const isCurrent = i === currentIdx
+          if (!isCurrent && i === currentIdx) return null
+          return (
+            <div
+              key={s.label}
+              className="absolute top-0 -translate-x-1/2 flex flex-col items-center"
+              style={{ left }}
+            >
+              {isCurrent ? (
+                <div className="size-0 border-x-[5px] border-x-transparent border-b-[6px] border-b-foreground/70 -mt-0.5" />
+              ) : null}
+              <span className={cn(
+                'text-sm leading-6',
+                isCurrent ? 'font-medium text-foreground/85' : 'text-foreground/60',
+              )}>
+                {s.label}
+              </span>
             </div>
-          </label>
-          <label className="flex items-start gap-2.5 rounded-md border border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors aria-checked:border-brand-300 aria-checked:bg-brand-50/50" aria-checked={mode === 'roles'}>
-            <input type="radio" name="access-mode" className="mt-0.5 accent-brand-800" checked={mode === 'roles'} onChange={() => setMode('roles')} />
-            <div className="flex-1">
-              <div className="flex items-center gap-1.5">
-                <Lock className="size-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-foreground">Specific roles only</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">Restrict viewing to the selected roles.</p>
-            </div>
-          </label>
-        </div>
-
-        {mode === 'roles' && (
-          <div className="pl-3 space-y-2">
-            {ROLES.map((role) => (
-              <label key={role} className="flex items-center gap-2 cursor-pointer py-0.5">
-                <Checkbox
-                  checked={roles.includes(role)}
-                  onCheckedChange={(checked) => {
-                    setRoles((prev) => (checked ? [...prev, role] : prev.filter((r) => r !== role)))
-                  }}
-                />
-                <span className="text-sm text-foreground">{role}</span>
-              </label>
-            ))}
-          </div>
-        )}
-
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
-          <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-          <Button
-            size="sm"
-            disabled={!canSave}
-            onClick={() => onSave({ mode, roles: mode === 'roles' ? roles : [] })}
-          >Save</Button>
-        </div>
+          )
+        })}
       </div>
     </div>
   )
 }
 
-function SuggestionRow({ item, showFolder, dmsConnected, onUpload, onDmsPick, onDismiss }) {
-  const uploadButton = dmsConnected ? (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-7 px-2 gap-1 text-xs border-brand-300 text-brand-900 hover:bg-brand-100/60 hover:text-brand-900"
-        >
-          <Upload className="size-3.5" /> Upload
-          <ChevronDown className="size-3" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 z-[2001]">
-        <DropdownMenuItem onClick={() => onUpload(item.id)}>
-          <Upload className="size-3.5 mr-2" /> From computer
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onDmsPick(item)}>
-          <Plug2 className="size-3.5 mr-2" /> From SharePoint
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  ) : (
-    <Button
-      size="sm"
-      variant="outline"
-      className="h-7 px-2 gap-1 text-xs border-brand-300 text-brand-900 hover:bg-brand-100/60 hover:text-brand-900"
-      onClick={() => onUpload(item.id)}
-    >
-      <Upload className="size-3.5" /> Upload
-    </Button>
-  )
+function SearchAddRow({ search, onSearchChange, onAdd }) {
   return (
-    <li className="flex items-center justify-between gap-2 rounded-md border border-dashed border-brand-200 bg-brand-50/30 px-3 py-2">
-      <div className="flex items-center gap-2 min-w-0">
-        <FileText className="size-4 text-brand-700 shrink-0" />
-        {showFolder && (
-          <Badge variant="secondary" className="bg-muted text-muted-foreground text-[10px] font-medium px-1.5 h-5 shrink-0 border-0">
-            {item.folderName}
-          </Badge>
-        )}
-        <span className="text-sm text-foreground italic truncate">{item.label}</span>
+    <div className="flex items-center gap-2">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={e => onSearchChange(e.target.value)}
+          placeholder="Search vault"
+          className="h-8 pl-9"
+        />
       </div>
-      <div className="flex items-center gap-0.5 shrink-0">
-        {uploadButton}
-        <Button
-          size="icon"
-          variant="ghost"
-          className="size-7 text-muted-foreground hover:text-foreground"
-          title="Dismiss — I've uploaded this or it's not applicable"
-          onClick={() => onDismiss(item.id, item.label)}
-        >
-          <X className="size-3.5" />
-        </Button>
-      </div>
-    </li>
+      <Button size="sm" onClick={onAdd} className="h-8 gap-1.5 bg-[#005c58] hover:bg-[#004a47]">
+        <Plus className="size-3.5" />
+        Add Files
+      </Button>
+    </div>
   )
 }
 
-function SuggestionsPanel({ folder, uploads, dismissals, onUpload, onDismiss, dmsConnected, onDmsPick, onAiAutoMatch }) {
-  const aiButton = dmsConnected ? (
-    <Button
-      size="sm"
-      variant="outline"
-      className="h-7 px-2.5 gap-1.5 text-xs border-brand-300 text-brand-900 hover:bg-brand-100/60 hover:text-brand-900"
-      onClick={onAiAutoMatch}
-    >
-      <Sparkles className="size-3.5" /> Search SharePoint with AI
-    </Button>
-  ) : null
-  if (folder) {
-    const { suggested, effective } = folderFulfillment(folder, uploads, dismissals)
-    if (suggested.length === 0) return null
-    const unfulfilled = suggested.filter((s) => !effective.has(s.id))
-    if (unfulfilled.length === 0) {
-      return (
-        <div className="flex items-center gap-2 text-sm text-emerald-900">
-          <CheckCircle2 className="size-4 text-emerald-600" />
-          All required documents for <span className="font-medium">{folder.name}</span> are uploaded.
-        </div>
-      )
-    }
-    const shown = unfulfilled.slice(0, SUGGESTION_LIMIT)
-    return (
-      <div className="space-y-3">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-foreground">Suggested Uploads</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {effective.size} of {suggested.length} done in {folder.name} · showing {shown.length} of {unfulfilled.length} outstanding
+function CategoryChips({ categories, selectedId, onSelect, files, hasFilters, onClearFilters }) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      {categories.map(c => {
+        const count = files.filter(f => f.categoryId === c.id).length
+        const active = selectedId === c.id
+
+        return (
+          <Tooltip key={c.id} delayDuration={150}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => onSelect(active ? null : c.id)}
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 h-8 border transition-colors',
+                  active
+                    ? 'bg-[#dffff2] border-[rgba(14,95,91,0.5)]'
+                    : 'bg-muted/60 hover:bg-muted border-transparent',
+                )}
+              >
+                <span className={cn(
+                  'text-sm font-medium tracking-[-0.28px]',
+                  active ? 'text-[#0e5f5b]' : 'text-foreground',
+                )}>
+                  {c.name}
+                </span>
+                <span className={cn(
+                  'text-xs',
+                  active ? 'text-[rgba(14,95,91,0.5)]' : 'text-muted-foreground',
+                )}>
+                  {count}
+                </span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs">
+              <p className="font-medium">{c.name}</p>
+              <p className="text-[11px] opacity-90">
+                {count > 0
+                  ? `${count} ${count === 1 ? 'document' : 'documents'}`
+                  : 'No documents yet'}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        )
+      })}
+      {hasFilters ? (
+        <button
+          type="button"
+          onClick={onClearFilters}
+          className="inline-flex items-center gap-1 rounded-md px-2 py-1 h-8 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+        >
+          <X className="size-3" />
+          Clear
+        </button>
+      ) : null}
+    </div>
+  )
+}
+
+function FileRow({ file, categoryName, onEdit, onRemove }) {
+  const Icon = FILE_TYPE_ICONS[file.type] ?? FileText
+  const status = FILE_STATUS[file.status] ?? FILE_STATUS.healthy
+  return (
+    <TableRow className="group hover:bg-muted/20">
+      <TableCell className="px-3 py-2.5">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Icon className="size-5 text-muted-foreground shrink-0" />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {fileFormat(file)} <span className="opacity-60">·</span> {fileSource(file)}
             </p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {aiButton}
-            <Badge variant="secondary" className="border border-amber-300 bg-amber-50 text-amber-900 text-[11px] font-medium px-1.5 h-5">
-              {unfulfilled.length} missing
-            </Badge>
+        </div>
+      </TableCell>
+      <TableCell className="px-3 py-2.5">
+        <Tooltip delayDuration={150}>
+          <TooltipTrigger asChild>
+            <span
+              className={cn(
+                'inline-flex items-center justify-center rounded-[4px] px-1.5 py-0.5 cursor-help',
+                'text-[12px] font-medium uppercase',
+                status.bg, status.text,
+              )}
+              style={{ fontFamily: '"Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}
+            >
+              {status.label}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs">
+            <p className="font-medium">{status.label}</p>
+            <p className="text-[11px] opacity-90">{status.description}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TableCell>
+      <TableCell className="px-3 py-2.5">
+        <span className="inline-flex items-center justify-center rounded-md bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
+          {categoryName ?? '—'}
+        </span>
+      </TableCell>
+      <TableCell className="px-3 py-2.5">
+        <span className="text-sm text-muted-foreground">{file.lastUpdated}</span>
+      </TableCell>
+      <TableCell className="px-3 py-2.5">
+        <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button size="sm" variant="outline" className="h-7 px-2 text-xs">
+            Open
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                aria-label="More actions"
+              >
+                <MoreHorizontal className="size-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-32">
+              <DropdownMenuItem onSelect={() => onEdit?.(file)} className="text-sm">
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => onRemove?.(file)}
+                className="text-sm text-destructive focus:text-destructive"
+              >
+                Remove from vault
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
+}
+
+function FileTable({ files, totalRows, categoryNameById, onEdit, onRemove }) {
+  // Reserve space for the full unfiltered set so the table doesn't reflow
+  // when chips/search filter rows out. ~56px per row + 40px for the header.
+  const minHeight = totalRows * 56 + 40
+  return (
+    <div style={{ minHeight }}>
+      <Table className="table-fixed">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="px-3 py-2 text-[13px] w-[38%]">
+              <span className="inline-flex items-center gap-1">File Name <ChevronDown className="size-3 text-muted-foreground" /></span>
+            </TableHead>
+            <TableHead className="px-3 py-2 text-[13px] w-[15%]">Status</TableHead>
+            <TableHead className="px-3 py-2 text-[13px] w-[17%]">Category</TableHead>
+            <TableHead className="px-3 py-2 text-[13px] w-[18%]">Last updated</TableHead>
+            <TableHead className="px-3 py-2 w-[12%]" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {files.length > 0 ? (
+            files.map(f => (
+              <FileRow
+                key={f.id}
+                file={f}
+                categoryName={categoryNameById[f.categoryId]}
+                onEdit={onEdit}
+                onRemove={onRemove}
+              />
+            ))
+          ) : (
+            <TableRow className="hover:bg-transparent border-0">
+              <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
+                No files match the current filters.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+/* ───────────── Edit file overlay ───────────── */
+
+function EditFileOverlay({ file, categories, onClose, onSave }) {
+  const [categoryId, setCategoryId] = useState(file.categoryId)
+  const Icon = FILE_TYPE_ICONS[file.type] ?? FileText
+
+  return (
+    <ModalShell open={true} onClose={onClose} width="max-w-md">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+        <p className="text-sm font-medium text-foreground">Edit document</p>
+        <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+          <X className="size-4" />
+        </button>
+      </div>
+
+      <div className="px-5 py-5 space-y-5 overflow-auto">
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5">
+          <Icon className="size-5 text-muted-foreground shrink-0" />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
+            <p className="text-xs text-muted-foreground">Last updated {file.lastUpdated}</p>
           </div>
         </div>
-        <ul className="grid grid-cols-2 gap-2">
-          {shown.map((s) => (
-            <SuggestionRow
-              key={s.id}
-              item={{ id: s.id, label: s.label, folderName: folder.name }}
-              showFolder={false}
-              dmsConnected={dmsConnected}
-              onUpload={onUpload}
-              onDmsPick={onDmsPick}
-              onDismiss={onDismiss}
-            />
-          ))}
-        </ul>
+
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-foreground uppercase tracking-wider">Category</label>
+          <div className="space-y-1.5">
+            {categories.map(c => {
+              const active = c.id === categoryId
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCategoryId(c.id)}
+                  className={cn(
+                    'w-full flex items-center gap-2.5 rounded-md border px-3 py-2 text-left text-sm transition-colors',
+                    active
+                      ? 'border-brand-700 bg-brand-50'
+                      : 'border-border bg-white hover:border-brand-300 hover:bg-muted/30',
+                  )}
+                >
+                  <FolderOpen className="size-3.5 text-muted-foreground shrink-0" />
+                  <span className="flex-1 font-medium text-foreground">{c.name}</span>
+                  {active ? <Check className="size-4 text-brand-700" /> : null}
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </div>
-    )
+
+      <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-background">
+        <p className="text-xs text-muted-foreground">
+          {categoryId === file.categoryId ? 'No changes to save' : 'Category will be updated'}
+        </p>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button
+            size="sm"
+            disabled={categoryId === file.categoryId}
+            onClick={() => onSave(file.id, categoryId)}
+          >
+            Save
+          </Button>
+        </div>
+      </div>
+    </ModalShell>
+  )
+}
+
+function PopulatedView({ onPreviewEmpty, onAddFiles, onOpenSettings }) {
+  const [selectedChipId, setSelectedChipId] = useState(null)
+  const [search, setSearch] = useState('')
+  const [editingFile, setEditingFile] = useState(null)
+  // Local edits + soft-removals — keep changes within the session without
+  // mutating the tenant config source data.
+  const [fileEdits, setFileEdits] = useState({})
+  const [removedIds, setRemovedIds] = useState(() => new Set())
+
+  const categoryNameById = useMemo(
+    () => Object.fromEntries(CATEGORIES.map(c => [c.id, c.name])),
+    [],
+  )
+
+  const liveFiles = useMemo(() => {
+    return FILES
+      .filter(f => !removedIds.has(f.id))
+      .map(f => fileEdits[f.id] ? { ...f, categoryId: fileEdits[f.id] } : f)
+  }, [fileEdits, removedIds])
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return liveFiles.filter(f => {
+      if (selectedChipId && f.categoryId !== selectedChipId) return false
+      if (q && !f.name.toLowerCase().includes(q)) return false
+      return true
+    })
+  }, [liveFiles, selectedChipId, search])
+
+  function handleEdit(file) {
+    setEditingFile(file)
   }
 
-  // Root mode — cross-folder
-  const totalUnfulfilled = countTotalUnfulfilled(FOLDERS, uploads, dismissals)
-  if (totalUnfulfilled === 0) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-emerald-900">
-        <CheckCircle2 className="size-4 text-emerald-600" />
-        All required documents across your vault are uploaded.
-      </div>
-    )
+  function handleSaveEdit(fileId, newCategoryId) {
+    setFileEdits(prev => ({ ...prev, [fileId]: newCategoryId }))
+    setEditingFile(null)
   }
-  const top = topUnfulfilled(FOLDERS, uploads, dismissals, SUGGESTION_LIMIT)
-  const { total, done } = vaultStats(FOLDERS, uploads, dismissals)
+
+  function handleRemove(file) {
+    setRemovedIds(prev => {
+      const next = new Set(prev)
+      next.add(file.id)
+      return next
+    })
+  }
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold text-foreground">Suggested Uploads</p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {done} of {total} done across your vault · showing {top.length} of {totalUnfulfilled} outstanding
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {aiButton}
-          <Badge variant="secondary" className="border border-amber-300 bg-amber-50 text-amber-900 text-[11px] font-medium px-1.5 h-5">
-            {totalUnfulfilled} missing
-          </Badge>
-        </div>
+    <div className="space-y-6">
+      <VaultHeader onPreviewEmpty={onPreviewEmpty} onOpenSettings={onOpenSettings} />
+      <StatusHeroCard status={STATUS} />
+      <SearchAddRow search={search} onSearchChange={setSearch} onAdd={onAddFiles} />
+      <CategoryChips
+        categories={CATEGORIES}
+        selectedId={selectedChipId}
+        onSelect={setSelectedChipId}
+        files={liveFiles}
+        hasFilters={Boolean(selectedChipId) || search.length > 0}
+        onClearFilters={() => { setSelectedChipId(null); setSearch('') }}
+      />
+      <FileTable
+        files={filtered}
+        totalRows={liveFiles.length}
+        categoryNameById={categoryNameById}
+        onEdit={handleEdit}
+        onRemove={handleRemove}
+      />
+      {editingFile ? (
+        <EditFileOverlay
+          file={editingFile}
+          categories={CATEGORIES}
+          onClose={() => setEditingFile(null)}
+          onSave={handleSaveEdit}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+/* ───────────── Empty state — drop zone + DMS rail + starter pack ───────────── */
+
+function DropZone({ onDrop, helper }) {
+  const [over, setOver] = useState(false)
+  const inputRef = useRef(null)
+  const helperText = helper ?? 'Ethos will automatically sort them into Governing Documents, Policies, Frameworks and Strategy & Reporting.'
+  return (
+    <button
+      type="button"
+      onClick={() => inputRef.current?.click()}
+      onDragOver={e => { e.preventDefault(); setOver(true) }}
+      onDragLeave={() => setOver(false)}
+      onDrop={e => { e.preventDefault(); setOver(false); onDrop() }}
+      className={cn(
+        'group w-full rounded-xl border-2 border-dashed bg-white px-8 py-14 text-center transition-all',
+        over ? 'border-brand-700 bg-brand-50/50' : 'border-border hover:border-brand-400 hover:bg-muted/30',
+      )}
+    >
+      <input ref={inputRef} type="file" multiple className="hidden" onChange={onDrop} />
+      <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-transform group-hover:scale-105">
+        <Upload className="size-6" />
       </div>
-      <ul className="grid grid-cols-2 gap-2">
-        {top.map((item) => (
-          <SuggestionRow
-            key={`${item.folderName}::${item.id}`}
-            item={item}
-            showFolder
-            dmsConnected={dmsConnected}
-            onUpload={onUpload}
-            onDmsPick={onDmsPick}
-            onDismiss={onDismiss}
-          />
+      <p className="mt-5 text-base font-medium text-foreground">Drop your documents here</p>
+      <p className="mt-1.5 text-sm text-muted-foreground max-w-md mx-auto">{helperText}</p>
+      <div className="mt-5 inline-flex items-center gap-2">
+        <Button size="sm" type="button" onClick={e => { e.stopPropagation(); inputRef.current?.click() }}>
+          Choose files
+        </Button>
+        <span className="text-xs text-muted-foreground">or drag and drop</span>
+      </div>
+    </button>
+  )
+}
+
+function DmsCard({ provider, onClick }) {
+  const { Icon } = provider
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group flex flex-col items-center gap-2 rounded-lg border border-border bg-white px-4 py-4 transition-all hover:border-brand-400 hover:bg-muted/20"
+    >
+      <Icon className="size-7" style={{ color: provider.color }} />
+      <span className="text-xs font-medium text-foreground">{provider.name}</span>
+    </button>
+  )
+}
+
+function EmptyStateChecklist({ categories, onAddCategory }) {
+  const descriptions = {
+    governing:  'Constitution, deeds, board charter, delegations of authority',
+    policies:   'Code of conduct, conflict of interest, whistleblower, privacy',
+    frameworks: 'Risk management, compliance, cyber security, ESG',
+    strategy:   'Strategic plan, annual report, modern slavery, sustainability',
+  }
+  return (
+    <div className="rounded-xl bg-[#F8FAFF] p-6 space-y-4">
+      <div>
+        <p className="text-base font-medium text-foreground">Setup Ethos Vault</p>
+        <p className="mt-2 text-sm text-foreground max-w-[800px]">
+          Upload foundational documents across these four areas. This gives Ethos the baseline it needs to support automated risk and compliance recommendations.
+        </p>
+      </div>
+      <ul className="space-y-2">
+        {categories.map(cat => (
+          <li
+            key={cat.id}
+            className="flex items-center justify-between gap-4 rounded-lg border border-[#f5f5f5] bg-white px-4 py-3"
+          >
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="size-8 rounded-full bg-[#f7f7f7] border border-border shrink-0" />
+              <div className="min-w-0">
+                <p className="text-base font-medium text-foreground">{cat.name}</p>
+                <p className="text-xs text-foreground">{descriptions[cat.id] ?? ''}</p>
+                <p className="mt-2 text-xs text-muted-foreground">0 files</p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onAddCategory(cat)}
+              className="min-w-[80px] border-[rgba(10,10,10,0.1)] bg-white text-[#393939] hover:bg-muted/30 hover:text-[#393939]"
+            >
+              Add {cat.name}
+            </Button>
+          </li>
         ))}
       </ul>
     </div>
   )
 }
 
-function VaultStatusCard({
-  vaultDone, vaultTotal,
-  folder, uploads, dismissals,
-  onUpload, onDismiss,
-  expanded, onToggle,
-  dmsConnected, onDmsPick, onAiAutoMatch,
-}) {
-  const totalUnfulfilled = folder
-    ? (() => {
-        const { suggested, effective } = folderFulfillment(folder, uploads, dismissals)
-        return suggested.length - effective.size
-      })()
-    : countTotalUnfulfilled(FOLDERS, uploads, dismissals)
-
+function SmartSyncCta({ onClick }) {
   return (
-    <div className="rounded-lg border border-brand-200 bg-brand-50/50">
-      {/* Thin strip — always visible */}
-      <div className="px-4 py-2.5 flex items-center gap-4">
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="rounded-md bg-brand-800 p-1 text-white">
-            <ShieldCheck className="size-3.5" />
-          </div>
-          <span className="text-sm font-semibold text-foreground">Vault Status</span>
-          <Badge variant="secondary" className="border border-brand-300 bg-brand-100 text-brand-900 text-[11px] font-medium px-1.5 h-5">
-            Effective
-          </Badge>
+    <div className="rounded-[10px] border border-[#dbd5ff] bg-[#faf9ff] p-3 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2 min-w-0">
+        <div className="flex size-6 items-center justify-center rounded bg-[#ffd6ff] shrink-0">
+          <Sparkles className="size-4 text-[#7a3aa0]" />
         </div>
-        <div className="flex-1 flex items-center gap-1.5" aria-label="Vault maturity progress">
-          {STAGES.map((stage, i) => (
-            <div
-              key={i}
-              title={stage.label}
-              className={cn(
-                'flex-1 h-1.5 rounded-full',
-                stage.current  ? 'bg-brand-800'
-                : stage.filled ? 'bg-brand-500'
-                : 'bg-brand-200',
-              )}
-            />
-          ))}
-        </div>
-        <span className="text-xs text-muted-foreground tabular-nums shrink-0">
-          {vaultDone} of {vaultTotal} required documents uploaded
-        </span>
-        <button
-          type="button"
-          onClick={onToggle}
-          className="inline-flex items-center gap-1 text-xs font-medium text-brand-800 hover:text-brand-900 rounded px-1.5 py-0.5 hover:bg-brand-100/60 transition-colors shrink-0"
-        >
-          {expanded ? 'Hide' : 'View'} suggestions
-          {expanded ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
-        </button>
-      </div>
-
-      {expanded && (
-        <div className="border-t border-brand-200 bg-background rounded-b-lg px-4 py-3">
-          {totalUnfulfilled === 0 && !folder ? (
-            <SuggestionsPanel folder={null} uploads={uploads} dismissals={dismissals} onUpload={onUpload} onDismiss={onDismiss} dmsConnected={dmsConnected} onDmsPick={onDmsPick} onAiAutoMatch={onAiAutoMatch} />
-          ) : (
-            <SuggestionsPanel folder={folder} uploads={uploads} dismissals={dismissals} onUpload={onUpload} onDismiss={onDismiss} dmsConnected={dmsConnected} onDmsPick={onDmsPick} onAiAutoMatch={onAiAutoMatch} />
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function UndoToast({ item, onUndo }) {
-  return (
-    <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-md bg-foreground text-background shadow-lg px-4 py-2.5 animate-in slide-in-from-bottom-4 duration-200">
-      <div className="text-sm">
-        Dismissed <span className="font-medium">&ldquo;{item.label}&rdquo;</span>
-      </div>
-      <button
-        onClick={onUndo}
-        className="inline-flex items-center gap-1 text-sm font-medium text-background/90 hover:text-background underline underline-offset-2"
-      >
-        <RotateCcw className="size-3.5" /> Undo
-      </button>
-    </div>
-  )
-}
-
-function AiAutoMatchModal({ open, steps, currentStep, matchCount, onClose }) {
-  if (!open) return null
-  const done = currentStep >= steps.length
-  return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-foreground/40" onClick={done ? onClose : undefined} />
-      <div className="relative w-full max-w-md rounded-lg border bg-background shadow-lg p-5 space-y-4">
-        <div className="flex items-start gap-3">
-          <div className={cn(
-            'rounded-md p-2 text-white shrink-0',
-            done ? 'bg-emerald-600' : 'bg-brand-800',
-          )}>
-            {done ? <CheckCircle2 className="size-4" /> : <Sparkles className="size-4" />}
-          </div>
-          <div className="flex-1">
-            <p className="text-base font-semibold text-foreground">
-              {done ? 'AI finished' : 'Searching SharePoint with AI'}
-            </p>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {done
-                ? matchCount > 0
-                  ? `Added ${matchCount} matched ${matchCount === 1 ? 'document' : 'documents'} from SharePoint.`
-                  : 'No matching documents found in your SharePoint.'
-                : 'We\'re reviewing your SharePoint for required documents.'}
-            </p>
-          </div>
-        </div>
-
-        <ul className="space-y-2 pl-1">
-          {steps.map((label, i) => {
-            const isDone = i < currentStep
-            const isActive = i === currentStep && !done
-            return (
-              <li key={i} className="flex items-center gap-2.5 text-sm">
-                <div className={cn(
-                  'size-4 shrink-0 flex items-center justify-center rounded-full',
-                  isDone ? 'bg-emerald-600 text-white'
-                  : isActive ? 'text-brand-800'
-                  : 'text-muted-foreground/50',
-                )}>
-                  {isDone
-                    ? <Check className="size-3" />
-                    : isActive
-                      ? <div className="size-3 rounded-full border-2 border-brand-800/30 border-t-brand-800 animate-spin" />
-                      : <div className="size-1.5 rounded-full bg-current" />}
-                </div>
-                <span className={cn(
-                  isDone ? 'text-foreground'
-                  : isActive ? 'text-foreground font-medium'
-                  : 'text-muted-foreground',
-                )}>{label}</span>
-              </li>
-            )
-          })}
-        </ul>
-
-        {done && (
-          <div className="flex items-center justify-end pt-2 border-t border-border">
-            <Button size="sm" onClick={onClose}>Done</Button>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function DmsConnectBanner({ connection, onConnect, onDisconnect }) {
-  if (connection) {
-    const brand = PROVIDER_BRAND[connection.provider]
-    return (
-      <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-2.5 flex items-center gap-3">
-        <div
-          className="rounded-md size-7 flex items-center justify-center text-white shrink-0"
-          style={{ backgroundColor: brand?.color ?? '#059669' }}
-        >
-          <ProviderBrandIcon providerId={connection.provider} className="size-4" />
-        </div>
-        <p className="text-sm text-emerald-900 flex-1">
-          Connected to <span className="font-medium">{connection.providerName ?? 'SharePoint'}</span>. You can now add files directly from your document management system.
+        <p className="text-sm leading-5 text-foreground min-w-0">
+          <span className="font-medium">Quick Vault Sync:</span>
+          <span className="text-foreground/60"> Ethos will scan your document system and automatically make suggestions on vault requirements</span>
         </p>
-        <button
-          onClick={onDisconnect}
-          className="text-xs text-emerald-800 hover:text-emerald-900 font-medium rounded px-2 py-1 hover:bg-emerald-100/80"
-        >
-          Disconnect
-        </button>
       </div>
-    )
-  }
-  return (
-    <div className="rounded-lg border border-brand-200 bg-background px-4 py-2.5 flex items-center gap-3">
-      <div className="rounded-md bg-brand-800 p-1 text-white shrink-0">
-        <Plug className="size-3.5" />
-      </div>
-      <div className="flex-1">
-        <p className="text-sm font-medium text-foreground">Connect your document management system</p>
-        <p className="text-xs text-muted-foreground mt-0.5">Pull files directly from SharePoint, OneDrive, Drive, Box, or Dropbox.</p>
-      </div>
-      <Button size="sm" variant="outline" className="border-brand-300 text-brand-900 hover:bg-brand-100/60 hover:text-brand-900" onClick={onConnect}>
-        Connect
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={onClick}
+        className="shrink-0 min-w-[80px] border-[rgba(10,10,10,0.1)] bg-white text-[#393939] hover:bg-muted/30 hover:text-[#393939]"
+      >
+        <Sparkles className="size-3.5 opacity-50" />
+        Quick Scan
       </Button>
     </div>
   )
 }
 
-function fileTypeLabel(name) {
-  const i = name.lastIndexOf('.')
-  return i === -1 ? 'FILE' : name.slice(i + 1).toUpperCase()
+function VaultEmptyState({ onAddCategory, onSmartSync, onPreviewPopulated }) {
+  return (
+    <div className="space-y-6">
+      <header className="flex items-end justify-between">
+        <div>
+          <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Vault</h1>
+          <p className="mt-2 text-sm text-foreground/80">
+            Manage the access Ethos has to your organisation&rsquo;s foundational documents
+          </p>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onPreviewPopulated}
+          className="min-w-[80px] border-[rgba(10,10,10,0.1)] bg-white text-[#393939] hover:bg-muted/30 hover:text-[#393939]"
+        >
+          <Eye className="size-3.5" /> Preview populated state
+        </Button>
+      </header>
+
+      <EmptyStateChecklist categories={CATEGORIES} onAddCategory={onAddCategory} />
+
+      <SmartSyncCta onClick={onSmartSync} />
+    </div>
+  )
 }
 
-function SharePointPickerModal({ open, initialSearch, onClose, onAdd }) {
-  const [path, setPath] = useState([SHAREPOINT_ROOT.name])
-  const [search, setSearch] = useState('')
-  const [selectedIds, setSelectedIds] = useState(new Set())
+/* ───────────── Categorising loader ───────────── */
 
+function CategorisingLoader({ count }) {
+  const [progress, setProgress] = useState(0)
   useEffect(() => {
-    if (open) {
-      setPath([SHAREPOINT_ROOT.name])
-      setSearch(initialSearch ?? '')
-      setSelectedIds(new Set())
-    }
-  }, [open, initialSearch])
+    const id = setInterval(() => setProgress(p => Math.min(100, p + 4)), 80)
+    return () => clearInterval(id)
+  }, [])
+  return (
+    <div className="flex flex-col items-center justify-center py-24">
+      <div className="flex size-16 items-center justify-center rounded-full bg-brand-50 text-brand-800 animate-pulse">
+        <Sparkles className="size-7" />
+      </div>
+      <p className="mt-6 text-base font-medium text-foreground">Categorising {count} documents</p>
+      <p className="mt-1.5 text-sm text-muted-foreground">Ethos is reading and sorting your files…</p>
+      <div className="mt-6 h-1.5 w-72 overflow-hidden rounded-full bg-muted">
+        <div className="h-full rounded-full bg-brand-700 transition-all duration-150" style={{ width: `${progress}%` }} />
+      </div>
+    </div>
+  )
+}
 
+/* ───────────── Confirmation sheet (C) ───────────── */
+
+function CategoryDropdown({ value, onChange, options }) {
+  const current = options.find(c => c.id === value)
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="inline-flex items-center gap-1 rounded-md border border-border bg-white px-2 py-1 text-xs font-medium text-foreground hover:bg-muted/50">
+          {current?.name ?? '—'}
+          <ChevronDown className="size-3 text-muted-foreground" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-52">
+        {options.map(c => (
+          <DropdownMenuItem key={c.id} onSelect={() => onChange(c.id)} className="text-xs">
+            <span className="flex-1">{c.name}</span>
+            {c.id === value ? <Check className="size-3.5 text-brand-700" /> : null}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function ConfirmCategorisation({ files, onBack, onConfirm }) {
+  const [items, setItems] = useState(files)
+  const lowConfidence = items.filter(i => i.confidence < 80).length
+
+  function setCategory(idx, cat) {
+    setItems(prev => prev.map((it, i) => i === idx ? { ...it, category: cat, overridden: true } : it))
+  }
+
+  return (
+    <div className="space-y-6">
+      <header>
+        <Button size="sm" variant="ghost" onClick={onBack} className="gap-1.5 -ml-2 mb-3 text-muted-foreground">
+          <ArrowLeft className="size-3.5" /> Back
+        </Button>
+        <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Review categorisation</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Ethos categorised {items.length} documents.
+          {lowConfidence > 0 && (
+            <span className="ml-1 text-amber-700">{lowConfidence} {lowConfidence === 1 ? 'item' : 'items'} need a closer look.</span>
+          )}
+        </p>
+      </header>
+
+      <div className="rounded-lg border border-border bg-white overflow-hidden">
+        <div className="grid grid-cols-12 gap-3 px-5 py-2.5 border-b border-border bg-muted/30 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          <div className="col-span-6">Document</div>
+          <div className="col-span-3">Category</div>
+          <div className="col-span-2">Confidence</div>
+          <div className="col-span-1" />
+        </div>
+        {items.map((it, idx) => {
+          const low = it.confidence < 80
+          return (
+            <div key={it.name} className="grid grid-cols-12 gap-3 items-center px-5 py-3 border-b border-border last:border-b-0 hover:bg-muted/20">
+              <div className="col-span-6 flex items-center gap-3 min-w-0">
+                <div className="flex size-7 items-center justify-center rounded bg-muted text-muted-foreground shrink-0">
+                  <FileText className="size-3.5" />
+                </div>
+                <p className="text-sm text-foreground truncate">{it.name}</p>
+              </div>
+              <div className="col-span-3 flex items-center gap-2">
+                <FileText className="size-3.5 text-brand-800" />
+                <CategoryDropdown
+                  value={it.category}
+                  onChange={cat => setCategory(idx, cat)}
+                  options={CATEGORIES}
+                />
+              </div>
+              <div className="col-span-2 flex items-center gap-2">
+                <div className="h-1 w-14 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={cn('h-full rounded-full', low ? 'bg-amber-500' : 'bg-emerald-500')}
+                    style={{ width: `${it.confidence}%` }}
+                  />
+                </div>
+                <span className={cn('text-xs', low ? 'text-amber-700' : 'text-muted-foreground')}>
+                  {it.confidence}%
+                </span>
+              </div>
+              <div className="col-span-1 flex justify-end">
+                {it.overridden ? (
+                  <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-brand-200 bg-brand-50 text-brand-700">
+                    Edited
+                  </Badge>
+                ) : null}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">All documents will be added to your Vault and tagged by source.</p>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={onBack}>Cancel</Button>
+          <Button size="sm" onClick={onConfirm}>Confirm and finish</Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ───────────── DMS scan modal (D) ───────────── */
+
+function ModalShell({ open, onClose, children, width = 'max-w-2xl' }) {
   if (!open) return null
+  return (
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6">
+      <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
+      <div className={cn('relative w-full rounded-xl border border-border bg-background shadow-xl flex flex-col max-h-[85vh] overflow-hidden', width)}>
+        {children}
+      </div>
+    </div>
+  )
+}
 
-  const isSearching = search.trim().length > 0
-  const currentNode = dmsNodeAt(path)
-  const currentFolders = !isSearching
-    ? (currentNode?.items || []).filter((it) => it.type === 'folder')
-    : []
-  const searchTokens = search.toLowerCase().split(/\s+/).filter(Boolean)
-  const visibleFiles = isSearching
-    ? flattenDmsFiles(SHAREPOINT_ROOT).filter((f) => {
-        const haystack = (f.name + ' ' + f.path.join(' ')).toLowerCase()
-        return searchTokens.some((t) => haystack.includes(t))
-      })
-    : (currentNode?.items || [])
-        .filter((it) => it.type === 'file')
-        .map((f) => ({ ...f, path }))
+function DmsScanModal({ provider, open, onClose, onConfirm }) {
+  if (!provider) return null
+  return (
+    <DmsScanModalInner
+      key={provider.id}
+      provider={provider}
+      open={open}
+      onClose={onClose}
+      onConfirm={onConfirm}
+    />
+  )
+}
 
-  function toggleFile(id) {
-    setSelectedIds((prev) => {
+function DmsScanModalInner({ provider, open, onClose, onConfirm }) {
+  const [phase, setPhase] = useState('scanning') // scanning | review
+  useEffect(() => {
+    const id = setTimeout(() => setPhase('review'), 1800)
+    return () => clearTimeout(id)
+  }, [])
+
+  const { Icon } = provider
+
+  return (
+    <ModalShell open={open} onClose={onClose}>
+      <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+        <div className="flex items-center gap-3">
+          <Icon className="size-5" style={{ color: provider.color }} />
+          <p className="text-sm font-medium text-foreground">Connect {provider.name}</p>
+        </div>
+        <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+          <X className="size-4" />
+        </button>
+      </div>
+
+      {phase === 'scanning' ? (
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-800 animate-pulse">
+            <Sparkles className="size-6" />
+          </div>
+          <p className="mt-5 text-base font-medium text-foreground">Scanning {provider.name}…</p>
+          <p className="mt-1.5 text-sm text-muted-foreground">Reading your folder structure</p>
+        </div>
+      ) : (
+        <>
+          <div className="px-5 py-4 border-b border-border bg-muted/20">
+            <p className="text-sm text-foreground">
+              Found <span className="font-medium">412 documents</span> across <span className="font-medium">18 folders</span>.
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">Review the proposed mapping below — Ethos will sync these on confirmation.</p>
+          </div>
+          <div className="flex-1 overflow-auto">
+            <div className="grid grid-cols-12 gap-3 px-5 py-2.5 border-b border-border bg-muted/30 text-[10px] font-medium uppercase tracking-wider text-muted-foreground sticky top-0">
+              <div className="col-span-5">Source folder</div>
+              <div className="col-span-5">Mapped to</div>
+              <div className="col-span-2 text-right">Documents</div>
+            </div>
+            {DMS_FOLDER_MAPPING.map(row => {
+              const target = CATEGORIES.find(c => c.id === row.target)
+              return (
+                <div key={row.folder} className="grid grid-cols-12 gap-3 items-center px-5 py-3 border-b border-border last:border-b-0 hover:bg-muted/20">
+                  <div className="col-span-5 flex items-center gap-2 min-w-0">
+                    <FolderOpen className="size-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm text-foreground truncate">{row.folder}</span>
+                  </div>
+                  <div className="col-span-5 flex items-center gap-2 min-w-0">
+                    {target ? (
+                      <>
+                        <FileText className="size-3.5 text-brand-800" />
+                        <span className="text-sm text-foreground truncate">{target.name}</span>
+                      </>
+                    ) : (
+                      <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 text-[10px] h-5 px-1.5">
+                        Unmapped — review manually
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="col-span-2 text-right text-sm text-muted-foreground">{row.docs}</div>
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-background">
+            <p className="text-xs text-muted-foreground">You can re-run mapping any time after connecting.</p>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={onClose}>Cancel</Button>
+              <Button size="sm" onClick={onConfirm}>Confirm mapping</Button>
+            </div>
+          </div>
+        </>
+      )}
+    </ModalShell>
+  )
+}
+
+/* ───────────── Starter pack modal (F) ───────────── */
+
+function StarterPackModal({ open, onClose, onApply }) {
+  const [industry, setIndustry] = useState(INDUSTRIES[0])
+  const [size, setSize] = useState(SIZES[2])
+  const [frameworks, setFrameworks] = useState(new Set(['ASIC / Corporations Act', 'OAIC / Privacy Act', 'WHS Act']))
+
+  function toggleFramework(fw) {
+    setFrameworks(prev => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (next.has(fw)) next.delete(fw); else next.add(fw)
       return next
     })
   }
 
-  function enterFolder(name) {
-    setPath((prev) => [...prev, name])
-  }
-
-  function goUp() {
-    setPath((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev))
-  }
-
-  function crumbTo(idx) {
-    setPath((prev) => prev.slice(0, idx + 1))
-  }
-
-  const selectedFiles = flattenDmsFiles(SHAREPOINT_ROOT).filter((f) => selectedIds.has(f.id))
-
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
-      <div className="relative w-full max-w-3xl h-[600px] rounded-lg border bg-background shadow-lg flex flex-col">
-        {/* Header */}
-        <div className="px-5 pt-4 pb-3 border-b border-border">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-base font-semibold text-foreground">Add from SharePoint</p>
-              <p className="text-sm text-muted-foreground mt-0.5">Browse or search for files to add to your vault.</p>
-            </div>
-            <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
-              <X className="size-4" />
-            </button>
-          </div>
-          <div className="mt-3 flex items-center gap-2 rounded-md border border-border bg-muted/30 px-2.5 h-9 focus-within:border-brand-300 focus-within:bg-background transition-colors">
-            <Search className="size-4 text-muted-foreground shrink-0" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search your SharePoint..."
-              className="flex-1 text-sm outline-none bg-transparent placeholder:text-muted-foreground"
-            />
-            {isSearching && (
-              <button onClick={() => setSearch('')} className="text-muted-foreground hover:text-foreground">
-                <X className="size-3.5" />
-              </button>
-            )}
-          </div>
+    <ModalShell open={open} onClose={onClose} width="max-w-xl">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+        <div className="flex items-center gap-3">
+          <Wand2 className="size-5 text-brand-800" />
+          <p className="text-sm font-medium text-foreground">Tell Ethos about your organisation</p>
         </div>
+        <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+          <X className="size-4" />
+        </button>
+      </div>
 
-        {/* Breadcrumb (only in browse mode) */}
-        {!isSearching && (
-          <div className="px-5 py-2 border-b border-border flex items-center gap-1 text-sm">
-            {path.length > 1 && (
-              <button onClick={goUp} className="p-1 rounded hover:bg-muted text-muted-foreground mr-1">
-                <ArrowLeft className="size-4" />
+      <div className="px-5 py-5 space-y-5 overflow-auto">
+        <p className="text-sm text-muted-foreground">
+          Three quick questions and Ethos will pre-populate your Vault with the foundation categories we expect.
+        </p>
+
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-foreground uppercase tracking-wider">Industry</label>
+          <div className="grid grid-cols-2 gap-2">
+            {INDUSTRIES.map(i => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setIndustry(i)}
+                className={cn(
+                  'rounded-md border px-3 py-2 text-left text-sm transition-colors',
+                  i === industry ? 'border-brand-700 bg-brand-50 text-foreground' : 'border-border bg-white text-muted-foreground hover:border-brand-300 hover:bg-muted/30',
+                )}
+              >
+                {i}
               </button>
-            )}
-            {path.map((seg, i) => (
-              <span key={i} className="inline-flex items-center gap-1">
-                <button
-                  onClick={() => crumbTo(i)}
-                  className={cn(
-                    'px-1.5 py-0.5 rounded hover:bg-muted',
-                    i === path.length - 1 ? 'text-foreground font-medium' : 'text-muted-foreground',
-                  )}
-                >
-                  {seg}
-                </button>
-                {i < path.length - 1 && <ChevronRight className="size-3 text-muted-foreground" />}
-              </span>
             ))}
           </div>
-        )}
-
-        {/* Content */}
-        <div className="flex-1 overflow-auto">
-          {isSearching && visibleFiles.length === 0 && (
-            <div className="p-8 text-center text-sm text-muted-foreground">No files match &ldquo;{search}&rdquo;.</div>
-          )}
-
-          {currentFolders.length > 0 && (
-            <ul className="divide-y divide-border">
-              {currentFolders.map((folder) => (
-                <li key={folder.name}>
-                  <button
-                    onClick={() => enterFolder(folder.name)}
-                    className="w-full flex items-center gap-3 px-5 py-2.5 hover:bg-muted/50 text-left"
-                  >
-                    <Folder className="size-4 text-brand-700 shrink-0" />
-                    <span className="text-sm font-medium text-foreground flex-1">{folder.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {(folder.items || []).length} item{(folder.items || []).length === 1 ? '' : 's'}
-                    </span>
-                    <ChevronRight className="size-4 text-muted-foreground" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {visibleFiles.length > 0 && (
-            <ul className="divide-y divide-border">
-              {visibleFiles.map((file) => {
-                const checked = selectedIds.has(file.id)
-                return (
-                  <li key={file.id}>
-                    <label className="flex items-center gap-3 px-5 py-2.5 hover:bg-muted/40 cursor-pointer">
-                      <Checkbox checked={checked} onCheckedChange={() => toggleFile(file.id)} />
-                      <FileText className="size-4 text-muted-foreground shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-foreground truncate">{file.name}</p>
-                        {isSearching && (
-                          <p className="text-xs text-muted-foreground truncate">
-                            {file.path.join(' / ')}
-                          </p>
-                        )}
-                      </div>
-                      <span className="text-[10px] font-medium text-muted-foreground tracking-wide shrink-0 bg-muted rounded px-1.5 py-0.5">
-                        {fileTypeLabel(file.name)}
-                      </span>
-                      <span className="text-xs text-muted-foreground shrink-0 w-24 text-right">
-                        {file.modified}
-                      </span>
-                    </label>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-
-          {!isSearching && currentFolders.length === 0 && visibleFiles.length === 0 && (
-            <div className="p-8 text-center text-sm text-muted-foreground">This folder is empty.</div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="px-5 py-3 border-t border-border flex items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            {selectedIds.size === 0 ? 'Select files to add' : `${selectedIds.size} selected`}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-            <Button size="sm" disabled={selectedIds.size === 0} onClick={() => onAdd(selectedFiles)}>
-              Add {selectedIds.size > 0 ? `${selectedIds.size} file${selectedIds.size === 1 ? '' : 's'}` : ''}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ProviderPickerModal({ open, onClose, onConnect }) {
-  const [connectingId, setConnectingId] = useState(null)
-  useEffect(() => {
-    if (!open) setConnectingId(null)
-  }, [open])
-
-  function pick(provider) {
-    if (!provider.available || connectingId) return
-    setConnectingId(provider.id)
-    setTimeout(() => {
-      onConnect(provider)
-      setConnectingId(null)
-    }, 1000)
-  }
-
-  if (!open) return null
-  return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-foreground/40" onClick={connectingId ? undefined : onClose} />
-      <div className="relative w-full max-w-md rounded-lg border bg-background shadow-lg p-5 space-y-4">
-        <div>
-          <p className="text-base font-semibold text-foreground">Connect document management system</p>
-          <p className="text-sm text-muted-foreground mt-0.5">Pick a provider to link with your vault.</p>
         </div>
 
         <div className="space-y-2">
-          {DMS_PROVIDERS.map((p) => {
-            const isConnecting = connectingId === p.id
-            const brand = PROVIDER_BRAND[p.id]
-            return (
+          <label className="text-xs font-medium text-foreground uppercase tracking-wider">Organisation size</label>
+          <div className="grid grid-cols-2 gap-2">
+            {SIZES.map(s => (
               <button
-                key={p.id}
+                key={s}
                 type="button"
-                disabled={!p.available || (connectingId && !isConnecting)}
-                onClick={() => pick(p)}
+                onClick={() => setSize(s)}
                 className={cn(
-                  'w-full flex items-center gap-3 rounded-md border border-border px-3 py-2.5 text-left transition-colors',
-                  p.available
-                    ? 'hover:bg-muted/50 hover:border-brand-300 cursor-pointer'
-                    : 'opacity-60 cursor-not-allowed',
+                  'rounded-md border px-3 py-2 text-left text-sm transition-colors',
+                  s === size ? 'border-brand-700 bg-brand-50 text-foreground' : 'border-border bg-white text-muted-foreground hover:border-brand-300 hover:bg-muted/30',
                 )}
               >
-                <div
-                  className="rounded-md size-9 flex items-center justify-center shrink-0 text-white"
-                  style={{ backgroundColor: brand?.color ?? '#64748B' }}
-                >
-                  <ProviderBrandIcon providerId={p.id} className="size-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">{p.name}</p>
-                  <p className="text-xs text-muted-foreground">{p.vendor}</p>
-                </div>
-                {!p.available && (
-                  <Badge variant="secondary" className="bg-muted text-muted-foreground text-[10px] font-medium border-0">
-                    Coming soon
-                  </Badge>
-                )}
-                {isConnecting && (
-                  <div className="text-xs text-brand-800 font-medium flex items-center gap-1.5">
-                    <div className="size-3 rounded-full border-2 border-brand-800/30 border-t-brand-800 animate-spin" />
-                    Connecting…
-                  </div>
-                )}
+                {s}
               </button>
-            )
-          })}
+            ))}
+          </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-          <Button variant="outline" size="sm" onClick={onClose} disabled={!!connectingId}>Cancel</Button>
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-foreground uppercase tracking-wider">Governance frameworks that apply</label>
+          <div className="flex flex-wrap gap-1.5">
+            {GOVERNANCE_FRAMEWORKS.map(fw => {
+              const active = frameworks.has(fw)
+              return (
+                <button
+                  key={fw}
+                  type="button"
+                  onClick={() => toggleFramework(fw)}
+                  className={cn(
+                    'rounded-full border px-3 py-1 text-xs transition-colors',
+                    active ? 'border-brand-700 bg-brand-700 text-white' : 'border-border bg-white text-muted-foreground hover:border-brand-300',
+                  )}
+                >
+                  {fw}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
-    </div>
+
+      <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-background">
+        <p className="text-xs text-muted-foreground">Ethos will pre-fill 14 expected policies, 6 contracts and 4 register items.</p>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button size="sm" onClick={() => onApply({ industry, size, frameworks: [...frameworks] })}>Apply starter pack</Button>
+        </div>
+      </div>
+    </ModalShell>
   )
 }
 
-export default function VaultPage() {
-  const navigate = useNavigate()
-  const fmRef = useRef(null)
-  const [currentFolderName, setCurrentFolderName] = useState(null)
-  const [uploads, setUploads] = useState({})
-  const [dismissals, setDismissals] = useState(() => new Set())
-  const [suggestionsExpanded, setSuggestionsExpanded] = useState(false)
-  const [dismissToast, setDismissToast] = useState(null)
-  const [fileAccess, setFileAccess] = useState({})
-  const [accessModalFor, setAccessModalFor] = useState(null)
-  const [dmsConnection, setDmsConnection] = useState(null) // { provider: 'sharepoint', connectedAt } | null
-  const [providerPickerOpen, setProviderPickerOpen] = useState(false)
-  const [dmsPicker, setDmsPicker] = useState(null) // { context, initialSearch } | null — context = { kind: 'suggestion'|'folder', placeholderId?, folderName? }
-  // DMS files added directly into a folder (not fulfilling a suggestion).
-  // Shape: { [folderName]: [{ id, name, path, modified, owner }] }
-  const [dmsDirectAdditions, setDmsDirectAdditions] = useState({})
-  const [aiRun, setAiRun] = useState(null) // { currentStep, matchCount } | null
-  const [syncToast, setSyncToast] = useState(null) // { name, at } | null
-  // Resources saved to Vault from the Resource Library (shared via session storage).
-  // We load on mount and re-read whenever the window regains focus so cross-page saves reflect.
-  const [resourceSaves, setResourceSaves] = useState(() => readResourceSaves())
+/* ───────────── Smart Sync modal ───────────── */
 
-  const fileSystem = useMemo(
-    () => buildFileSystem(FOLDERS, FILES, uploads, dmsDirectAdditions, resourceSaves),
-    [uploads, dmsDirectAdditions, resourceSaves],
+function SmartSyncModal({ open, onClose, onConfirm, alreadyConnected = false }) {
+  if (!open) return null
+  return (
+    <SmartSyncModalInner
+      key="smart-sync"
+      onClose={onClose}
+      onConfirm={onConfirm}
+      alreadyConnected={alreadyConnected}
+    />
+  )
+}
+
+function SmartSyncModalInner({ onClose, onConfirm, alreadyConnected }) {
+  const [phase, setPhase] = useState(alreadyConnected ? 'analysing' : 'connect')
+  const [provider, setProvider] = useState(null)
+  // Pre-check every suggestion by default; user can uncheck.
+  const [selectedNames, setSelectedNames] = useState(
+    () => new Set(SMART_SYNC_SUGGESTIONS.map(s => s.name)),
   )
 
-  // Re-read resource saves when the window regains focus (handles saves made
-  // on another page).
+  function handleConnect(p) {
+    setProvider(p)
+    setPhase('analysing')
+  }
+
+  // Drive the analysing → review transition automatically.
   useEffect(() => {
-    const refresh = () => setResourceSaves(readResourceSaves())
-    window.addEventListener('focus', refresh)
-    return () => window.removeEventListener('focus', refresh)
-  }, [])
+    if (phase !== 'analysing') return
+    const id = setTimeout(() => setPhase('review'), 2400)
+    return () => clearTimeout(id)
+  }, [phase])
 
-  const currentFolder = useMemo(
-    () => (currentFolderName ? FOLDERS.find((f) => f.name === currentFolderName) ?? null : null),
-    [currentFolderName],
-  )
-
-  const currentFolderTree = useMemo(
-    () => fileSystem.find((f) => f.name === currentFolderName) ?? null,
-    [fileSystem, currentFolderName],
-  )
-
-  const stats = useMemo(
-    () => vaultStats(FOLDERS, uploads, dismissals),
-    [uploads, dismissals],
-  )
-
-  useEffect(() => {
-    const root = fmRef.current
-    if (!root) return
-    let scheduled = false
-    const schedule = () => {
-      if (scheduled) return
-      scheduled = true
-      queueMicrotask(() => {
-        scheduled = false
-        renderCompletionCells(root)
-        renderAccessCells(root, { currentFolder: currentFolderTree, fileAccess })
-        renderSourceCells(root, { currentFolder: currentFolderTree })
-      })
-    }
-    schedule()
-    const observer = new MutationObserver(schedule)
-    observer.observe(root, { childList: true, subtree: true, characterData: true })
-    return () => observer.disconnect()
-  }, [currentFolderTree, fileAccess])
-
-  // Delegated click handler for the access pill injected into rows.
-  useEffect(() => {
-    const root = fmRef.current
-    if (!root) return
-    const onClick = (e) => {
-      const btn = e.target.closest?.('[data-access-file-key]')
-      if (!btn || !root.contains(btn)) return
-      e.preventDefault()
-      e.stopPropagation()
-      setAccessModalFor({
-        fileKey: btn.dataset.accessFileKey,
-        fileName: btn.dataset.accessFileName,
-      })
-    }
-    root.addEventListener('click', onClick, true)
-    return () => root.removeEventListener('click', onClick, true)
-  }, [])
-
-  // Auto-dismiss the Undo toast after the undo window elapses.
-  useEffect(() => {
-    if (!dismissToast) return
-    const tid = setTimeout(() => setDismissToast(null), UNDO_WINDOW_MS)
-    return () => clearTimeout(tid)
-  }, [dismissToast])
-
-  // Sync toast auto-dismisses after 3s.
-  useEffect(() => {
-    if (!syncToast) return
-    const tid = setTimeout(() => setSyncToast(null), 3000)
-    return () => clearTimeout(tid)
-  }, [syncToast])
-
-  function handleDirectoryChanged(e) {
-    const path = e?.directory?.path ?? e?.component?.getCurrentDirectory?.()?.path ?? ''
-    setCurrentFolderName(path || null)
-  }
-
-  function handleSuggestedUpload(placeholderId) {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.onchange = () => {
-      const file = input.files?.[0]
-      if (!file) return
-      const url = URL.createObjectURL(file)
-      setUploads((prev) => ({
-        ...prev,
-        [placeholderId]: {
-          name: file.name,
-          size: file.size,
-          modifiedAt: new Date(file.lastModified || Date.now()),
-          url,
-        },
-      }))
-    }
-    input.click()
-  }
-
-  function openFileSystemItem(item) {
-    if (!item) return
-    const data = item.dataItem ?? item
-    if (data?.viewerId) {
-      navigate(`/view/${data.viewerId}`)
-      return
-    }
-    const url = data?.blobUrl || data?.dmsUrl
-    if (url) {
-      const q = new URLSearchParams({
-        url,
-        title: data.name ?? item.name ?? 'Document',
-        type: 'pdf',
-      })
-      navigate(`/view/uploaded?${q.toString()}`)
-    }
-  }
-
-  function handleFileOpened(e) {
-    openFileSystemItem(e.file)
-  }
-
-  function handleAiAutoMatch() {
-    if (aiRun) return
-    const steps = [
-      'Connecting to SharePoint',
-      'Scanning your documents',
-      'Matching against required documents',
-      'Uploading matched files',
-    ]
-    setAiRun({ currentStep: 0, matchCount: 0, steps })
-    const matches = aiMatchSuggestions(FOLDERS, uploads, dismissals)
-    // Advance through steps; apply matches when we reach the upload step
-    let step = 0
-    const tick = () => {
-      step += 1
-      if (step === 3) {
-        // On the "Uploading matched files" step, actually apply
-        setUploads((prev) => {
-          const next = { ...prev }
-          const now = new Date()
-          for (const m of matches) {
-            next[m.placeholderId] = {
-              name: m.file.name,
-              size: 0,
-              modifiedAt: new Date(m.file.modified || now),
-              source: 'sharepoint',
-              dmsId: m.file.id,
-              lastSyncedAt: now,
-            }
-          }
-          return next
-        })
-      }
-      setAiRun((prev) => prev && { ...prev, currentStep: step, matchCount: matches.length })
-      if (step < steps.length) {
-        setTimeout(tick, 700)
-      }
-    }
-    setTimeout(tick, 700)
-  }
-
-  function handleDmsFilesAdded(files, context) {
-    if (!files?.length) return
-    const now = new Date()
-    const stamped = files.map((f) => ({ ...f, lastSyncedAt: now }))
-    if (context?.kind === 'suggestion' && context.placeholderId) {
-      // Only first file fulfils the placeholder; extras become direct additions
-      const [first, ...rest] = stamped
-      setUploads((prev) => ({
-        ...prev,
-        [context.placeholderId]: {
-          name: first.name,
-          size: 0,
-          modifiedAt: new Date(first.modified || now),
-          source: 'sharepoint',
-          dmsId: first.id,
-          lastSyncedAt: now,
-        },
-      }))
-      if (rest.length && context.folderName) {
-        setDmsDirectAdditions((prev) => ({
-          ...prev,
-          [context.folderName]: [...(prev[context.folderName] || []), ...rest],
-        }))
-      }
-      return
-    }
-    if (context?.kind === 'folder' && context.folderName) {
-      setDmsDirectAdditions((prev) => ({
-        ...prev,
-        [context.folderName]: [...(prev[context.folderName] || []), ...stamped],
-      }))
-    }
-  }
-
-  function handleToolbarItemClick(e) {
-    if (e.itemData?.options?.text === 'Open') {
-      const selected = e.component?.getSelectedItems?.()?.[0]
-      if (selected && !selected.isDirectory) openFileSystemItem(selected)
-      return
-    }
-    if (e.itemData?.options?.text === 'Add from SharePoint') {
-      if (currentFolderName) {
-        setDmsPicker({ context: { kind: 'folder', folderName: currentFolderName }, initialSearch: '' })
-      }
-    }
-  }
-
-  function handleContextMenuItemClick(e) {
-    if (e.itemData?.text === 'Open') {
-      const item = e.fileSystemItem
-      if (item && !item.isDirectory) openFileSystemItem(item)
-      return
-    }
-    if (e.itemData?.text === 'Re-sync') {
-      const data = e.fileSystemItem?.dataItem
-      if (data?.source !== 'sharepoint') return
-      resyncDmsFile(data)
-    }
-  }
-
-  function handleContextMenuShowing(e) {
-    const items = e.component?.option('contextMenu.items') ?? []
-    // Re-sync is only meaningful for DMS-sourced files.
-    const data = e.fileSystemItem?.dataItem
-    const isDms = data?.source === 'sharepoint'
-    // Filter via e.items (newer DX) if exposed
-    if (Array.isArray(e.items)) {
-      e.items = e.items.filter((it) => it.text !== 'Re-sync' || isDms)
-    }
-  }
-
-  function resyncDmsFile(data) {
-    const now = new Date()
-    const fileKey = data.fileKey
-    if (!fileKey) return
-    if (fileKey.startsWith('dms-')) {
-      // Direct DMS addition — update in dmsDirectAdditions
-      setDmsDirectAdditions((prev) => {
-        const next = { ...prev }
-        for (const folderName of Object.keys(next)) {
-          next[folderName] = next[folderName].map((f) =>
-            `dms-${f.id}` === fileKey ? { ...f, lastSyncedAt: now } : f,
-          )
-        }
-        return next
-      })
-    } else {
-      // Suggestion fulfilment — update in uploads
-      setUploads((prev) => {
-        if (!prev[fileKey]) return prev
-        return { ...prev, [fileKey]: { ...prev[fileKey], lastSyncedAt: now } }
-      })
-    }
-    setSyncToast({ name: data.name, at: now })
-  }
-
-  function handleDismiss(placeholderId, label) {
-    setDismissals((prev) => new Set(prev).add(placeholderId))
-    // Fresh key ensures the toast effect re-runs even if the same id fires twice.
-    setDismissToast({ id: placeholderId, label, key: Date.now() })
-  }
-
-  function handleUndoDismiss() {
-    setDismissToast((current) => {
-      if (!current) return null
-      setDismissals((prev) => {
-        const next = new Set(prev)
-        next.delete(current.id)
-        return next
-      })
-      return null
+  function toggleName(name) {
+    setSelectedNames(prev => {
+      const next = new Set(prev)
+      if (next.has(name)) next.delete(name); else next.add(name)
+      return next
     })
   }
 
-  const atRoot = !currentFolderName
+  function toggleCategory(catId) {
+    const items = SMART_SYNC_SUGGESTIONS.filter(s => s.category === catId)
+    const allSelected = items.every(i => selectedNames.has(i.name))
+    setSelectedNames(prev => {
+      const next = new Set(prev)
+      items.forEach(i => allSelected ? next.delete(i.name) : next.add(i.name))
+      return next
+    })
+  }
+
+  const grouped = useMemo(() => {
+    return CATEGORIES.map(c => ({
+      ...c,
+      items: SMART_SYNC_SUGGESTIONS.filter(s => s.category === c.id),
+    })).filter(g => g.items.length > 0)
+  }, [])
+
+  const total = SMART_SYNC_SUGGESTIONS.length
+  const selectedCount = selectedNames.size
 
   return (
-    <div className="flex-1 overflow-auto p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Vault</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">{t.description}</p>
+    <ModalShell open={true} onClose={onClose} width="max-w-3xl">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+        <div className="flex items-center gap-3">
+          <div className="flex size-8 items-center justify-center rounded-md bg-[#ffd6ff]">
+            <Sparkles className="size-4 text-[#7a3aa0]" />
           </div>
-          {dmsConnection ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-              onClick={() => setDmsConnection(null)}
-            >
-              <Plug2 className="size-4" />
-              Disconnect {dmsConnection.providerName ?? 'SharePoint'}
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-              onClick={() => setProviderPickerOpen(true)}
-            >
-              <Plug className="size-4" />
-              Connect File Storage
-            </Button>
-          )}
+          <p className="text-sm font-medium text-foreground">Quick Vault Sync</p>
         </div>
-
-        {/* Vault Status — thin strip + expandable suggestions */}
-        <VaultStatusCard
-          vaultDone={stats.done}
-          vaultTotal={stats.total}
-          folder={currentFolder}
-          uploads={uploads}
-          dismissals={dismissals}
-          onUpload={handleSuggestedUpload}
-          onDismiss={handleDismiss}
-          expanded={suggestionsExpanded}
-          onToggle={() => setSuggestionsExpanded((v) => !v)}
-          dmsConnected={!!dmsConnection}
-          onAiAutoMatch={handleAiAutoMatch}
-          onDmsPick={(suggestion) => {
-            // Find the folder this suggestion belongs to
-            const folderForSuggestion = FOLDERS.find((f) =>
-              (f.suggested || []).some((s) => s.id === suggestion.id),
-            )
-            setDmsPicker({
-              context: {
-                kind: 'suggestion',
-                placeholderId: suggestion.id,
-                folderName: folderForSuggestion?.name,
-              },
-              initialSearch: suggestion.label,
-            })
-          }}
-        />
-
-        {/* File Manager */}
-        <div ref={fmRef} className="ethos-filemanager">
-          <FileManager
-            fileSystemProvider={fileSystem}
-            height={620}
-            onCurrentDirectoryChanged={handleDirectoryChanged}
-            onSelectedFileOpened={handleFileOpened}
-            onToolbarItemClick={handleToolbarItemClick}
-            onContextMenuItemClick={handleContextMenuItemClick}
-            onContextMenuShowing={handleContextMenuShowing}
-          >
-            <Permissions create copy move delete rename upload download />
-            <ItemView mode="details" showParentFolder>
-              <Details>
-                <Column dataField="thumbnail" width={56} />
-                <Column dataField="name" caption="Name" />
-                <Column dataField="fileCount" caption="Files" alignment="left" width={80} visible={atRoot} />
-                <Column dataField="completion" caption="Completion" alignment="left" width={160} visible={atRoot} />
-                <Column dataField="dateModified" caption="Last modified" visible={!atRoot} />
-                <Column dataField="access" caption="Access" alignment="left" width={160} visible={!atRoot} />
-                <Column dataField="uploader" caption="Source" visible={!atRoot} />
-                <Column dataField="isDirectory" caption="Is Directory" visible={false} />
-              </Details>
-            </ItemView>
-            <Toolbar>
-              <Item name="showNavPane" visible />
-              <Item name="create" />
-              <Item name="upload" />
-              <Item
-                widget="dxButton"
-                visible={!!dmsConnection && !atRoot}
-                options={{ text: 'Add from SharePoint', icon: 'globe', stylingMode: 'text' }}
-                locateInMenu="never"
-              />
-              <Item name="refresh" />
-              <Item name="separator" />
-              <Item name="switchView" />
-              <FileSelectionItem
-                widget="dxButton"
-                options={{ text: 'Open', icon: 'find', stylingMode: 'text' }}
-                locateInMenu="never"
-              />
-              <FileSelectionItem name="separator" />
-              <FileSelectionItem name="rename" />
-              <FileSelectionItem name="separator" />
-              <FileSelectionItem name="delete" />
-              <FileSelectionItem name="move" />
-              <FileSelectionItem name="copy" />
-              <FileSelectionItem name="download" />
-              <FileSelectionItem name="separator" />
-              <FileSelectionItem name="clearSelection" />
-            </Toolbar>
-            <ContextMenu>
-              <ContextMenuItem text="Open" icon="find" />
-              <ContextMenuItem text="Re-sync" icon="refresh" beginGroup />
-              <ContextMenuItem name="rename" beginGroup />
-              <ContextMenuItem name="delete" />
-              <ContextMenuItem name="move" />
-              <ContextMenuItem name="copy" />
-              <ContextMenuItem name="download" />
-              <ContextMenuItem name="refresh" />
-            </ContextMenu>
-          </FileManager>
-        </div>
-
+        <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+          <X className="size-4" />
+        </button>
       </div>
 
-      {dismissToast && <UndoToast item={dismissToast} onUndo={handleUndoDismiss} />}
-
-      {syncToast && (
-        <div className="fixed bottom-6 right-6 z-[2000] flex items-center gap-3 rounded-md bg-foreground text-background shadow-lg px-4 py-2.5 animate-in slide-in-from-bottom-4 duration-200">
-          <CheckCircle2 className="size-4 text-emerald-400" />
-          <div className="text-sm">
-            Re-synced <span className="font-medium">&ldquo;{syncToast.name}&rdquo;</span> from SharePoint
+      {phase === 'connect' && (
+        <div className="px-5 py-5 space-y-4 overflow-auto">
+          <div>
+            <p className="text-sm font-medium text-foreground">Connect a source to scan</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Ethos will read your folder structure to identify foundational documents — nothing is moved or modified.
+            </p>
+          </div>
+          <div className="grid grid-cols-5 gap-3">
+            {DMS_PROVIDERS.map(p => (
+              <DmsCard key={p.id} provider={p} onClick={() => handleConnect(p)} />
+            ))}
           </div>
         </div>
       )}
 
-      <AccessModal
-        open={!!accessModalFor}
-        fileName={accessModalFor?.fileName}
-        initial={accessModalFor ? accessForFile(fileAccess, accessModalFor.fileKey) : null}
-        onClose={() => setAccessModalFor(null)}
-        onSave={(next) => {
-          setFileAccess((prev) => ({ ...prev, [accessModalFor.fileKey]: next }))
-          setAccessModalFor(null)
-        }}
-      />
+      {phase === 'analysing' && (
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="flex size-16 items-center justify-center rounded-full bg-brand-50 text-brand-800 animate-pulse">
+            <Sparkles className="size-7" />
+          </div>
+          <p className="mt-6 text-base font-medium text-foreground">
+            Analysing {provider ? provider.name : 'your folders'}…
+          </p>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Identifying foundational documents and proposing categories.
+          </p>
+          <div className="mt-6 h-1.5 w-72 overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-brand-700 animate-pulse" style={{ width: '70%' }} />
+          </div>
+        </div>
+      )}
 
-      <ProviderPickerModal
-        open={providerPickerOpen}
-        onClose={() => setProviderPickerOpen(false)}
-        onConnect={(provider) => {
-          setDmsConnection({ provider: provider.id, providerName: provider.name, connectedAt: new Date() })
-          setProviderPickerOpen(false)
-        }}
-      />
+      {phase === 'review' && (
+        <>
+          <div className="px-5 py-4 border-b border-border bg-muted/20">
+            <p className="text-sm text-foreground">
+              Found <span className="font-medium">{total} foundational documents</span>.
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              All are selected by default. Uncheck any you don't want Ethos to use, then confirm.
+            </p>
+          </div>
+          <div className="flex-1 overflow-auto">
+            {grouped.map(group => {
+              const allSelected = group.items.every(i => selectedNames.has(i.name))
+              const someSelected = group.items.some(i => selectedNames.has(i.name))
+              return (
+                <div key={group.id} className="border-b border-border last:border-b-0">
+                  <div className="flex items-center gap-2 px-5 py-2 bg-muted/30">
+                    <Checkbox
+                      checked={allSelected ? true : (someSelected ? 'indeterminate' : false)}
+                      onCheckedChange={() => toggleCategory(group.id)}
+                      className="size-3.5"
+                    />
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                      {group.name} <span className="opacity-70">· {group.items.length}</span>
+                    </p>
+                  </div>
+                  {group.items.map(item => {
+                    const checked = selectedNames.has(item.name)
+                    const low = item.confidence < 80
+                    return (
+                      <label
+                        key={item.name}
+                        className="flex items-center gap-3 px-5 py-3 hover:bg-muted/20 cursor-pointer"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={() => toggleName(item.name)}
+                          className="size-4"
+                        />
+                        <FileText className="size-4 text-muted-foreground shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-foreground truncate">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">PDF · SharePoint</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="h-1 w-14 overflow-hidden rounded-full bg-muted">
+                            <div
+                              className={cn('h-full rounded-full', low ? 'bg-amber-500' : 'bg-emerald-500')}
+                              style={{ width: `${item.confidence}%` }}
+                            />
+                          </div>
+                          <span className={cn('text-xs', low ? 'text-amber-700' : 'text-muted-foreground')}>
+                            {item.confidence}%
+                          </span>
+                        </div>
+                      </label>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex items-center justify-between border-t border-border px-5 py-3 bg-background">
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">{selectedCount}</span> of {total} selected
+            </p>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={onClose}>Cancel</Button>
+              <Button size="sm" disabled={selectedCount === 0} onClick={onConfirm}>
+                Add {selectedCount} to Vault
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+    </ModalShell>
+  )
+}
 
-      <SharePointPickerModal
-        open={!!dmsPicker}
-        initialSearch={dmsPicker?.initialSearch ?? ''}
-        onClose={() => setDmsPicker(null)}
-        onAdd={(files) => {
-          handleDmsFilesAdded(files, dmsPicker?.context)
-          setDmsPicker(null)
-        }}
-      />
+/* ───────────── Add Files modal — overlay variant of the empty-state flow ───────────── */
 
-      <AiAutoMatchModal
-        open={!!aiRun}
-        steps={aiRun?.steps ?? []}
-        currentStep={aiRun?.currentStep ?? 0}
-        matchCount={aiRun?.matchCount ?? 0}
-        onClose={() => setAiRun(null)}
-      />
+function AddFilesModal({ open, onClose, onConnectDms, onStarterPack, category }) {
+  if (!open) return null
+  return (
+    <AddFilesModalInner
+      key={category?.id ?? 'general'}
+      onClose={onClose}
+      onConnectDms={onConnectDms}
+      onStarterPack={onStarterPack}
+      category={category}
+    />
+  )
+}
+
+function AddFilesModalInner({ onClose, onConnectDms, onStarterPack, category }) {
+  // Phases:
+  //   choose       — drop zone + DMS rail (entry state)
+  //   categorising — unscoped flow only: AI sorting loader
+  //   confirming   — unscoped flow only: review categorisation table
+  //   adding       — category-locked flow only: brief "uploading" beat
+  const [phase, setPhase] = useState('choose')
+
+  // When a category is locked (per-category Add), every dropped file goes
+  // straight to that category — no categorisation step needed.
+  const filesForConfirm = useMemo(() => {
+    return MOCK_DROP_FILES
+  }, [])
+
+  // Number of files for the per-category "adding" beat (varied per demo).
+  const droppedCount = 4
+
+  const headerTitle = category ? `Add ${category.name}` : 'Add files to your vault'
+  const dropHelper = category
+    ? `Drop your ${category.name.toLowerCase()} here — Ethos will add them to the ${category.name} section.`
+    : 'Ethos will automatically sort them into Governing Documents, Policies, Frameworks and Strategy & Reporting.'
+
+  function handleDrop() {
+    if (category) {
+      // Per-category Add: no categorisation step, brief upload beat then close.
+      setPhase('adding')
+      setTimeout(() => onClose(), 1500)
+    } else {
+      setPhase('categorising')
+      setTimeout(() => setPhase('confirming'), 2400)
+    }
+  }
+
+  function handleConfirm() {
+    onClose()
+  }
+
+  return (
+    <ModalShell open={true} onClose={onClose} width="max-w-3xl">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+        <div className="flex items-center gap-3">
+          <div className="flex size-8 items-center justify-center rounded-md bg-brand-50 text-brand-800">
+            <Plus className="size-4" />
+          </div>
+          <p className="text-sm font-medium text-foreground">{headerTitle}</p>
+        </div>
+        <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+          <X className="size-4" />
+        </button>
+      </div>
+
+      {phase === 'choose' && (
+        <div className="overflow-auto px-5 py-5 space-y-6">
+          <DropZone onDrop={handleDrop} helper={dropHelper} />
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-foreground">Or connect a source</span>
+              <span className="text-xs text-muted-foreground">— Ethos will scan and map your existing folders</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+            <div className="grid grid-cols-5 gap-3">
+              {DMS_PROVIDERS.map(p => (
+                <DmsCard key={p.id} provider={p} onClick={() => onConnectDms(p)} />
+              ))}
+            </div>
+          </div>
+
+          {!category && (
+            <div className="rounded-lg border border-border bg-muted/30 px-5 py-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex size-9 items-center justify-center rounded-lg bg-brand-50 text-brand-800 shrink-0">
+                  <Wand2 className="size-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Don't have documents to add yet?</p>
+                  <p className="text-xs text-muted-foreground">Tell Ethos about your organisation and we'll suggest a starter pack.</p>
+                </div>
+              </div>
+              <Button size="sm" variant="outline" onClick={onStarterPack}>Get started</Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {phase === 'categorising' && (
+        <CategorisingLoader count={filesForConfirm.length} />
+      )}
+
+      {phase === 'confirming' && (
+        <div className="overflow-auto px-5 py-5">
+          <ConfirmCategorisation
+            files={filesForConfirm}
+            onBack={() => setPhase('choose')}
+            onConfirm={handleConfirm}
+          />
+        </div>
+      )}
+
+      {phase === 'adding' && category && (
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-800 animate-pulse">
+            <Upload className="size-6" />
+          </div>
+          <p className="mt-5 text-base font-medium text-foreground">
+            Adding {droppedCount} {droppedCount === 1 ? 'document' : 'documents'} to {category.name}…
+          </p>
+          <p className="mt-1.5 text-sm text-muted-foreground">Uploading your files</p>
+          <div className="mt-6 h-1.5 w-72 overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-brand-700 animate-pulse" style={{ width: '75%' }} />
+          </div>
+        </div>
+      )}
+    </ModalShell>
+  )
+}
+
+/* ───────────── Page (state machine) ───────────── */
+
+export default function VaultPage() {
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const forceEmpty = searchParams.get('vault') === 'empty'
+
+  const [dmsProvider, setDmsProvider] = useState(null)
+  const [starterOpen, setStarterOpen] = useState(false)
+  const [addFilesOpen, setAddFilesOpen] = useState(false)
+  const [addFilesCategory, setAddFilesCategory] = useState(null) // null = unscoped (populated "Add Files")
+  const [smartSyncOpen, setSmartSyncOpen] = useState(false)
+  const [smartSyncConnected, setSmartSyncConnected] = useState(false)
+
+  const mode = forceEmpty ? 'empty' : 'populated'
+
+  function goPreviewEmpty() {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      next.set('vault', 'empty')
+      return next
+    })
+  }
+
+  function goPopulated() {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      next.delete('vault')
+      return next
+    })
+  }
+
+  function openAddFiles(category = null) {
+    setAddFilesCategory(category)
+    setAddFilesOpen(true)
+  }
+
+  function closeAddFiles() {
+    setAddFilesOpen(false)
+    setAddFilesCategory(null)
+  }
+
+  function openDms(provider) {
+    setDmsProvider(provider)
+  }
+
+  function confirmDms() {
+    setDmsProvider(null)
+    closeAddFiles()
+    goPopulated()
+  }
+
+  function applyStarter() {
+    setStarterOpen(false)
+    closeAddFiles()
+    goPopulated()
+  }
+
+  function confirmSmartSync() {
+    setSmartSyncOpen(false)
+    setSmartSyncConnected(true)
+    goPopulated()
+  }
+
+  return (
+    <div className="flex-1 overflow-auto bg-white">
+      <div className="mx-auto max-w-[1180px] px-8 py-8">
+        {mode === 'empty' && (
+          <VaultEmptyState
+            onAddCategory={openAddFiles}
+            onSmartSync={() => setSmartSyncOpen(true)}
+            onPreviewPopulated={goPopulated}
+          />
+        )}
+        {mode === 'populated' && (
+          <PopulatedView
+            onPreviewEmpty={goPreviewEmpty}
+            onAddFiles={() => openAddFiles(null)}
+            onOpenSettings={() => navigate('/admin/vault')}
+          />
+        )}
+
+        <AddFilesModal
+          open={addFilesOpen}
+          onClose={closeAddFiles}
+          onConnectDms={openDms}
+          onStarterPack={() => setStarterOpen(true)}
+          category={addFilesCategory}
+        />
+        <SmartSyncModal
+          open={smartSyncOpen}
+          onClose={() => setSmartSyncOpen(false)}
+          onConfirm={confirmSmartSync}
+          alreadyConnected={smartSyncConnected}
+        />
+        <DmsScanModal
+          provider={dmsProvider}
+          open={!!dmsProvider}
+          onClose={() => setDmsProvider(null)}
+          onConfirm={confirmDms}
+        />
+        <StarterPackModal
+          open={starterOpen}
+          onClose={() => setStarterOpen(false)}
+          onApply={applyStarter}
+        />
+      </div>
     </div>
   )
 }

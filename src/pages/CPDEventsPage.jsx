@@ -826,7 +826,7 @@ export default function CPDEventsPage() {
 
   return (
     <div className="flex flex-1 overflow-hidden bg-white">
-      <div className="flex-1 overflow-auto px-6 pt-8 pb-6">
+      <div className="flex-1 px-6 pt-8 pb-6">
         <div className="max-w-7xl mx-auto space-y-6">
 
           {/* Back link */}
@@ -835,11 +835,7 @@ export default function CPDEventsPage() {
           </Button>
 
           {/* Title row + view toggle */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-[9px]">
-              <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">CPD Events</h1>
-              <p className="text-sm text-muted-foreground">Browse, search and manage your CPD events</p>
-            </div>
+          <div className="flex items-center justify-end">
             <div className="flex items-center rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-0.5">
               <button
                 onClick={() => setViewMode('list')}

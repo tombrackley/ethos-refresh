@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils'
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -21,46 +20,30 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  LayoutDashboard,
-  ShieldCheck,
-  Briefcase,
-  Scale,
-  MessageSquare,
-  Video,
-  Lock,
-  Users,
-  Lightbulb,
-  GraduationCap,
-  Users2,
-  Plug,
-  Settings,
-  UserCog,
   ChevronDown,
   ChevronLeft,
-  Building2,
-  Kanban,
-  BarChart3,
-  FileText,
-  ListTodo,
-  CreditCard,
-  BookOpen,
   ChevronsUpDown,
-  User,
-  LogOut,
   Search,
   PanelLeftClose,
-  Target,
-  CalendarDays,
 } from 'lucide-react'
+import { IconHomeRoof } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconHomeRoof'
+import { IconSpeedDots } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconSpeedDots'
+import { IconShieldCheck3 } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconShieldCheck3'
+import { IconLaw } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconLaw'
+import { IconTasks } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconTasks'
+import { IconShortcut } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconShortcut'
+import { IconBooks } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconBooks'
+import { IconPeopleIdCard } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconPeopleIdCard'
+import { IconLightbulbGlow } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconLightbulbGlow'
+import { IconGraduateCap } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconGraduateCap'
+import { IconTeam } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconTeam'
 
 const COMPLY_SUB_ITEMS = tenant.complySubItems
 const COMPLY_PAGES = COMPLY_SUB_ITEMS.map(i => i.page)
@@ -77,18 +60,16 @@ const GOVERN_SUB_ITEMS = [
 const GOVERN_PAGES = GOVERN_SUB_ITEMS.map(i => i.page)
 
 const WORK_SUB_ITEMS = [
-  { title: tenant.nav.work, page: 'Matters' },
+  { title: tenant.nav.work, page: 'Work' },
   { title: 'Respond', page: 'Respond' },
   { title: 'Meet', page: 'Meet' },
   { title: 'Time & Efficiency', page: 'Time & Efficiency' },
-  { title: 'Resource Library', page: 'Resource Library' },
 ]
 const WORK_PAGES = WORK_SUB_ITEMS.map(i => i.page)
 
 const LEARN_SUB_ITEMS = [
   { title: 'Overview', page: 'Learn' },
   { title: 'Learning Journeys', page: 'Learning Journeys' },
-  { title: 'Knowledge Centre', page: 'Knowledge Centre' },
   { title: 'CPD Tracker', page: 'CPD Tracker' },
   { title: 'Skills Profile', page: 'Skills Profile' },
 ]
@@ -98,33 +79,29 @@ const navGroups = [
   {
     label: 'ORG',
     items: [
-      { title: 'Control',  icon: LayoutDashboard },
-      { title: 'Comply',   icon: ShieldCheck, subItems: COMPLY_SUB_ITEMS },
-      { title: 'Govern',   icon: Scale, subItems: GOVERN_SUB_ITEMS },
-      { title: 'Work',     icon: Briefcase, subItems: WORK_SUB_ITEMS },
+      { title: 'Control',  icon: IconSpeedDots },
+      { title: 'Comply',   icon: IconShieldCheck3, page: 'Comply', activePages: ['Comply', ...COMPLY_PAGES] },
+      { title: 'Govern',   icon: IconLaw, page: 'Govern', activePages: ['Govern', ...GOVERN_PAGES] },
+      { title: 'Work',     icon: IconTasks, page: 'Work', activePages: WORK_PAGES },
     ],
   },
   {
     label: 'KNOWLEDGE',
     items: [
-      { title: 'Vault',            icon: Lock },
-      { title: 'Talent',           icon: Users },
+      { title: 'Vault',            icon: IconShortcut },
+      { title: 'Resource Library', icon: IconBooks, page: 'Resource Library' },
+      { title: 'Talent',           icon: IconPeopleIdCard },
     ],
   },
   {
     label: 'YOU',
     items: [
-      { title: 'Insights',   icon: Lightbulb },
-      { title: 'Learn',      icon: GraduationCap, subItems: LEARN_SUB_ITEMS, dashPage: 'Learn' },
-      { title: 'Community',  icon: Users2 },
+      { title: 'Insights',         icon: IconLightbulbGlow },
+      { title: 'Learn',            icon: IconGraduateCap, page: 'Learn', activePages: ['Learn', ...LEARN_PAGES] },
+      { title: 'Knowledge Centre', icon: IconBooks, page: 'Knowledge Centre' },
+      { title: 'Community',        icon: IconTeam },
     ],
   },
-]
-
-const footerItems = [
-  { title: 'Integrations', icon: Plug },
-  { title: 'Settings',     icon: Settings },
-  { title: 'Admin',        icon: UserCog, page: 'Admin:Organisation Profile' },
 ]
 
 // Map sidebar page names to feature flag keys
@@ -246,7 +223,7 @@ function useActivePage() {
   return 'Control'
 }
 
-export function AppSidebar({ onLogout }) {
+export function AppSidebar({ onSearchClick }) {
   const navigate = useNavigate()
   const { toggleSidebar, state } = useSidebar()
   const collapsed = state === 'collapsed'
@@ -281,14 +258,7 @@ export function AppSidebar({ onLogout }) {
     }).filter(Boolean)
   }, [])
 
-  const filteredFooterItems = useMemo(() => {
-    return footerItems.filter(item => {
-      const pageName = item.page ?? item.title
-      return isPageEnabled(pageName)
-    })
-  }, [])
-
-  const _filteredAdminNavGroups = useMemo(() => {
+const _filteredAdminNavGroups = useMemo(() => {
     return []
   }, [])
 
@@ -307,7 +277,7 @@ export function AppSidebar({ onLogout }) {
   return (
     <Sidebar collapsible="icon">
       {/* Header — logo or back button */}
-      <SidebarHeader className="px-3 py-4">
+      <SidebarHeader className="px-3 pt-4 pb-0 gap-4">
         <SidebarMenu>
           <SidebarMenuItem>
             {isAdminMode ? (
@@ -327,9 +297,6 @@ export function AppSidebar({ onLogout }) {
                   <img src={tenant.icon} alt={tenant.appName} className="hidden group-data-[collapsible=icon]:block rounded-lg object-cover" style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }} />
                 </div>
                 <div className="flex items-center gap-0.5 group-data-[collapsible=icon]:hidden">
-                  <button className="size-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors">
-                    <Search className="size-4" />
-                  </button>
                   <button onClick={toggleSidebar} className="size-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors">
                     <PanelLeftClose className="size-4" />
                   </button>
@@ -338,6 +305,19 @@ export function AppSidebar({ onLogout }) {
             )}
           </SidebarMenuItem>
         </SidebarMenu>
+
+        {!isAdminMode && (
+          <button
+            type="button"
+            onClick={onSearchClick}
+            aria-label="Open command palette"
+            className="flex h-8 w-full items-center gap-2 rounded-md border border-border bg-background px-2.5 text-sm text-muted-foreground hover:bg-accent transition-colors group-data-[collapsible=icon]:hidden"
+          >
+            <Search className="size-4" />
+            <span className="flex-1 text-left">Search</span>
+            <kbd className="inline-flex h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">⌘K</kbd>
+          </button>
+        )}
       </SidebarHeader>
 
       {/* Board selector (multi-entity tenants) */}
@@ -374,11 +354,11 @@ export function AppSidebar({ onLogout }) {
           <SidebarContent>
             {adminParentGroups.map((group) => (
               <SidebarGroup key={group.label} className="py-1">
-                <SidebarGroupLabel className="text-xs tracking-widest text-muted-foreground/70 font-semibold">
+                <SidebarGroupLabel className="text-xs font-mono tracking-normal text-muted-foreground/60 font-semibold">
                   {group.label}
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-0">
                     {group.categories.map((cat) => {
                       const catPages = cat.items.map(i => i.page ?? `Admin:${i.title}`)
                       const isActive = catPages.includes(activePage)
@@ -391,7 +371,7 @@ export function AppSidebar({ onLogout }) {
                               const firstPage = cat.items[0].page ?? `Admin:${cat.items[0].title}`
                               handleNavigate(firstPage)
                             }}
-                            className="gap-2.5 h-9"
+                            className="gap-2.5 text-sidebar-nav-muted font-medium data-[active=true]:text-sidebar-accent-foreground"
                           >
                             {cat.icon && <cat.icon className="size-4 shrink-0" />}
                             <span className="text-sm">{cat.label}</span>
@@ -404,19 +384,37 @@ export function AppSidebar({ onLogout }) {
               </SidebarGroup>
             ))}
           </SidebarContent>
-          <SidebarFooter />
         </>
       ) : (
         <>
           {/* Regular nav groups */}
-          <SidebarContent>
+          <SidebarContent className="gap-0">
+            {/* Ungrouped: Home */}
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu className="gap-0">
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      tooltip="Home"
+                      isActive={activePage === 'Home'}
+                      onClick={() => handleNavigate('Home')}
+                      className="gap-2.5 text-sidebar-nav-muted font-medium data-[active=true]:text-sidebar-accent-foreground"
+                    >
+                      <IconHomeRoof className="size-4 shrink-0" />
+                      <span>Home</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
             {filteredNavGroups.map((group) => (
               <SidebarGroup key={group.label}>
-                <SidebarGroupLabel className="text-xs tracking-widest text-muted-foreground/70 font-semibold">
+                <SidebarGroupLabel className="text-xs font-mono tracking-normal text-muted-foreground/60 font-semibold">
                   {group.label}
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-0">
                     {group.items.map((item) => {
                       if (item.subItems) {
                         const subPages = item.subItems.map(s => s.page)
@@ -431,14 +429,14 @@ export function AppSidebar({ onLogout }) {
                                 toggleMenu(item.title)
                                 if (item.dashPage && !openMenus[item.title]) handleNavigate(item.dashPage)
                               }}
-                              className="gap-2.5"
+                              className="gap-2.5 text-sidebar-nav-muted font-medium data-[active=true]:text-sidebar-accent-foreground"
                             >
                               <item.icon className="size-4 shrink-0" />
                               <span>{item.title}</span>
                               <ChevronDown className={`ml-auto size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                             </SidebarMenuButton>
                             {isOpen && (
-                              <SidebarMenuSub>
+                              <SidebarMenuSub className="gap-0">
                                 {item.subItems.map(sub => (
                                   <SidebarMenuSubItem key={sub.title}>
                                     <SidebarMenuSubButton
@@ -456,13 +454,16 @@ export function AppSidebar({ onLogout }) {
                         )
                       }
 
+                      const itemActive = item.activePages
+                        ? item.activePages.includes(activePage)
+                        : activePage === (item.page ?? item.title)
                       return (
                         <SidebarMenuItem key={item.title}>
                           <SidebarMenuButton
                             tooltip={item.title}
-                            isActive={activePage === (item.page ?? item.title)}
+                            isActive={itemActive}
                             onClick={() => handleNavigate(item.page ?? item.title)}
-                            className="gap-2.5"
+                            className="gap-2.5 text-sidebar-nav-muted font-medium data-[active=true]:text-sidebar-accent-foreground"
                           >
                             <item.icon className="size-4 shrink-0" />
                             <span>{item.title}</span>
@@ -475,60 +476,6 @@ export function AppSidebar({ onLogout }) {
               </SidebarGroup>
             ))}
           </SidebarContent>
-
-          {/* Footer */}
-          <SidebarFooter>
-            <SidebarMenu>
-              {filteredFooterItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    tooltip={item.title}
-                    isActive={activePage === item.title || (item.page && activePage.startsWith('Admin'))}
-                    onClick={() => handleNavigate(item.page ?? item.title)}
-                    className="gap-2.5"
-                  >
-                    <item.icon className="size-4 shrink-0" />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-              <SidebarMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton
-                      size="lg"
-                      tooltip={tenant.user?.name ?? 'Tom Bradley'}
-                      className="gap-2.5"
-                    >
-                      <Avatar className="size-7 shrink-0">
-                        <AvatarFallback className="bg-brand-800 text-white text-xs font-semibold">
-                          {tenant.user?.initials ?? 'TB'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex items-center group-data-[collapsible=icon]:hidden">
-                        <span className="text-sm font-medium">{tenant.user?.name ?? 'Tom Bradley'}</span>
-                      </div>
-                      <ChevronsUpDown className="ml-auto size-4 text-muted-foreground group-data-[collapsible=icon]:hidden" />
-                    </SidebarMenuButton>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent side="top" align="start" className="w-56">
-                    <div className="px-2 py-2">
-                      <p className="text-sm font-medium text-foreground">{tenant.user?.name ?? 'Tom Bradley'}</p>
-                      <p className="text-xs text-muted-foreground">{tenant.user?.email ?? 'tom@blackmores.com'}</p>
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleNavigate('Profile')} className="gap-2 text-sm">
-                      <User className="size-4" /> Edit profile
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="gap-2 text-sm text-destructive" onClick={onLogout}>
-                      <LogOut className="size-4" /> Log out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarFooter>
         </>
       )}
 
