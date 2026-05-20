@@ -262,7 +262,7 @@ function VaultHeader({ onPreviewEmpty, onOpenSettings, emptyToggleLabel }) {
   return (
     <header className="flex items-start justify-between">
       <div>
-        <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Vault</h1>
+        <h1 className="text-[32px] font-normal tracking-[-0.03em] text-foreground">Vault</h1>
         <p className="mt-2 text-sm text-foreground/80">
           Manage the access Ethos has to your organisation’s foundational documents
         </p>
@@ -1080,7 +1080,7 @@ function VaultEmptyState({ onAddCategory, onSmartSync, onPreviewPopulated }) {
     <div className="space-y-6">
       <header className="flex items-end justify-between">
         <div>
-          <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Vault</h1>
+          <h1 className="text-[32px] font-normal tracking-[-0.03em] text-foreground">Vault</h1>
           <p className="mt-2 text-sm text-foreground/80">
             Manage the access Ethos has to your organisation&rsquo;s foundational documents
           </p>
@@ -2182,7 +2182,7 @@ export default function VaultPage() {
 
   return (
     <div className="flex-1 overflow-auto bg-white">
-      <div className="mx-auto max-w-[1200px] px-8 py-8">
+      <div className="mx-auto max-w-[1200px] px-8 pt-[52px] pb-12">
         <PopulatedView
           empty={mode === 'empty'}
           onPreviewEmpty={goPreviewEmpty}

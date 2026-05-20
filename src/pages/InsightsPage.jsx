@@ -1785,7 +1785,7 @@ export default function InsightsV3Page() {
     if (item?.id) navigate(`/insights/${item.id}`)
   }
   const [digestEnabled, setDigestEnabled] = useState(true)
-  const [pageAskOpen, setPageAskOpen] = useState(true)
+  const [pageAskOpen, setPageAskOpen] = useState(false)
 
   // Cross-feed prompts for the side panel on the overview.
   const pageAiSuggestions = [
@@ -1832,12 +1832,12 @@ export default function InsightsV3Page() {
   return (
     <div className="flex flex-1 overflow-hidden">
       <div className="flex-1 overflow-auto bg-white">
-        <div className="max-w-[1000px] mx-auto px-6 pt-[60px] pb-6">
+        <div className="max-w-[1200px] mx-auto px-8 pt-[52px] pb-12">
 
           {/* ── Header ── */}
           <div className="space-y-4 mb-6">
             <div>
-              <h1 className="text-3xl font-medium leading-none tracking-[-0.045em] text-foreground">Insights</h1>
+              <h1 className="text-[32px] font-normal tracking-[-0.03em] text-foreground">Insights</h1>
               <p className="text-sm text-muted-foreground mt-[9px]">{tenant.greeting}. {t.greetingSuffix ?? "Here's what matters today across your practice."}</p>
             </div>
             <div className="flex items-center gap-3">

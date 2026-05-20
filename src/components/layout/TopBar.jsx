@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { PATH_TO_PAGE } from '@/lib/routes'
 import tenant from '@/config/tenant'
@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { User, Settings, UserCog, LogOut, PanelLeft, ChevronRight } from 'lucide-react'
+import { User, Settings, UserCog, LogOut, PanelLeft, ChevronRight, X, ArrowRight } from 'lucide-react'
 import { IconBell } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconBell'
 import { IconCalendar1 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconCalendar1'
 import { useSidebar } from '@/components/ui/sidebar'
@@ -21,6 +21,40 @@ import { useSidebar } from '@/components/ui/sidebar'
 const WHITE_BG_PATHS = new Set(['/vault'])
 // Sections where every sub-route renders on a white shell.
 const WHITE_BG_PREFIXES = ['/home', '/control', '/comply', '/govern', '/matters', '/respond', '/meet', '/work', '/learn', '/knowledge', '/insights']
+
+const NOTIFICATIONS = [
+  {
+    id: 'welcome',
+    title: 'Welcome to Ethos',
+    body: 'Your governance, compliance, and learning platform. Use the sidebar to jump into each space and the Ask button to query Ethos directly.',
+    time: 'Just now',
+    featured: true,
+  },
+  {
+    id: 'learn',
+    title: 'Introducing Learn',
+    body: 'Track CPD, deliver training, and grow team capability with structured learning journeys.',
+    time: '2 days ago',
+  },
+  {
+    id: 'insights',
+    title: 'Introducing Insights',
+    body: 'Curated regulatory intelligence, news, and briefings tailored to your industry.',
+    time: '4 days ago',
+  },
+  {
+    id: 'comply-audit',
+    title: 'New: Comply Audit & Evidence',
+    body: 'Preparing for audits just got easier. Manage evidence and audit trails from a single workspace.',
+    time: '1 week ago',
+  },
+  {
+    id: 'ask-ethos',
+    title: 'Ask Ethos got smarter',
+    body: 'Better answers from your data — try the context-aware mode for more relevant responses.',
+    time: '2 weeks ago',
+  },
+]
 
 function topbarBgClass(pathname) {
   if (WHITE_BG_PATHS.has(pathname)) return 'bg-white'
@@ -32,18 +66,9 @@ export function TopBar({ onLogout }) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { open: openEthos } = useAskEthos()
-  const { toggleSidebar, setOpen } = useSidebar()
+  const { toggleSidebar } = useSidebar()
+  const [notifOpen, setNotifOpen] = useState(false)
   const pageLabel = (PATH_TO_PAGE[pathname] ?? '').replace(/^Admin:/, '')
-
-  // Close sidebar by default on insights routes; restore on leaving.
-  const prevPath = useRef(pathname)
-  useEffect(() => {
-    const wasInsights = prevPath.current.startsWith('/insights')
-    const nowInsights = pathname.startsWith('/insights')
-    if (!wasInsights && nowInsights) setOpen(false)
-    else if (wasInsights && !nowInsights) setOpen(true)
-    prevPath.current = pathname
-  }, [pathname, setOpen])
 
   // Breadcrumb mode for insight detail page (/insights/:id).
   const insightDetailMatch = pathname.match(/^\/insights\/([^/]+)$/)
@@ -53,7 +78,7 @@ export function TopBar({ onLogout }) {
     : null
 
   return (
-    <header className={`flex h-11 shrink-0 items-center justify-between border-b border-[#EFEFEF] px-4 ${topbarBgClass(pathname)}`}>
+    <header className={`relative flex h-11 shrink-0 items-center justify-between border-b border-[#EFEFEF] px-4 ${topbarBgClass(pathname)}`}>
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -98,6 +123,7 @@ export function TopBar({ onLogout }) {
         <button
           type="button"
           aria-label="Notifications"
+          onClick={() => setNotifOpen(o => !o)}
           className="relative inline-flex size-8 items-center justify-center rounded-[0.6rem] border border-border bg-white text-foreground shadow-none transition-colors duration-75 hover:bg-accent hover:border-foreground/20 active:bg-accent/80 active:border-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <IconBell className="size-4 [&_path]:stroke-2" />
@@ -140,6 +166,76 @@ export function TopBar({ onLogout }) {
         </DropdownMenu>
       </div>
 
+      {notifOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+          <NotificationsPopover onClose={() => setNotifOpen(false)} />
+        </>
+      )}
     </header>
+  )
+}
+
+function NotificationsPopover({ onClose }) {
+  return (
+    <div className="absolute right-2 top-full mt-2 z-50 w-[420px] overflow-hidden rounded-xl border border-border bg-white shadow-lg">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            className="rounded-md px-2 py-1 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            View all
+          </button>
+          <button
+            type="button"
+            aria-label="Close notifications"
+            onClick={onClose}
+            className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      </div>
+      <div className="max-h-[520px] overflow-y-auto">
+        {NOTIFICATIONS.map((n, i) => (
+          n.featured ? (
+            <FeaturedNotification key={n.id} {...n} isLast={i === NOTIFICATIONS.length - 1} />
+          ) : (
+            <CompactNotification key={n.id} {...n} isLast={i === NOTIFICATIONS.length - 1} />
+          )
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function FeaturedNotification({ title, body, time, isLast }) {
+  return (
+    <div className={`flex flex-col gap-3 p-4 ${!isLast ? 'border-b border-border' : ''}`}>
+      <div>
+        <h4 className="text-sm font-semibold text-foreground">{title}</h4>
+        <p className="mt-1 text-sm text-slate-600 leading-relaxed">{body}</p>
+      </div>
+      <div className="aspect-[16/9] w-full rounded-lg bg-slate-100" />
+      <span className="text-xs text-muted-foreground">{time}</span>
+    </div>
+  )
+}
+
+function CompactNotification({ title, body, time, isLast }) {
+  return (
+    <div className={`flex gap-3 p-4 ${!isLast ? 'border-b border-border' : ''}`}>
+      <div className="flex-1 min-w-0">
+        <h4 className="flex items-center gap-1 text-sm font-semibold text-foreground">
+          {title}
+          <ArrowRight className="size-3.5 text-muted-foreground" />
+        </h4>
+        <p className="mt-1 line-clamp-2 text-sm text-slate-600 leading-relaxed">{body}</p>
+        <span className="mt-2 block text-xs text-muted-foreground">{time}</span>
+      </div>
+      <div className="size-20 shrink-0 rounded-lg bg-slate-100" />
+    </div>
   )
 }

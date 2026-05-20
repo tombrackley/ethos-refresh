@@ -377,7 +377,7 @@ export default function HomeV3Page() {
 
   return (
     <div className="flex-1 overflow-auto bg-white">
-      <div className="mx-auto max-w-[1200px] px-8 pt-20 pb-12 space-y-12">
+      <div className="mx-auto max-w-[1200px] px-8 pt-[52px] pb-12 space-y-12">
         <div>
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-[32px] font-normal tracking-[-0.03em] text-foreground">
