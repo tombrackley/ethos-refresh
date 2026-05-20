@@ -165,22 +165,5 @@
 
   "development": {},
 
-  "production": {},
-
-  "blackmores": {
-    "PAGE_COMMUNITY": false,
-    "PAGE_TALENT": false,
-    "FEATURE_TOPIC_QUIZ": false
-  },
-
-  "migration": {
-    "PAGE_INSIGHTS": false,
-    "FEATURE_TALENT_ENQUIRY": false
-  },
-
-  "fshd": {},
-
-  "cooperip": {},
-
-  "gallagherbassett": {}
+  "production": {}
 }

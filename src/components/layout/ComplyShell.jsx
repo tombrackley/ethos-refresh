@@ -1,4 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { FloatingPromptsMenu } from '@/components/shared/FloatingPromptsMenu'
+import { useAskEthos } from '@/context/useAskEthos'
 import { cn } from '@/lib/utils'
 
 const TABS = [
@@ -12,7 +14,24 @@ const TABS = [
   { label: 'Audit',       to: '/comply/audit' },
 ]
 
+const COMPLY_PROMPTS = [
+  { id: 'summarise',   label: 'Summarise my **compliance** and focused obligations', prompt: 'Summarise my compliance and focused obligations' },
+  { id: 'incidents',   label: 'Insight on open **incidents**' },
+  { id: 'risk',        label: '**Risk analysis** and improvement strategies' },
+  { id: 'breaches',    label: 'Recent **breaches** and root causes' },
+  { id: 'obligations', label: 'Upcoming **obligation deadlines** this quarter' },
+  { id: 'audits',      label: 'Open **audit** findings and owners' },
+  { id: 'training',    label: 'Mandatory **training** completion across teams' },
+  { id: 'reg-change',  label: 'New **regulatory updates** affecting my matters' },
+]
+
 export function ComplyShell() {
+  const { open: openEthos } = useAskEthos()
+
+  function handlePromptClick(prompt) {
+    if (prompt.prompt) openEthos(prompt.prompt)
+  }
+
   return (
     <div className="flex flex-1 flex-col overflow-auto bg-white">
       <div className="shrink-0 px-6 pt-6">
@@ -28,8 +47,8 @@ export function ComplyShell() {
         <div className="px-6">
           <div className="mx-auto max-w-7xl">
           <div className="border-b border-border">
-            <nav className="flex items-center gap-1 overflow-x-auto -mb-px">
-              {TABS.map((tab, index) => (
+            <nav className="flex items-center gap-6 overflow-x-auto -mb-px">
+              {TABS.map((tab) => (
                 <NavLink
                   key={tab.to}
                   to={tab.to}
@@ -37,7 +56,6 @@ export function ComplyShell() {
                   className={({ isActive }) =>
                     cn(
                       'whitespace-nowrap py-2.5 text-sm font-medium border-b-2 transition-colors',
-                      index === 0 ? 'pr-3' : 'px-3',
                       isActive
                         ? 'border-foreground text-foreground'
                         : 'border-transparent text-foreground/80 hover:text-foreground hover:border-border'
@@ -56,6 +74,8 @@ export function ComplyShell() {
       <div className="flex flex-1 min-h-0">
         <Outlet />
       </div>
+
+      <FloatingPromptsMenu prompts={COMPLY_PROMPTS} onPromptClick={handlePromptClick} />
     </div>
   )
 }

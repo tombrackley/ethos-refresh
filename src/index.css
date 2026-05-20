@@ -111,7 +111,7 @@ html {
     --sidebar-primary-foreground: oklch(0.985 0 0);
     --sidebar-accent: #EBEDF0;          /* active / hover bg, slightly darker than sidebar */
     --sidebar-accent-foreground: #090909; /* active nav item icon + label */
-    --sidebar-nav-muted: #828C9B;       /* inactive nav item icon + label */
+    --sidebar-nav-muted: #5F6776;       /* inactive nav item icon + label */
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.270 0.053 192);
 }

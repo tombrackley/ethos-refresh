@@ -21,29 +21,20 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
+  ArrowLeftRight,
   ChevronDown,
   ChevronLeft,
-  ChevronsUpDown,
   Search,
-  PanelLeftClose,
 } from 'lucide-react'
-import { IconHomeRoof } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconHomeRoof'
-import { IconSpeedDots } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconSpeedDots'
-import { IconShieldCheck3 } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconShieldCheck3'
-import { IconLaw } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconLaw'
-import { IconTasks } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconTasks'
-import { IconShortcut } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconShortcut'
-import { IconBooks } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconBooks'
-import { IconPeopleIdCard } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconPeopleIdCard'
-import { IconLightbulbGlow } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconLightbulbGlow'
-import { IconGraduateCap } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconGraduateCap'
-import { IconTeam } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconTeam'
+import { IconHomeRoof } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconHomeRoof'
+import { IconShieldCheck3 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconShieldCheck3'
+import { IconLaw } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconLaw'
+import { IconTasks } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconTasks'
+import { IconLightbulbGlow } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconLightbulbGlow'
+import { IconGraduateCap } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconGraduateCap'
+import { IconSettingsGear1 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconSettingsGear1'
+import { IconTeam } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconTeam'
+import { IconLightningBolt } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconLightningBolt'
 
 const COMPLY_SUB_ITEMS = tenant.complySubItems
 const COMPLY_PAGES = COMPLY_SUB_ITEMS.map(i => i.page)
@@ -72,36 +63,23 @@ const LEARN_SUB_ITEMS = [
   { title: 'Learning Journeys', page: 'Learning Journeys' },
   { title: 'CPD Tracker', page: 'CPD Tracker' },
   { title: 'Skills Profile', page: 'Skills Profile' },
+  { title: 'Knowledge Centre', page: 'Knowledge Centre' },
 ]
 const LEARN_PAGES = LEARN_SUB_ITEMS.map(i => i.page)
 
-const navGroups = [
-  {
-    label: 'ORG',
-    items: [
-      { title: 'Control',  icon: IconSpeedDots },
-      { title: 'Comply',   icon: IconShieldCheck3, page: 'Comply', activePages: ['Comply', ...COMPLY_PAGES] },
-      { title: 'Govern',   icon: IconLaw, page: 'Govern', activePages: ['Govern', ...GOVERN_PAGES] },
-      { title: 'Work',     icon: IconTasks, page: 'Work', activePages: WORK_PAGES },
-    ],
-  },
-  {
-    label: 'KNOWLEDGE',
-    items: [
-      { title: 'Vault',            icon: IconShortcut },
-      { title: 'Resource Library', icon: IconBooks, page: 'Resource Library' },
-      { title: 'Talent',           icon: IconPeopleIdCard },
-    ],
-  },
-  {
-    label: 'YOU',
-    items: [
-      { title: 'Insights',         icon: IconLightbulbGlow },
-      { title: 'Learn',            icon: IconGraduateCap, page: 'Learn', activePages: ['Learn', ...LEARN_PAGES] },
-      { title: 'Knowledge Centre', icon: IconBooks, page: 'Knowledge Centre' },
-      { title: 'Community',        icon: IconTeam },
-    ],
-  },
+const TOP_ITEMS = [
+  { title: 'Home',      icon: IconHomeRoof,       page: 'Home' },
+  { title: 'Insights',  icon: IconLightbulbGlow,  page: 'Insights' },
+  { title: 'Vault',     icon: IconLightningBolt,  page: 'Vault' },
+  { title: 'Community', icon: IconTeam,           page: 'Community' },
+  { title: 'Manage',    icon: IconSettingsGear1,  page: 'Admin:Organisation Profile' },
+]
+
+const CORE_ITEMS = [
+  { title: 'Comply', icon: IconShieldCheck3, page: 'Comply', subItems: COMPLY_SUB_ITEMS, activePages: ['Comply', ...COMPLY_PAGES], iconBg: 'bg-blue-200',    iconColor: 'text-blue-900' },
+  { title: 'Govern', icon: IconLaw,          page: 'Govern', subItems: GOVERN_SUB_ITEMS, activePages: ['Govern', ...GOVERN_PAGES], iconBg: 'bg-violet-200',  iconColor: 'text-violet-900' },
+  { title: 'Work',   icon: IconTasks,        page: 'Work',   subItems: WORK_SUB_ITEMS,   activePages: WORK_PAGES,                  iconBg: 'bg-amber-200',   iconColor: 'text-amber-900' },
+  { title: 'Learn',  icon: IconGraduateCap,  page: 'Learn',  subItems: LEARN_SUB_ITEMS,  activePages: ['Learn', ...LEARN_PAGES],   iconBg: 'bg-emerald-200', iconColor: 'text-emerald-900' },
 ]
 
 // Map sidebar page names to feature flag keys
@@ -174,6 +152,18 @@ function isPageEnabled(pageName) {
   return isEnabled(flag)
 }
 
+// Launch-demo mode hides everything except a small set of items.
+const LAUNCH_TOP_VISIBLE = new Set(['Home', 'Insights', 'Vault', 'Manage'])
+const LAUNCH_CORE_VISIBLE = new Set(['Learn'])
+
+function getDemoMode() {
+  try {
+    const stored = sessionStorage.getItem('ethos_auth')
+    if (stored) return JSON.parse(stored).demo ?? null
+  } catch { /* ignore */ }
+  return null
+}
+
 import { adminParentGroups } from '@/config/adminNav'
 
 // Derive activePage name from current URL path
@@ -228,7 +218,6 @@ export function AppSidebar({ onSearchClick }) {
   const { toggleSidebar, state } = useSidebar()
   const collapsed = state === 'collapsed'
   const activePage = useActivePage()
-  const [selectedBoard, setSelectedBoard] = useState(tenant.boards?.[0] ?? null)
 
   const handleNavigate = (page) => {
     if (collapsed) toggleSidebar()
@@ -236,33 +225,32 @@ export function AppSidebar({ onSearchClick }) {
     if (path) navigate(path)
   }
 
-  // Filter nav items by feature flags
-  const filteredNavGroups = useMemo(() => {
-    return navGroups.map(group => {
-      const items = group.items
-        .map(item => {
-          const pageName = item.page ?? item.dashPage ?? item.title
-          // For items with sub-items, filter the sub-items first
-          if (item.subItems) {
-            const filteredSubs = item.subItems.filter(sub => isPageEnabled(sub.page))
-            if (filteredSubs.length === 0) return null
-            return { ...item, subItems: filteredSubs }
-          }
-          // Simple items — check if the page is enabled
-          if (!isPageEnabled(pageName)) return null
-          return item
-        })
-        .filter(Boolean)
-      if (items.length === 0) return null
-      return { ...group, items }
-    }).filter(Boolean)
-  }, [])
-
-const _filteredAdminNavGroups = useMemo(() => {
-    return []
-  }, [])
+  // Filter nav items by feature flags + launch-demo mode
+  const demoMode = getDemoMode()
+  const filteredTopItems = useMemo(
+    () => TOP_ITEMS.filter(item => {
+      if (!isPageEnabled(item.page ?? item.title)) return false
+      if (demoMode === 'launch' && !LAUNCH_TOP_VISIBLE.has(item.title)) return false
+      return true
+    }),
+    [demoMode]
+  )
+  const filteredCoreItems = useMemo(
+    () => CORE_ITEMS
+      .filter(item => {
+        if (!isPageEnabled(item.page ?? item.title)) return false
+        if (demoMode === 'launch' && !LAUNCH_CORE_VISIBLE.has(item.title)) return false
+        return true
+      })
+      .map(item => ({
+        ...item,
+        subItems: item.subItems?.filter(sub => isPageEnabled(sub.page)) ?? [],
+      })),
+    [demoMode]
+  )
 
   const isAdminMode = activePage.startsWith('Admin:')
+
   const [openMenus, setOpenMenus] = useState(() => {
     const initial = {}
     if (COMPLY_PAGES.includes(activePage)) initial['Comply'] = true
@@ -291,16 +279,23 @@ const _filteredAdminNavGroups = useMemo(() => {
                 <span className="font-semibold text-sm group-data-[collapsible=icon]:hidden">Admin</span>
               </SidebarMenuButton>
             ) : (
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center">
-                  <img src={tenant.logo} alt={tenant.appName} className={cn(tenant.logoClassName || 'h-7 w-auto', 'group-data-[collapsible=icon]:hidden')} />
-                  <img src={tenant.icon} alt={tenant.appName} className="hidden group-data-[collapsible=icon]:block rounded-lg object-cover" style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }} />
-                </div>
-                <div className="flex items-center gap-0.5 group-data-[collapsible=icon]:hidden">
-                  <button onClick={toggleSidebar} className="size-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors">
-                    <PanelLeftClose className="size-4" />
-                  </button>
-                </div>
+              <div className="flex w-full items-center gap-2">
+                <img
+                  src={tenant.icon}
+                  alt={tenant.appName}
+                  className="rounded-sm object-cover shrink-0"
+                  style={{ width: 28, height: 28, minWidth: 28, minHeight: 28 }}
+                />
+                <span className="text-[18px] font-medium tracking-[-0.03em] text-foreground group-data-[collapsible=icon]:hidden">
+                  {tenant.appName}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Switch workspace"
+                  className="ml-auto flex size-7 items-center justify-center rounded-md text-muted-foreground/70 hover:bg-sidebar-accent hover:text-foreground transition-colors shrink-0 group-data-[collapsible=icon]:hidden"
+                >
+                  <ArrowLeftRight className="size-4" />
+                </button>
               </div>
             )}
           </SidebarMenuItem>
@@ -320,33 +315,6 @@ const _filteredAdminNavGroups = useMemo(() => {
         )}
       </SidebarHeader>
 
-      {/* Board selector (multi-entity tenants) */}
-      {tenant.boards && !isAdminMode && (
-        <div className="px-3 pb-2 group-data-[collapsible=icon]:hidden">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex w-full items-center justify-between gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 text-left text-sm hover:bg-accent transition-colors">
-                <div className="flex items-center gap-2 min-w-0">
-                  <img src={tenant.icon} alt="" className="shrink-0 rounded" style={{ width: 24, height: 24 }} />
-                  <span className="truncate text-foreground">{selectedBoard?.label}</span>
-                </div>
-                <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width]">
-              {tenant.boards.map((board) => (
-                <DropdownMenuItem
-                  key={board.id}
-                  onClick={() => setSelectedBoard(board)}
-                  className={cn('text-sm', selectedBoard?.id === board.id && 'bg-accent font-medium')}
-                >
-                  {board.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
 
       {isAdminMode ? (
         <>
@@ -387,94 +355,90 @@ const _filteredAdminNavGroups = useMemo(() => {
         </>
       ) : (
         <>
-          {/* Regular nav groups */}
+          {/* Flat nav — top items, divider, core items with colored icon boxes */}
           <SidebarContent className="gap-0">
-            {/* Ungrouped: Home */}
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu className="gap-0">
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      tooltip="Home"
-                      isActive={activePage === 'Home'}
-                      onClick={() => handleNavigate('Home')}
-                      className="gap-2.5 text-sidebar-nav-muted font-medium data-[active=true]:text-sidebar-accent-foreground"
-                    >
-                      <IconHomeRoof className="size-4 shrink-0" />
-                      <span>Home</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  {filteredTopItems.map((item) => {
+                    const itemActive = item.activePages
+                      ? item.activePages.includes(activePage)
+                      : activePage === (item.page ?? item.title)
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          tooltip={item.title}
+                          isActive={itemActive}
+                          onClick={() => handleNavigate(item.page ?? item.title)}
+                          className="gap-2.5 text-sidebar-nav-muted font-medium data-[active=true]:text-sidebar-accent-foreground"
+                        >
+                          <item.icon className="size-4 shrink-0 [&_path]:stroke-2" />
+                          <span>{item.title}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {filteredNavGroups.map((group) => (
-              <SidebarGroup key={group.label}>
-                <SidebarGroupLabel className="text-xs font-mono tracking-normal text-muted-foreground/60 font-semibold">
-                  {group.label}
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu className="gap-0">
-                    {group.items.map((item) => {
-                      if (item.subItems) {
-                        const subPages = item.subItems.map(s => s.page)
-                        const isActive = subPages.includes(activePage)
-                        const isOpen = openMenus[item.title] ?? false
-                        return (
-                          <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton
-                              tooltip={item.title}
-                              isActive={isActive}
-                              onClick={() => {
-                                toggleMenu(item.title)
-                                if (item.dashPage && !openMenus[item.title]) handleNavigate(item.dashPage)
-                              }}
-                              className="gap-2.5 text-sidebar-nav-muted font-medium data-[active=true]:text-sidebar-accent-foreground"
-                            >
-                              <item.icon className="size-4 shrink-0" />
-                              <span>{item.title}</span>
-                              <ChevronDown className={`ml-auto size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                            </SidebarMenuButton>
-                            {isOpen && (
-                              <SidebarMenuSub className="gap-0">
-                                {item.subItems.map(sub => (
-                                  <SidebarMenuSubItem key={sub.title}>
-                                    <SidebarMenuSubButton
-                                      isActive={activePage === sub.page}
-                                      onClick={() => handleNavigate(sub.page)}
-                                      className="text-muted-foreground/95"
-                                    >
-                                      <span>{sub.title}</span>
-                                    </SidebarMenuSubButton>
-                                  </SidebarMenuSubItem>
-                                ))}
-                              </SidebarMenuSub>
-                            )}
-                          </SidebarMenuItem>
-                        )
-                      }
-
-                      const itemActive = item.activePages
-                        ? item.activePages.includes(activePage)
-                        : activePage === (item.page ?? item.title)
-                      return (
-                        <SidebarMenuItem key={item.title}>
-                          <SidebarMenuButton
-                            tooltip={item.title}
-                            isActive={itemActive}
-                            onClick={() => handleNavigate(item.page ?? item.title)}
-                            className="gap-2.5 text-sidebar-nav-muted font-medium data-[active=true]:text-sidebar-accent-foreground"
-                          >
-                            <item.icon className="size-4 shrink-0" />
-                            <span>{item.title}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      )
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            ))}
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-xs font-mono tracking-normal text-muted-foreground/60 font-semibold">
+                SPACES
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu className="gap-0">
+                  {filteredCoreItems.map((item) => {
+                    const itemActive = item.activePages
+                      ? item.activePages.includes(activePage)
+                      : activePage === (item.page ?? item.title)
+                    const hasSubs = item.subItems && item.subItems.length > 0
+                    const isOpen = openMenus[item.title] ?? false
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          tooltip={item.title}
+                          isActive={itemActive}
+                          onClick={() => {
+                            if (hasSubs) toggleMenu(item.title)
+                            handleNavigate(item.page ?? item.title)
+                          }}
+                          className="gap-2 text-sidebar-nav-muted font-medium data-[active=true]:text-sidebar-accent-foreground"
+                        >
+                          <span className={cn('flex h-6 w-6 items-center justify-center rounded-md shrink-0', item.iconBg)}>
+                            <item.icon className={cn('size-3.5 [&_path]:stroke-2', item.iconColor)} />
+                          </span>
+                          <span>{item.title}</span>
+                          {hasSubs && (
+                            <ChevronDown
+                              className={cn(
+                                'ml-auto size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[collapsible=icon]:hidden',
+                                isOpen && 'rotate-180'
+                              )}
+                            />
+                          )}
+                        </SidebarMenuButton>
+                        {hasSubs && isOpen && (
+                          <SidebarMenuSub className="gap-0">
+                            {item.subItems.map(sub => (
+                              <SidebarMenuSubItem key={sub.title}>
+                                <SidebarMenuSubButton
+                                  isActive={activePage === sub.page}
+                                  onClick={() => handleNavigate(sub.page)}
+                                  className="text-muted-foreground/95"
+                                >
+                                  <span>{sub.title}</span>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        )}
+                      </SidebarMenuItem>
+                    )
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
           </SidebarContent>
         </>
       )}

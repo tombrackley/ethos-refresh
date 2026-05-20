@@ -1,6 +1,6 @@
 import { Fragment, useState, useMemo } from 'react'
 import flagsJson from '@/config/flags.json'
-import { getActiveEnv, getBuildMode } from '@/config/flags'
+import { getBuildMode } from '@/config/flags'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Flag, Search } from 'lucide-react'
@@ -33,7 +33,7 @@ function effectiveState(flagKey, envId) {
 }
 
 export default function FeatureFlagManagerPage() {
-  const activeEnv = getActiveEnv()
+  const activeEnv = 'default'
   const buildMode = getBuildMode()
   const [query, setQuery] = useState('')
 

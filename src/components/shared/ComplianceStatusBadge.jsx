@@ -1,25 +1,55 @@
+import { Check } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 const TONE = {
-  ok: { dot: 'bg-emerald-500', halo: 'bg-emerald-500/25' },
-  warn: { dot: 'bg-amber-500', halo: 'bg-amber-500/25' },
-  bad: { dot: 'bg-red-500', halo: 'bg-red-500/25' },
+  ok: { variant: 'status-complete', dot: 'bg-emerald-500', defaultLabel: 'On track' },
+  warn: { variant: 'importance-high', dot: 'bg-amber-500', defaultLabel: 'Needs attention' },
+  bad: { variant: 'importance-critical', dot: 'bg-red-500', defaultLabel: 'At risk' },
 }
 
-export function ComplianceStatusBadge({ tone = 'ok', label = 'Compliance up to date', className }) {
+const DEFAULT_REASONS = [
+  'CPD hours up to date',
+  'Annual attestations completed',
+  'Mandatory training current',
+  'No overdue policy acknowledgements',
+  'No open compliance breaches',
+]
+
+export function ComplianceStatusBadge({ tone = 'ok', label, reasons = DEFAULT_REASONS, className }) {
   const t = TONE[tone] ?? TONE.ok
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-2 rounded-full border border-[#ECF2F5] bg-white px-3 py-1 text-xs font-normal text-foreground/70 shadow-[0_2px_6px_rgb(0_0_0/0.06)]',
-        className
-      )}
-    >
-      <span className="relative flex items-center justify-center size-3">
-        <span className={cn('absolute inset-0 rounded-full', t.halo)} />
-        <span className={cn('relative size-1 rounded-full', t.dot)} />
-      </span>
-      {label}
+    <span className={cn('inline-flex items-center gap-2 text-sm text-muted-foreground', className)}>
+      Compliance status:
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Badge
+            variant={t.variant}
+            className="font-mono uppercase tracking-wide text-[#151D2B] bg-[#D5FFDA] border-transparent cursor-default"
+          >
+            <span className={cn('size-1.5 rounded-full', t.dot)} />
+            {label ?? t.defaultLabel}
+          </Badge>
+        </TooltipTrigger>
+        <TooltipContent
+          side="bottom"
+          align="end"
+          sideOffset={8}
+          className="bg-white text-foreground border border-border shadow-md rounded-lg p-3 max-w-[260px]"
+          arrowClassName="bg-white fill-white border-l border-t border-border"
+        >
+          <p className="text-xs font-medium text-foreground mb-2">Why you're on track</p>
+          <ul className="space-y-1.5">
+            {reasons.map((reason) => (
+              <li key={reason} className="flex items-start gap-2 text-xs text-muted-foreground">
+                <Check className="size-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                <span>{reason}</span>
+              </li>
+            ))}
+          </ul>
+        </TooltipContent>
+      </Tooltip>
     </span>
   )
 }

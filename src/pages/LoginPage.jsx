@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LogIn } from 'lucide-react'
-import tenant, { switchTenant } from '@/config/tenant'
+import tenant from '@/config/tenant'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
@@ -11,22 +11,13 @@ export default function LoginPage() {
   function handleSubmit(e) {
     e.preventDefault()
     const credentials = {
-      admin:     { tenant: 'default', mode: 'ethika-admin' },
-      ethos:     { tenant: 'default', mode: 'user' },
-      blackmores:{ tenant: 'blackmores', mode: 'user' },
-      playfair:  { tenant: 'migration', mode: 'user' },
-      cooperip:  { tenant: 'cooperip', mode: 'user' },
-      gallagherbassett: { tenant: 'gallagherbassett', mode: 'user' },
-      peoplecare: { tenant: 'peoplecare', mode: 'user' },
+      admin: { mode: 'ethika-admin' },
+      ethos: { mode: 'user' },
     }
     const cred = credentials[username]
     if (cred && password === 'password') {
-      // Store auth + tenant in sessionStorage so it survives reload
-      sessionStorage.setItem('ethos_auth', JSON.stringify({ tenant: cred.tenant, mode: cred.mode }))
-      switchTenant(cred.tenant)
-      // Reload so module-level tenant references re-initialize with correct data.
-      // Non-default tenants land at /<tenant> so the URL reflects the active session.
-      window.location.href = cred.tenant === 'default' ? '/' : `/${cred.tenant}`
+      sessionStorage.setItem('ethos_auth', JSON.stringify({ mode: cred.mode }))
+      window.location.href = '/'
     }
   }
 

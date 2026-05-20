@@ -6,6 +6,8 @@ import { IconUserGroup } from '@central-icons-react/round-outlined-radius-2-stro
 import { cn } from '@/lib/utils'
 import tenant from '@/config/tenant'
 import { Button } from '@/components/ui/button'
+import { ShellPrompts } from '@/components/layout/ShellPrompts'
+import { useAskEthos } from '@/context/useAskEthos'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -20,6 +22,17 @@ const TABS = [
   { label: 'Policies',    to: '/govern/policies' },
   { label: 'Delegations', to: '/govern/delegations' },
   { label: 'Register',    to: '/govern/company-register' },
+]
+
+const GOVERN_PROMPTS = [
+  { id: 'summarise',   label: 'Summarise **governance** and open board actions', prompt: 'Summarise governance and open board actions' },
+  { id: 'papers',      label: 'Status of **board papers** for upcoming meeting' },
+  { id: 'policies',    label: 'Overdue **policy reviews** and owners' },
+  { id: 'resolutions', label: 'Outstanding **board resolutions**' },
+  { id: 'delegations', label: '**Delegations** approaching expiry' },
+  { id: 'agenda',      label: 'Draft **agenda** for next board meeting' },
+  { id: 'duties',      label: 'Director **duties** check this quarter' },
+  { id: 'committees',  label: '**Committee** action items overdue' },
 ]
 
 const ALL_BOARDS_OPTION = { id: '__all__', name: 'All boards' }
@@ -77,6 +90,11 @@ export function GovernShell() {
   const boards = tenant?.pages?.govern?.boards ?? []
   const options = [ALL_BOARDS_OPTION, ...boards]
   const [selectedBoard, setSelectedBoard] = useState(ALL_BOARDS_OPTION)
+  const { open: openEthos } = useAskEthos()
+
+  function handlePromptClick(prompt) {
+    if (prompt.prompt) openEthos(prompt.prompt)
+  }
 
   const BOARDS_HIDDEN_PATHS = ['/govern/delegations', '/govern/company-register']
   const showBoardSelector = boards.length > 0 && !BOARDS_HIDDEN_PATHS.includes(pathname)
@@ -84,32 +102,35 @@ export function GovernShell() {
   return (
     <div className="flex flex-1 flex-col overflow-auto bg-white">
       <div className="shrink-0 px-6 pt-6">
-        <div className="mx-auto max-w-7xl flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-[28px] leading-[30px] tracking-[-1.12px] font-normal text-[#0A0A0A]">Govern</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Boards, meetings, papers and policies — your governance backbone.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="inline-flex h-8 items-center gap-2 rounded-[10px] bg-white border border-border px-3">
-              <img src="/diligent-logo.jpeg" alt="Diligent" className="size-4 rounded-sm object-cover" />
-              <span className="text-xs font-medium text-foreground">Connected</span>
+        <div className="mx-auto max-w-7xl">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-[28px] leading-[30px] tracking-[-1.12px] font-normal text-[#0A0A0A]">Govern</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Boards, meetings, papers and policies — your governance backbone.
+              </p>
             </div>
-            <Button size="sm" variant="outline" className="h-8 gap-1.5">
-              <Settings className="size-3.5" />
-              Settings
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="inline-flex h-8 items-center gap-2 rounded-[10px] bg-white border border-border px-3">
+                <img src="/diligent-logo.jpeg" alt="Diligent" className="size-4 rounded-sm object-cover" />
+                <span className="text-xs font-medium text-foreground">Connected</span>
+              </div>
+              <Button size="sm" variant="outline" className="h-8 gap-1.5">
+                <Settings className="size-3.5" />
+                Settings
+              </Button>
+            </div>
           </div>
+          <ShellPrompts prompts={GOVERN_PROMPTS} onPromptClick={handlePromptClick} />
         </div>
       </div>
 
       <div className="sticky top-0 z-20 bg-white shrink-0 mt-5">
         <div className="px-6">
           <div className="mx-auto max-w-7xl">
-            <div className="h-11 flex items-end gap-3 border-b border-border">
-              <nav className="flex items-center gap-1 overflow-x-auto -mb-px flex-1 min-w-0">
-                {TABS.map((tab, index) => (
+            <div className="border-b border-border">
+              <nav className="flex items-center gap-6 overflow-x-auto -mb-px">
+                {TABS.map((tab) => (
                   <NavLink
                     key={tab.to}
                     to={tab.to}
@@ -117,7 +138,6 @@ export function GovernShell() {
                     className={({ isActive }) =>
                       cn(
                         'whitespace-nowrap py-2.5 text-sm font-medium border-b-2 transition-colors',
-                        index === 0 ? 'pr-3' : 'px-3',
                         isActive
                           ? 'border-foreground text-foreground'
                           : 'border-transparent text-foreground/80 hover:text-foreground hover:border-border'
