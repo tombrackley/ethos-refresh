@@ -1,4 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { ShellPrompts } from '@/components/layout/ShellPrompts'
+import { useAskEthos } from '@/context/useAskEthos'
 import { cn } from '@/lib/utils'
 
 const TABS = [
@@ -8,7 +10,24 @@ const TABS = [
   { label: 'Time & Efficiency', to: '/work/time-efficiency' },
 ]
 
+const WORK_PROMPTS = [
+  { id: 'summarise', label: 'Summarise my **matters** and priorities', prompt: 'Summarise my matters and priorities' },
+  { id: 'at-risk',   label: '**Matters at risk** and what to do next' },
+  { id: 'wip',       label: 'Insights on **WIP and billing** opportunities' },
+  { id: 'capacity',  label: 'Team **capacity** and reallocation suggestions' },
+  { id: 'deadlines', label: 'Upcoming **deadlines** this week' },
+  { id: 'meetings',  label: 'Prep for my next **client meetings**' },
+  { id: 'time',      label: '**Time entries** missing or unbilled' },
+  { id: 'response',  label: 'Drafts pending in **Respond**' },
+]
+
 export function WorkShell() {
+  const { open: openEthos } = useAskEthos()
+
+  function handlePromptClick(prompt) {
+    if (prompt.prompt) openEthos(prompt.prompt)
+  }
+
   return (
     <div className="flex flex-1 flex-col overflow-auto bg-white">
       <div className="shrink-0 px-6 pt-6">
@@ -17,6 +36,7 @@ export function WorkShell() {
           <p className="mt-1 text-sm text-muted-foreground">
             Matters, responses, meetings and time — your day-to-day work.
           </p>
+          <ShellPrompts prompts={WORK_PROMPTS} onPromptClick={handlePromptClick} />
         </div>
       </div>
 
@@ -24,8 +44,8 @@ export function WorkShell() {
         <div className="px-6">
           <div className="mx-auto max-w-7xl">
           <div className="border-b border-border">
-            <nav className="flex items-center gap-1 overflow-x-auto -mb-px">
-              {TABS.map((tab, index) => (
+            <nav className="flex items-center gap-6 overflow-x-auto -mb-px">
+              {TABS.map((tab) => (
                 <NavLink
                   key={tab.to}
                   to={tab.to}
@@ -33,7 +53,6 @@ export function WorkShell() {
                   className={({ isActive }) =>
                     cn(
                       'whitespace-nowrap py-2.5 text-sm font-medium border-b-2 transition-colors',
-                      index === 0 ? 'pr-3' : 'px-3',
                       isActive
                         ? 'border-foreground text-foreground'
                         : 'border-transparent text-foreground/80 hover:text-foreground hover:border-border'

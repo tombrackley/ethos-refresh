@@ -1,5 +1,4 @@
 import flagsJson from './flags.json'
-import { tenantId } from './tenant'
 
 const RESERVED = new Set(['_meta', 'default'])
 const canonicalFlags = Object.keys(flagsJson.default)
@@ -13,14 +12,7 @@ for (const [env, overrides] of Object.entries(flagsJson)) {
 }
 
 const buildMode = import.meta.env.MODE
-const modeOverrides   = (buildMode in flagsJson && !RESERVED.has(buildMode)) ? flagsJson[buildMode] : {}
-const tenantOverrides = (tenantId  in flagsJson && !RESERVED.has(tenantId))  ? flagsJson[tenantId]  : {}
-
-if (Object.keys(modeOverrides).length === 0 && Object.keys(tenantOverrides).length === 0
-    && !(buildMode in flagsJson) && !(tenantId in flagsJson)) {
-  // eslint-disable-next-line no-console
-  console.warn(`[flags] no overrides for mode "${buildMode}" or tenant "${tenantId}", using default`)
-}
+const modeOverrides = (buildMode in flagsJson && !RESERVED.has(buildMode)) ? flagsJson[buildMode] : {}
 
 const devOverrides = Object.fromEntries(
   Object.entries(import.meta.env)
@@ -31,7 +23,6 @@ const devOverrides = Object.fromEntries(
 export const flags = {
   ...flagsJson.default,
   ...modeOverrides,
-  ...tenantOverrides,
   ...devOverrides,
 }
 
@@ -41,8 +32,4 @@ export function isEnabled(flagKey) {
 
 export function getBuildMode() {
   return buildMode
-}
-
-export function getActiveEnv() {
-  return tenantId
 }

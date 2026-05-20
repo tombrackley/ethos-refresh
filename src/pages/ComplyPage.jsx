@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { AiSummaryBar } from '@/components/shared/AiSummaryBar'
+import { ComplianceStatusBadge } from '@/components/shared/ComplianceStatusBadge'
 import { MetricsStrip } from '@/components/shared/MetricsStrip'
 import Feature from '@/components/Feature'
 import {
@@ -287,13 +288,7 @@ export default function ComplyPage() {
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Compliance Level</span>
-            <span className="inline-flex items-center gap-1.5 h-6 px-2 rounded-full border border-border bg-white text-xs font-medium text-foreground">
-              <span className="size-1.5 rounded-full bg-emerald-500" />
-              Good
-            </span>
-          </div>
+          <ComplianceStatusBadge />
 
           <Button variant="outline" size="sm" className="gap-1.5">
             <ClipboardCheck className="size-4" /> Prepare Report

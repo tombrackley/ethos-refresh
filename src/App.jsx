@@ -4,15 +4,20 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AppSidebar } from '@/components/layout/AppSidebar'
 import { TopBar } from '@/components/layout/TopBar'
+import { AskEthosDrawer } from '@/components/AskEthosDrawer'
+import { AskEthosProvider } from '@/context/AskEthosContext'
 import { CommandPalette } from '@/components/CommandPalette'
 import { isEnabled } from '@/config/flags'
 import LoginPage from '@/pages/LoginPage'
+import LandingPage from '@/pages/LandingPage'
+import OnboardingPage from '@/pages/OnboardingPage'
 import EthikaAdminPage from '@/pages/EthikaAdminPage'
 import HomePage from '@/pages/HomePage'
 import HomeChatPage from '@/pages/HomeChatPage'
 import HomeV2Page from '@/pages/HomeV2Page'
 import HomeV3Page from '@/pages/HomeV3Page'
 import ControlPage from '@/pages/ControlPage'
+import ControlV2Page from '@/pages/ControlV2Page'
 import WorkPage from '@/pages/WorkPage'
 import ComplyPage from '@/pages/ComplyPage'
 import ContractsPage from '@/pages/ContractsPage'
@@ -55,6 +60,7 @@ import KnowledgeCentrePage from '@/pages/KnowledgeCentrePage'
 import KnowledgeCentreDemoPage from '@/pages/KnowledgeCentreDemoPage'
 import SkillsProfilePage from '@/pages/SkillsProfilePage'
 import InsightsPage from '@/pages/InsightsPage'
+import InsightDetailPage from '@/pages/InsightDetailPage'
 import CommunityPage from '@/pages/CommunityPage'
 import FeatureFlagManagerPage from '@/pages/FeatureFlagManagerPage'
 
@@ -91,9 +97,11 @@ function AppLayout({ onLogout }) {
   return (
     <TooltipProvider>
       <SidebarProvider>
+        <AskEthosProvider>
         <div className="flex h-screen w-full bg-sidebar">
           <AppSidebar onSearchClick={() => setCommandOpen(true)} />
           <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
+          <AskEthosDrawer />
 
           <div className="flex flex-1 flex-col overflow-hidden p-2">
             <main className="flex-1 overflow-hidden flex flex-col rounded-lg bg-background border border-[#E2E8F0]">
@@ -106,7 +114,10 @@ function AppLayout({ onLogout }) {
                 <Route path="/home/v4" element={<HomeChatPage />} />
                 <Route path="/home/kanban" element={<HomePage />} />
                 {isEnabled('PAGE_CONTROL') && (
-                  <Route path="/control" element={<ControlPage />} />
+                  <>
+                    <Route path="/control" element={<ControlPage />} />
+                    <Route path="/control/v2" element={<ControlV2Page />} />
+                  </>
                 )}
                 <Route element={<WorkShell />}>
                   {gatedRoute('/matters', 'PAGE_WORK', <WorkPage onNavigateMatter={navigateToMatter} />)}
@@ -165,6 +176,7 @@ function AppLayout({ onLogout }) {
                 {gatedRoute('/resources', 'PAGE_RESOURCES', <ResourceLibraryPage />)}
                 {gatedRoute('/talent', 'PAGE_TALENT', <TalentPage />)}
                 {gatedRoute('/insights', 'PAGE_INSIGHTS', <InsightsPage />)}
+                {gatedRoute('/insights/:id', 'PAGE_INSIGHTS', <InsightDetailPage />)}
                 {isEnabled('PAGE_LEARN') && (
                   <Route path="/learn" element={<LearnShell />}>
                     <Route index element={<LearnPage />} />
@@ -192,6 +204,7 @@ function AppLayout({ onLogout }) {
           </div>
 
         </div>
+        </AskEthosProvider>
       </SidebarProvider>
     </TooltipProvider>
   )
@@ -230,7 +243,9 @@ function App() {
   if (authMode === null) {
     return (
       <Routes>
-        <Route path="*" element={<LoginPage onLogin={setAuthMode} />} />
+        <Route path="/login" element={<LoginPage onLogin={setAuthMode} />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="*" element={<LandingPage />} />
       </Routes>
     )
   }

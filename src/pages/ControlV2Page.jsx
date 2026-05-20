@@ -1,7 +1,3 @@
-import { useState } from 'react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import {
   Table,
   TableBody,
@@ -10,19 +6,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   TrendingUp,
   TrendingDown,
+  Minus,
   Clock,
   ChevronRight,
-  X,
-  AlertCircle,
-  CheckCircle2,
-  Sparkles,
-  ListChecks,
-  Flag,
 } from 'lucide-react'
-import { MetricsStrip } from '@/components/shared/MetricsStrip'
 import { cn } from '@/lib/utils'
 import tenant from '@/config/tenant'
 
@@ -30,13 +22,14 @@ const t = tenant.pages.control
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
-const KPIS             = t.kpis
-const MATTERS          = t.matters
-const COMPLIANCE       = t.compliance
-const FIRM_HEALTH      = t.firmHealthMetrics
-const TEAM             = t.team
-const AI_ACTIONS       = t.aiActions
-const PRIORITIES       = t.priorities
+const KPIS       = t.kpis
+const MATTERS    = t.matters
+const COMPLIANCE = t.compliance
+const FIRM_HEALTH = t.firmHealthMetrics
+const TEAM       = t.team
+const PRIORITIES = t.priorities
+
+const COMPLIANCE_SCORE = 87
 
 const CATEGORY_COLOR = {
   committee: 'bg-amber-300',
@@ -87,12 +80,88 @@ const MATTER_STATUS_DOT = {
   'On Hold': 'bg-slate-300',
 }
 
+// Synthesize a numeric score + delta per compliance row from the categorical
+// `status` field. Deterministic by index so the visual is stable across renders.
+const STATUS_SCORE_BAND = {
+  good:    [96, 94, 92, 90, 88],
+  neutral: [85, 82, 80, 78, 76],
+  warning: [72, 68, 65, 62, 60],
+}
+const STATUS_RANK_WEIGHT = { good: 0, neutral: 1, warning: 2 }
+
+function deriveComplianceRows() {
+  const counts = { good: 0, neutral: 0, warning: 0 }
+  return [...COMPLIANCE]
+    .sort((a, b) => (STATUS_RANK_WEIGHT[a.status] ?? 9) - (STATUS_RANK_WEIGHT[b.status] ?? 9))
+    .map((row) => {
+      const band = STATUS_SCORE_BAND[row.status] ?? STATUS_SCORE_BAND.neutral
+      const idx = counts[row.status] ?? 0
+      counts[row.status] = idx + 1
+      const score = band[idx % band.length]
+      const delta = row.status === 'good' ? +2 : row.status === 'warning' ? -3 : 0
+      return { ...row, score, delta }
+    })
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function ComplianceIcon({ status }) {
-  if (status === 'good')    return <CheckCircle2 className="size-3.5 shrink-0 text-brand-400 mt-px" />
-  if (status === 'warning') return <AlertCircle  className="size-3.5 shrink-0 text-amber-400 mt-px" />
-  return                           <Clock        className="size-3.5 shrink-0 text-muted-foreground/50 mt-px" />
+function ComplianceDonut({ score, size = 132, stroke = 12 }) {
+  const radius = (size - stroke) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference * (1 - score / 100)
+  return (
+    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={stroke}
+          className="text-muted"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="text-brand-500 transition-[stroke-dashoffset] duration-700 ease-out"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-3xl font-medium tracking-[-0.02em] text-foreground leading-none">{score}%</span>
+        <span className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">Compliant</span>
+      </div>
+    </div>
+  )
+}
+
+function DeltaChip({ delta }) {
+  if (delta > 0) {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-xs font-medium text-emerald-600">
+        <TrendingUp className="size-3" />+{delta}
+      </span>
+    )
+  }
+  if (delta < 0) {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-xs font-medium text-amber-600">
+        <TrendingDown className="size-3" />{delta}
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-0.5 text-xs font-medium text-muted-foreground">
+      <Minus className="size-3" />0
+    </span>
+  )
 }
 
 function CapacityBars({ util, level }) {
@@ -108,12 +177,11 @@ function CapacityBars({ util, level }) {
   )
 }
 
-function SectionCard({ icon: Icon, title, count, viewAllLabel = 'View all', children }) {
+function SectionCard({ title, count, viewAllLabel = 'View all', children }) {
   return (
     <div className="flex flex-col border border-border/60 overflow-hidden rounded bg-white">
       <div className="flex items-center justify-between px-5 py-3 border-b border-border/60">
         <div className="flex items-center gap-2 min-w-0">
-          {Icon && <Icon className="size-4 text-muted-foreground shrink-0" />}
           <p className="text-sm font-medium text-foreground">
             {count !== undefined && <span className="text-foreground">{count} </span>}
             <span className={count !== undefined ? 'text-muted-foreground font-normal' : ''}>{title}</span>
@@ -128,72 +196,40 @@ function SectionCard({ icon: Icon, title, count, viewAllLabel = 'View all', chil
   )
 }
 
-function AiPanel({ onClose }) {
+function KpiStrip({ items }) {
   return (
-    <div className="flex flex-col w-[380px] shrink-0 border-l border-border overflow-y-auto">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <Sparkles className="size-4 text-brand-600" />
-          <span className="text-sm font-medium text-foreground">AI Analysis</span>
-        </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="size-7 text-muted-foreground">
-          <X className="size-4" />
-        </Button>
-      </div>
-
-      <div className="flex-1 px-5 py-4 space-y-6">
-        {/* Suggested Actions */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <ListChecks className="size-4 text-muted-foreground" />
-            <h3 className="text-sm font-medium text-foreground">Suggested Actions</h3>
-            <Badge variant="secondary" className="text-xs h-4 px-1.5 ml-auto">{AI_ACTIONS.length} new</Badge>
-          </div>
-          <div className="space-y-2">
-            {AI_ACTIONS.map((a) => (
-              <div key={a.title} className="rounded-lg border border-border p-3.5 space-y-1.5 hover:bg-muted/40 transition-colors cursor-pointer">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium text-foreground">{a.title}</p>
-                  <Badge variant="outline" className={`text-xs h-4 px-1.5 shrink-0 ${priorityStyle[a.priority]}`}>
-                    {a.priority.toUpperCase()}
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{a.desc}</p>
-              </div>
-            ))}
+    <div className="flex flex-wrap divide-x divide-border/60 border border-border/60 rounded bg-white overflow-hidden">
+      {items.map((kpi) => (
+        <div key={kpi.label} className="flex-1 min-w-[180px] px-5 py-3">
+          <p className="text-xs text-muted-foreground">{kpi.label}</p>
+          <div className="mt-1 flex items-baseline gap-2">
+            <span className="text-lg font-medium tracking-[-0.01em] text-foreground">{kpi.value}</span>
+            {kpi.delta && (
+              <span
+                className={cn(
+                  'inline-flex items-center gap-0.5 text-xs font-medium',
+                  kpi.dir === 'up'   && 'text-emerald-600',
+                  kpi.dir === 'down' && 'text-amber-600',
+                  (!kpi.dir || kpi.dir === 'flat') && 'text-muted-foreground',
+                )}
+              >
+                {kpi.dir === 'up'   && <TrendingUp className="size-3" />}
+                {kpi.dir === 'down' && <TrendingDown className="size-3" />}
+                {kpi.delta}
+              </span>
+            )}
           </div>
         </div>
-
-        <Separator />
-
-        {/* Priorities Overview */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Flag className="size-4 text-muted-foreground" />
-            <h3 className="text-sm font-medium text-foreground">Priorities Overview</h3>
-          </div>
-          <div>
-            {PRIORITIES.map((p) => (
-              <div key={p.label} className="flex items-center justify-between gap-3 py-2.5 border-b border-border last:border-0">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className={`size-1.5 rounded-full shrink-0 ${p.urgency === 'High' ? 'bg-amber-400' : p.urgency === 'Medium' ? 'bg-muted-foreground/40' : 'bg-muted-foreground/20'}`} />
-                  <p className="text-xs text-foreground truncate">{p.label}</p>
-                </div>
-                <span className="text-xs text-muted-foreground shrink-0">{p.due}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      ))}
     </div>
   )
 }
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
-export default function ControlPage() {
-  const [drawerOpen, setDrawerOpen] = useState(false)
+export default function ControlV2Page() {
   const now = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date())
+  const complianceRows = deriveComplianceRows()
 
   return (
     <div className="flex flex-1 overflow-hidden">
@@ -214,11 +250,34 @@ export default function ControlPage() {
             </span>
           </div>
 
-          {/* KPI row */}
-          <MetricsStrip items={KPIS} />
+          {/* Compact KPI strip */}
+          <KpiStrip items={KPIS} />
 
-          {/* Row 1: Matters | Compliance */}
+          {/* Row 1: Compliance hero | Matters */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <SectionCard title="Compliance score" count={`${COMPLIANCE_SCORE}%`} viewAllLabel="View report">
+              <div className="px-5 py-5 flex items-stretch gap-5">
+                <div className="flex flex-col items-center justify-center shrink-0">
+                  <ComplianceDonut score={COMPLIANCE_SCORE} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Top areas</p>
+                  <ul className="divide-y divide-border/60">
+                    {complianceRows.map((row, i) => (
+                      <li key={row.label} className="flex items-center gap-3 py-2">
+                        <span className="text-xs font-medium tabular-nums text-muted-foreground w-4 shrink-0">{i + 1}</span>
+                        <p className="flex-1 text-sm text-foreground truncate">{row.label}</p>
+                        <span className="text-xs font-medium text-foreground tabular-nums shrink-0">{row.score}%</span>
+                        <span className="w-10 text-right shrink-0">
+                          <DeltaChip delta={row.delta} />
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </SectionCard>
 
             <SectionCard count={MATTERS.length} title="Matters">
               <Table>
@@ -261,71 +320,47 @@ export default function ControlPage() {
               </Table>
             </SectionCard>
 
-            <SectionCard title="Compliance" count="87%" viewAllLabel="View report">
-              <div className="px-5 py-4 space-y-4">
-                <div className="space-y-1.5">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-3xl font-medium text-foreground">87%</span>
-                    <span className="text-xs text-muted-foreground">Overall compliant</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-muted overflow-hidden rounded-full">
-                    <div className="h-full bg-brand-300 rounded-full" style={{ width: '87%' }} />
-                  </div>
-                </div>
-                <Separator />
-                <div className="space-y-2.5">
-                  {COMPLIANCE.map((item) => (
-                    <div key={item.label} className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-2">
-                        <ComplianceIcon status={item.status} />
-                        <div>
-                          <p className="text-xs text-foreground leading-snug">{item.label}</p>
-                          <p className="text-xs text-muted-foreground">{item.sub}</p>
-                        </div>
-                      </div>
-                      <span className={`text-xs shrink-0 ${item.status === 'warning' ? 'text-amber-500' : 'text-muted-foreground'}`}>
-                        {item.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </SectionCard>
-
           </div>
 
           {/* Row 2: Firm Health | Team Workload */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
             <SectionCard title="Firm Health" viewAllLabel="View details">
-              <div className="px-5 py-2">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border/60 hover:bg-transparent">
-                      <TableHead className="text-xs font-medium text-muted-foreground pl-0">Metric</TableHead>
-                      <TableHead className="text-xs font-medium text-muted-foreground text-right">Value</TableHead>
-                      <TableHead className="text-xs font-medium text-muted-foreground text-right pr-0">vs Target</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {FIRM_HEALTH.map((m) => (
-                      <TableRow key={m.label} className="border-border/60">
-                        <TableCell className="pl-0 py-3 text-sm text-foreground">{m.label}</TableCell>
-                        <TableCell className="text-right text-sm font-medium text-foreground">
-                          {m.value}{m.label === 'Client NPS' ? '' : '%'}
-                        </TableCell>
-                        <TableCell className="pr-0 text-right">
-                          <span className={`inline-flex items-center gap-1 text-xs ${m.above ? 'text-brand-600' : 'text-amber-500'}`}>
+              <div className="px-5 py-4 space-y-4">
+                {FIRM_HEALTH.map((m) => {
+                  const isNps = m.label === 'Client NPS'
+                  const numerator = Number(m.value) || 0
+                  const denominator = Number(m.target) || 100
+                  const pct = Math.min(100, (numerator / Math.max(denominator, 1)) * 100)
+                  return (
+                    <div key={m.label} className="space-y-1.5">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <p className="text-sm text-foreground">{m.label}</p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm font-medium text-foreground tabular-nums">
+                            {m.value}{isNps ? '' : '%'}
+                          </span>
+                          <span className={cn(
+                            'inline-flex items-center gap-0.5 text-xs',
+                            m.above ? 'text-brand-600' : 'text-amber-600',
+                          )}>
                             {m.above
                               ? <TrendingUp className="size-3 shrink-0" />
                               : <TrendingDown className="size-3 shrink-0" />}
                             {m.delta}
                           </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                        </div>
+                      </div>
+                      <div className="relative h-1 w-full bg-muted overflow-hidden rounded-full">
+                        <div
+                          className={cn('h-full rounded-full', m.above ? 'bg-brand-400' : 'bg-amber-400')}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Target {m.target}{isNps ? '' : '%'}</p>
+                    </div>
+                  )
+                })}
               </div>
             </SectionCard>
 
@@ -433,11 +468,6 @@ export default function ControlPage() {
           </div>
 
         </div>
-      </div>
-
-      {/* Push panel — slides in, pushes content */}
-      <div className={`shrink-0 overflow-hidden transition-all duration-300 ease-in-out ${drawerOpen ? 'w-[380px]' : 'w-0'}`}>
-        <AiPanel onClose={() => setDrawerOpen(false)} />
       </div>
     </div>
   )

@@ -109,9 +109,13 @@ function ComingUp() {
         <h2 className="text-base font-medium text-foreground">Coming up</h2>
         <Link
           to="/govern/meetings"
-          className="inline-flex items-center gap-0.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="View full calendar"
+          className="group inline-flex items-center gap-1.5 text-muted-foreground opacity-50 hover:opacity-100 transition-opacity"
         >
-          View full calendar <ChevronRight className="size-3" />
+          <span className="text-sm font-medium opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            View calendar
+          </span>
+          <ArrowUpRight className="size-5" />
         </Link>
       </div>
 
@@ -204,7 +208,7 @@ function LatestInsights() {
               />
             </div>
             <div className="flex flex-1 flex-col gap-2 p-5">
-              <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+              <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground/80">
                 <span>{item.source}</span>
                 {item.contentType && (
                   <>
@@ -213,9 +217,9 @@ function LatestInsights() {
                   </>
                 )}
               </div>
-              <h3 className="text-sm font-medium text-foreground line-clamp-2">{item.title}</h3>
-              <p className="flex-1 text-xs text-muted-foreground line-clamp-3">{item.excerpt}</p>
-              <p className="text-xs text-muted-foreground">
+              <h3 className="text-lg font-normal tracking-[-0.01em] text-foreground line-clamp-2">{item.title}</h3>
+              <p className="flex-1 text-sm text-muted-foreground line-clamp-2">{item.excerpt}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
                 {item.time}
                 {item.readTime && (
                   <>

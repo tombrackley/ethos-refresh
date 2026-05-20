@@ -89,7 +89,6 @@ Always use the project's shadcn/ui components instead of raw HTML equivalents. T
 
 **Customisation is expected** — shadcn components accept `className` for one-off overrides via `cn()`. For recurring custom styles, add new CVA variants to the component file (e.g., `status-published` variant on Badge). Do not duplicate shadcn base styles in raw elements.
 
-## Multi-Tenant
-- Tenant config in `src/config/tenant.js`
-- Build scripts: `dev` (default), `dev:migration`, `dev:fshd`
-- Tenant-specific styling should be driven by config, not conditional CSS
+## Tenant Config
+- Single-tenant prototype. Config lives in `src/config/tenant.js`
+- Pages read mock data from `tenant.pages.*`
