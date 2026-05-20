@@ -408,7 +408,7 @@ function LargeOptionCard({ icon: Icon, iconBg, iconColor, label, description, se
       )}
     >
       <span className={cn('flex h-9 w-9 items-center justify-center rounded-md shrink-0', iconBg)}>
-        <Icon className={cn('size-5 [&_path]:stroke-2', iconColor)} />
+        {Icon && <Icon className={cn('size-5 [&_path]:stroke-2', iconColor)} />}
       </span>
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium text-foreground">{label}</span>
