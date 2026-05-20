@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
-import EthosAIPanel from '@/components/EthosAIPanel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -1014,33 +1013,6 @@ export default function LearnPage() {
         document.body
       )}
 
-      <Feature flag="FEATURE_AI_PANEL">
-      <EthosAIPanel
-        subtitle="Learning overview"
-        contextLine={<>Showing <span className="font-semibold text-foreground">12 suggestions</span> based on your learning profile, skills gaps, and CPD requirements.</>}
-        tabs={[
-          { key: 'all', label: 'All', filter: () => true },
-          { key: 'for-you', label: 'For You', filter: (i) => i.tab === 'for-you' },
-          { key: 'cpd', label: 'CPD', filter: (i) => i.tab === 'cpd' },
-          { key: 'skills', label: 'Skills', filter: (i) => i.tab === 'skills' },
-          { key: 'content', label: 'Content', filter: (i) => i.tab === 'content' },
-        ]}
-        suggestions={[
-          { tab: 'for-you', type: 'recommendation', typeLabel: 'Recommended Journey', title: 'Corporate Governance Fundamentals', description: 'Based on your role and current skill gaps, this 12-week journey would strengthen your governance knowledge foundation.', priority: 'high', source: 'Learning Journey', status: 'new' },
-          { tab: 'cpd', type: 'risk', typeLabel: 'CPD Deadline', title: 'Law Society NSW \u2014 4 Points Remaining', description: 'You have 4 CPD points remaining. Deadline is 31 Mar 2026 \u2014 21 days away. 3 upcoming events could help.', priority: 'high', source: 'CPD Tracker', status: 'review' },
-          { tab: 'skills', type: 'skill', typeLabel: 'Skills Gap', title: 'Data Privacy & Protection', description: 'Your proficiency in Data Privacy is below the recommended threshold. Consider the Data Privacy Masterclass journey.', priority: 'high', source: 'Skills Assessment', status: 'new' },
-          { tab: 'content', type: 'update', typeLabel: 'New Content', title: 'AI Governance Framework Updated', description: 'The AI Governance Framework has been updated with new guidance on algorithmic accountability and responsible AI.', priority: 'medium', source: 'Knowledge Centre', status: 'new' },
-          { tab: 'cpd', type: 'course', typeLabel: 'CPD Opportunity', title: 'Board Effectiveness Seminar', description: 'Upcoming CPD event on 25 Mar 2026. Awards 3 points across Governance and Ethics categories.', priority: 'medium', source: 'CPD Event', status: 'new' },
-          { tab: 'for-you', type: 'peer', typeLabel: 'Peer Activity', title: 'AML/CTF Compliance Fundamentals', description: '5 team members completed this course last month. Relevant to your Risk & Compliance skill development.', priority: 'low', source: 'Knowledge Centre', status: 'new' },
-          { tab: 'skills', type: 'skill', typeLabel: 'Proficiency Alert', title: 'ESG Reporting Frameworks', description: 'New mandatory ESG reporting requirements take effect Jul 2026. Your current proficiency is rated Developing.', priority: 'medium', source: 'Skills Assessment', status: 'new' },
-          { tab: 'content', type: 'legislation', typeLabel: 'Suggested Legislation', title: 'Corporations Act 2001 \u2013 Recent Amendments', description: 'Key amendments to director duties provisions effective 2025. Directly relevant to your Governance Mastery goal.', priority: 'high', source: 'Knowledge Centre', status: 'added' },
-          { tab: 'for-you', type: 'recommendation', typeLabel: 'Trending', title: 'ESG & Sustainability Reporting Module', description: 'Trending topic among your peers. 73% of similar professionals have completed this module.', priority: 'low', source: 'Learning Module', status: 'new' },
-          { tab: 'cpd', type: 'insight', typeLabel: 'CPD Insight', title: 'Ethics Category Requirement', description: 'You have 0 of 1 required points in Ethics & Professional Responsibility. The Ethics in Practice quiz takes 15 min.', priority: 'high', source: 'CPD Tracker', status: 'new' },
-          { tab: 'content', type: 'update', typeLabel: 'New Guide', title: 'Modern Slavery Reporting Guide', description: 'New guide covering modern slavery statement obligations and best practice reporting frameworks.', priority: 'medium', source: 'Knowledge Centre', status: 'new' },
-          { tab: 'skills', type: 'skill', typeLabel: 'Strength', title: 'Governance & Board Effectiveness', description: 'Your proficiency is rated Advanced. Consider mentoring peers or tackling the Board Effectiveness Case Studies.', priority: 'low', source: 'Skills Assessment', status: 'added' },
-        ]}
-      />
-      </Feature>
     </div>
   )
 }

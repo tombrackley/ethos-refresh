@@ -47,7 +47,7 @@ const configs = {
 
   // ── Default (general legal / governance) ──────────────────────────────────
   default: {
-    appName: 'Acme Co.',
+    appName: 'Ethos',
     logo: '/default-logo.svg',
     icon: '/default-logo.svg',
     greeting: 'Good morning, Tom',

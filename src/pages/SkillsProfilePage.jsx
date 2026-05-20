@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react'
-import EthosAIPanel from '@/components/EthosAIPanel'
 import Feature from '@/components/Feature'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -442,28 +441,6 @@ export default function SkillsProfilePage() {
       </div>
 
       {/* ── Ethos AI Panel ──────────────────────────────────── */}
-      <Feature flag="FEATURE_AI_PANEL">
-      <EthosAIPanel
-        subtitle="Skills intelligence"
-        contextLine={<>Showing <span className="font-semibold text-foreground">8 suggestions</span> based on your skills profile, gap analysis, and development goals.</>}
-        tabs={[
-          { key: 'all', label: 'All', filter: () => true },
-          { key: 'gaps', label: 'Gaps', filter: (i) => i.tab === 'gaps' },
-          { key: 'strengths', label: 'Strengths', filter: (i) => i.tab === 'strengths' },
-          { key: 'suggested', label: 'Suggested', filter: (i) => i.tab === 'suggested' },
-        ]}
-        suggestions={[
-          { tab: 'gaps', type: 'risk', typeLabel: 'Skills Gap', title: 'ESG & Sustainability Reporting', description: 'Critical gap identified. The upcoming ESG Disclosure workshop on Mar 12 directly addresses this skill area.', priority: 'high', source: 'Skills Profile', status: 'new' },
-          { tab: 'gaps', type: 'risk', typeLabel: 'Skills Gap', title: 'AI & Legal Technology', description: 'Growing competency requirement for your role. Consider the AI in Legal Practice workshop (95% match).', priority: 'high', source: 'Skills Profile', status: 'new' },
-          { tab: 'gaps', type: 'risk', typeLabel: 'Cross-Space Signal', title: 'Regulatory Update → Data Privacy', description: 'Privacy Act amendment detected in Comply. This impacts your Data Privacy skill gap — review recommended.', priority: 'high', source: 'Comply × Skills', status: 'new' },
-          { tab: 'strengths', type: 'insight', typeLabel: 'Strength', title: 'Ethics & Professional Responsibility', description: 'Advanced proficiency achieved. Consider mentoring junior team members or leading internal training sessions.', priority: 'medium', source: 'Skills Profile', status: 'new' },
-          { tab: 'strengths', type: 'insight', typeLabel: 'Strength', title: 'Anti-Money Laundering & CTF', description: 'Recently certified. Your AML expertise is a team asset — consider sharing learnings in the next team meeting.', priority: 'medium', source: 'Skills Profile', status: 'new' },
-          { tab: 'suggested', type: 'course', typeLabel: 'Recommended', title: 'Cross-border Data Transfer Masterclass', description: 'Directly addresses your Data Privacy focus area gap. 3.5 CPD points, available May 2026.', priority: 'high', source: 'Learning Match', status: 'new' },
-          { tab: 'suggested', type: 'course', typeLabel: 'Quick Win', title: 'Corporate Governance Assessment', description: 'Complete this assessment to move Corporate Governance from Developing to Proficient status.', priority: 'medium', source: 'Skills Profile', status: 'new' },
-          { tab: 'gaps', type: 'analytics', typeLabel: 'Peer Benchmark', title: 'Team Skills Comparison', description: 'Your overall score (62) is slightly below the team average (68). Focus on closing your top 2 gaps to match peers.', priority: 'medium', source: 'Team Benchmark', status: 'review' },
-        ]}
-      />
-      </Feature>
 
       {showAddFocus && (
         <AddFocusOverlay

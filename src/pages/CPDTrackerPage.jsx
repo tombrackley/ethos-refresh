@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import EthosAIPanel from '@/components/EthosAIPanel'
 import Feature from '@/components/Feature'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -583,28 +582,6 @@ export default function CPDTrackerPage() {
         </div>
       </div>
 
-      <Feature flag="FEATURE_AI_PANEL">
-      <EthosAIPanel
-        subtitle="CPD intelligence"
-        contextLine={<>Showing <span className="font-semibold text-foreground">8 suggestions</span> based on your CPD requirements, regime deadlines, and activity history.</>}
-        tabs={[
-          { key: 'all', label: 'All', filter: () => true },
-          { key: 'deadlines', label: 'Deadlines', filter: (i) => i.tab === 'deadlines' },
-          { key: 'events', label: 'Events', filter: (i) => i.tab === 'events' },
-          { key: 'gaps', label: 'Gaps', filter: (i) => i.tab === 'gaps' },
-        ]}
-        suggestions={[
-          { tab: 'deadlines', type: 'risk', typeLabel: 'Deadline Alert', title: 'Law Society NSW \u2014 4 Points Remaining', description: 'Your current period ends 31 Mar 2026. At your current pace, you may not meet the requirement in time.', priority: 'high', source: 'CPD Regime', status: 'review' },
-          { tab: 'events', type: 'course', typeLabel: 'CPD Opportunity', title: 'Corporate Governance Masterclass', description: 'Upcoming event on 20 Mar 2026. Awards 3 CPD points across Governance and Ethics categories.', priority: 'high', source: 'CPD Event', status: 'new' },
-          { tab: 'events', type: 'course', typeLabel: 'Recommended Event', title: 'AML Compliance Workshop', description: 'This workshop covers 2 of your outstanding CPD categories. 45 min duration, available on-demand.', priority: 'medium', source: 'CPD Event', status: 'new' },
-          { tab: 'gaps', type: 'risk', typeLabel: 'Category Gap', title: 'Ethics & Professional Responsibility', description: 'You have 0 of 1 required points in Ethics for this period. Consider the Ethics in Practice module.', priority: 'high', source: 'CPD Tracker', status: 'new' },
-          { tab: 'events', type: 'course', typeLabel: 'New Series', title: 'Data Privacy Webinar Series', description: 'New 4-part webinar series on data privacy compliance. Each session awards 1.5 CPD points.', priority: 'medium', source: 'CPD Event', status: 'new' },
-          { tab: 'deadlines', type: 'update', typeLabel: 'Regime Update', title: 'AICD CPD Requirements Change', description: 'AICD has updated its CPD framework effective Jan 2027. New emphasis on digital governance and cyber risk.', priority: 'medium', source: 'Regulatory update', status: 'new' },
-          { tab: 'gaps', type: 'insight', typeLabel: 'Quick Win', title: 'Board Effectiveness Quiz', description: 'Complete this 15-minute quiz to earn 0.5 CPD points in Governance. Based on content you have already viewed.', priority: 'low', source: 'Knowledge Centre', status: 'new' },
-          { tab: 'gaps', type: 'analytics', typeLabel: 'Peer Benchmark', title: 'Team CPD Progress', description: 'Your team averages 78% CPD completion this period. You are at 62%. Consider scheduling dedicated learning time.', priority: 'medium', source: 'Team benchmark', status: 'review' },
-        ]}
-      />
-      </Feature>
     </div>
   )
 }

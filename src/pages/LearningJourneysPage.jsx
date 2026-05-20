@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import EthosAIPanel from '@/components/EthosAIPanel'
 import Feature from '@/components/Feature'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -649,30 +648,6 @@ export default function LearningJourneysPage() {
         document.body
       )}
 
-      <Feature flag="FEATURE_AI_PANEL">
-      <EthosAIPanel
-        onAdd={handleAiAdd}
-        subtitle="Journey intelligence"
-        contextLine={<>Showing <span className="font-semibold text-foreground">9 suggestions</span> based on your active journeys, progress, and skill development goals.</>}
-        tabs={[
-          { key: 'all', label: 'All', filter: () => true },
-          { key: 'progress', label: 'Progress', filter: (i) => i.tab === 'progress' },
-          { key: 'journeys', label: 'Journeys', filter: (i) => i.tab === 'journeys' },
-          { key: 'skills', label: 'Skills', filter: (i) => i.tab === 'skills' },
-        ]}
-        suggestions={[
-          { tab: 'progress', type: 'risk', typeLabel: 'Progress Alert', title: 'Corporate Governance \u2014 Behind Schedule', description: 'You are 2 weeks behind on your Corporate Governance Fundamentals journey. Consider dedicating time this week to catch up.', priority: 'high', source: 'Active Journey', status: 'review' },
-          { tab: 'journeys', type: 'journey', typeLabel: 'Recommended Journey', title: 'Data Privacy Masterclass', description: 'Based on your Data Privacy skill gap and upcoming regulatory changes, this 8-week journey is highly relevant.', priority: 'high', source: 'Learning Journey', status: 'new' },
-          { tab: 'progress', type: 'update', typeLabel: 'Milestone Ready', title: 'AML Module 3 Quiz Available', description: 'You have completed the reading for Module 3. Take the quiz to unlock the next module and earn CPD points.', priority: 'medium', source: 'Active Journey', status: 'new' },
-          { tab: 'journeys', type: 'peer', typeLabel: 'Peer Recommendation', title: 'ESG & Sustainability Reporting', description: '4 colleagues in similar roles have started this journey. Aligns with your Sustainability Leadership goal.', priority: 'low', source: 'Learning Journey', status: 'new' },
-          { tab: 'skills', type: 'skill', typeLabel: 'Skills Gap', title: 'Cyber Security Governance', description: 'Your proficiency assessment shows a gap in cyber security governance. The Cyber Security Framework journey covers this.', priority: 'high', source: 'Skills Assessment', status: 'new' },
-          { tab: 'progress', type: 'update', typeLabel: 'New Element', title: 'Board Shadowing Opportunity', description: 'A new board shadowing session has been added to the Governance journey. Available 18 Mar 2026.', priority: 'medium', source: 'Journey Update', status: 'new' },
-          { tab: 'skills', type: 'legislation', typeLabel: 'Relevant Reading', title: 'APRA Prudential Standard CPS 230', description: 'New operational risk management standard. Directly relevant to your Risk Leadership learning goal.', priority: 'high', source: 'Regulatory update', status: 'added' },
-          { tab: 'journeys', type: 'journey', typeLabel: 'Suggested Journey', title: 'Workplace Safety Leadership', description: 'New 8-week journey covering WHS obligations for officers. Includes practical case studies and assessments.', priority: 'medium', source: 'Learning Journey', status: 'new' },
-          { tab: 'skills', type: 'insight', typeLabel: 'Focus Area', title: 'Add Risk & Compliance Focus', description: 'Based on your journey selections, consider adding Risk & Compliance as a personal focus area for targeted suggestions.', priority: 'low', source: 'Profile suggestion', status: 'new' },
-        ]}
-      />
-      </Feature>
     </div>
   )
 }

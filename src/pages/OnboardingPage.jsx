@@ -20,23 +20,39 @@ import { IconUserSettings } from '@central-icons-react/round-outlined-radius-2-s
 import { IconUserGroup } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconUserGroup'
 import { IconBoard } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconBoard'
 import { IconSettingsGear1 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconSettingsGear1'
+import { IconUser } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconUser'
+import { IconRadar } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconRadar'
+import { IconCircleCheck } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconCircleCheck'
+import { IconCircleMinus } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconCircleMinus'
+import { IconCircleDashed } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconCircleDashed'
+import { IconSparkleCentral } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconSparkleCentral'
+import { IconLock } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconLock'
+import { IconTree } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconTree'
+import { IconFolders } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconFolders'
+import { IconLayersThree } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconLayersThree'
+import { IconMicrosoftCopilot } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconMicrosoftCopilot'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import tenant from '@/config/tenant'
 
+const ACCOUNT_TYPES = [
+  { value: 'individual',   label: 'Individual',                description: "I'm setting Ethos up just for me.",                  icon: IconUser,      iconBg: 'bg-blue-200',    iconColor: 'text-blue-900' },
+  { value: 'organisation', label: 'Organisation',              description: "I'm setting Ethos up for my team, firm, or company.", icon: IconUserGroup, iconBg: 'bg-violet-200',  iconColor: 'text-violet-900' },
+]
+
+// Vertical packs aligned with the Ethos Questions Tree (C3).
 const INDUSTRIES = [
-  { value: 'legal',          label: 'Legal services',         icon: IconLaw },
-  { value: 'financial',      label: 'Financial services',     icon: IconTrending1 },
-  { value: 'healthcare',     label: 'Healthcare',             icon: IconHeartBeat },
-  { value: 'insurance',      label: 'Insurance',              icon: IconShieldCheck3 },
-  { value: 'government',     label: 'Government',             icon: IconGovernment },
-  { value: 'education',      label: 'Education',              icon: IconGraduateCap },
-  { value: 'nonprofit',      label: 'Non-profit',             icon: IconHandshake },
-  { value: 'energy',         label: 'Energy & utilities',     icon: IconLightningBolt },
-  { value: 'retail',         label: 'Retail',                 icon: IconShoppingBag1 },
-  { value: 'technology',     label: 'Technology',             icon: IconChip },
-  { value: 'other',          label: 'Other',                  icon: IconDotGrid1x3Horizontal },
+  { value: 'apra',         label: 'APRA-regulated',     description: 'Insurance, super, banking',                        icon: IconShieldCheck3 },
+  { value: 'listed',       label: 'Listed company',     description: 'ASX-regulated',                                     icon: IconTrending1 },
+  { value: 'profserv',     label: 'Law firm / profserv',description: 'Professional services',                             icon: IconLaw },
+  { value: 'finsvc',       label: 'Financial services', description: 'AFSL, AML/CTF, payments',                           icon: IconChip },
+  { value: 'healthcare',   label: 'Healthcare',         description: 'Medical, clinical, allied health',                  icon: IconHeartBeat },
+  { value: 'industrial',   label: 'Industrial',         description: 'Manufacturing, supply chain, resources',            icon: IconLightningBolt },
+  { value: 'nfp',          label: 'Not-for-profit',     description: 'Charity, community, NGO',                           icon: IconHandshake },
+  { value: 'education',    label: 'Education',          description: 'University, school, training provider',             icon: IconGraduateCap },
+  { value: 'government',   label: 'Government',         description: 'Public sector, agency, statutory body',             icon: IconGovernment },
+  { value: 'other',        label: 'Other / not sure',   description: 'Cross-cutting',                                     icon: IconDotGrid1x3Horizontal },
 ]
 
 const LOCATIONS = [
@@ -50,12 +66,13 @@ const LOCATIONS = [
   { value: 'other', label: 'Other' },
 ]
 
-const INTENTIONS = [
-  { value: 'govern',   label: 'Govern',   description: 'Manage your board, run meetings, maintain policies, and track director duties.',  icon: IconLaw,           iconBg: 'bg-violet-200',  iconColor: 'text-violet-900' },
-  { value: 'comply',   label: 'Comply',   description: 'Track compliance obligations, manage risks and incidents, and prepare for audits.', icon: IconShieldCheck3,  iconBg: 'bg-blue-200',    iconColor: 'text-blue-900' },
-  { value: 'work',     label: 'Work',     description: 'Coordinate matters, manage tasks, and run day-to-day operational work with your team.', icon: IconTasks, iconBg: 'bg-amber-200', iconColor: 'text-amber-900' },
-  { value: 'learn',    label: 'Learn',    description: 'Track CPD, deliver training, and grow team capability with structured learning journeys.', icon: IconGraduateCap, iconBg: 'bg-emerald-200', iconColor: 'text-emerald-900' },
-  { value: 'insights', label: 'Insights', description: 'Curated regulatory intelligence, news, and briefings tailored to your industry.',  icon: IconLightbulbGlow, iconBg: 'bg-rose-200',    iconColor: 'text-rose-900' },
+// C4 — the single biggest challenge anchor. Maps to a primary space.
+const CHALLENGES = [
+  { value: 'govern',   label: 'Governance operations',   description: 'Managing boards, meetings, policies, and governance paperwork.',         icon: IconLaw,           iconBg: 'bg-violet-200',  iconColor: 'text-violet-900' },
+  { value: 'comply',   label: 'Regulatory monitoring',   description: 'Staying on top of regulatory changes and obligations across my sector.', icon: IconShieldCheck3,  iconBg: 'bg-blue-200',    iconColor: 'text-blue-900' },
+  { value: 'work',     label: 'Legal work',              description: 'Managing legal matters, contracts, or document review.',                  icon: IconTasks,         iconBg: 'bg-amber-200',   iconColor: 'text-amber-900' },
+  { value: 'learn',    label: 'Learning & CPD',          description: 'Professional development, CPD compliance, and team capability tracking.', icon: IconGraduateCap,   iconBg: 'bg-emerald-200', iconColor: 'text-emerald-900' },
+  { value: 'insights', label: 'Leadership visibility',   description: 'Getting cross-team visibility, daily briefings, and a single source of signal.', icon: IconLightbulbGlow, iconBg: 'bg-rose-200', iconColor: 'text-rose-900' },
 ]
 
 const COMPANY_SIZES = [
@@ -67,20 +84,54 @@ const COMPANY_SIZES = [
   { value: '1k+',     label: '1,000+' },
 ]
 
+// C2 — tech area selector. Routes which spaces and CPD regimes load.
 const ROLES = [
-  { value: 'director',    label: 'Director / Board member',  icon: IconDirectorChair },
-  { value: 'compliance',  label: 'Compliance / Risk',         icon: IconShieldCheck3 },
-  { value: 'legal',       label: 'Legal / GC',                icon: IconLaw },
-  { value: 'cosec',       label: 'Company Secretary',          icon: IconBoard },
-  { value: 'ops',         label: 'Operations / IT',           icon: IconSettingsGear1 },
-  { value: 'people',      label: 'HR / People',                icon: IconUserGroup },
-  { value: 'exec',        label: 'Executive leadership',       icon: IconUserSettings },
-  { value: 'other',       label: 'Other',                      icon: IconDotGrid1x3Horizontal },
+  { value: 'legal',       label: 'Legal',       description: 'Lawyer, GC, in-house counsel, legal ops',            icon: IconLaw,           iconBg: 'bg-amber-200',   iconColor: 'text-amber-900' },
+  { value: 'governance',  label: 'Governance',  description: 'Director, CoSec, board secretary, governance pro',   icon: IconDirectorChair, iconBg: 'bg-violet-200',  iconColor: 'text-violet-900' },
+  { value: 'risk',        label: 'Risk',        description: 'Risk manager, CRO, enterprise or operational risk',  icon: IconRadar,         iconBg: 'bg-rose-200',    iconColor: 'text-rose-900' },
+  { value: 'compliance',  label: 'Compliance',  description: 'Compliance officer, AML, regulatory affairs',        icon: IconShieldCheck3,  iconBg: 'bg-blue-200',    iconColor: 'text-blue-900' },
+  { value: 'executive',   label: 'Executive',   description: 'CEO, MD, founder, practice principal, SME owner',    icon: IconUserSettings,  iconBg: 'bg-emerald-200', iconColor: 'text-emerald-900' },
+  { value: 'other',       label: 'Other',       description: 'Multi-disciplinary or doesn’t quite fit',         icon: IconDotGrid1x3Horizontal, iconBg: 'bg-slate-200', iconColor: 'text-slate-900' },
 ]
 
-// 0 name+email · 1 company · 2 role · 3 industry · 4 locations · 5 intentions · 6 thanks
-const TOTAL_STEPS = 7
-const QUESTION_STEPS = 6 // progress dot count (steps 0-5)
+// M1 — board involvement (drives Govern config + ASIC integration).
+const BOARDS = [
+  { value: 'yes_aus',  label: 'Yes — in Australia',     description: 'Triggers ASIC integration and an Australian governance map.',  icon: IconGovernment,  iconBg: 'bg-emerald-200', iconColor: 'text-emerald-900' },
+  { value: 'yes_intl', label: 'Yes — internationally',  description: 'Multi-jurisdiction support with a world board map.',           icon: IconGlobe,       iconBg: 'bg-blue-200',    iconColor: 'text-blue-900' },
+  { value: 'no',       label: 'No / not applicable',    description: 'We’ll minimise Govern in your workspace.',                icon: IconCircleMinus, iconBg: 'bg-slate-200',   iconColor: 'text-slate-900' },
+]
+
+// M2 — focus areas (filters Insights & Learn).
+const FOCUS_AREAS = [
+  { value: 'ai_gov',         label: 'AI governance',          icon: IconSparkleCentral },
+  { value: 'cyber',          label: 'Cybersecurity',          icon: IconLock },
+  { value: 'esg',            label: 'ESG & sustainability',   icon: IconTree },
+  { value: 'risk_compliance',label: 'Risk & compliance',      icon: IconRadar },
+  { value: 'cpd',            label: 'CPD & skills',           icon: IconGraduateCap },
+  { value: 'transactions',   label: 'M&A / transactions',     icon: IconTrending1 },
+]
+
+// M4 — AI policy readiness.
+const AI_POLICIES = [
+  { value: 'yes',         label: 'Yes, we have AI policies',     description: "We'll align Ethos with your existing AI governance.",       icon: IconCircleCheck,  iconBg: 'bg-emerald-200', iconColor: 'text-emerald-900' },
+  { value: 'in_progress', label: "We're exploring it",           description: "We'll lead with AI governance content + policy templates.", icon: IconCircleDashed, iconBg: 'bg-amber-200',   iconColor: 'text-amber-900' },
+  { value: 'no',          label: 'No / unsure',                  description: 'Trust Centre + human-in-the-loop framing surfaced first.',  icon: IconCircleMinus,  iconBg: 'bg-slate-200',   iconColor: 'text-slate-900' },
+]
+
+// M5 — existing tools to integrate (multi-select).
+const INTEGRATIONS = [
+  { value: 'm365',         label: 'Microsoft 365',         icon: IconMicrosoftCopilot },
+  { value: 'dms',          label: 'Document management',   icon: IconFolders },
+  { value: 'board_portal', label: 'Board portal',          icon: IconBoard },
+  { value: 'practice_mgmt',label: 'Practice management',   icon: IconLayersThree },
+  { value: 'none',         label: 'None for now',          icon: IconCircleMinus },
+]
+
+// Flow step keys. C1 answer determines which flow is active.
+// Individual: Critical only.
+// Organisation: Critical + Mid-level (boards, focus areas, AI policy, integrations).
+const FLOW_INDIVIDUAL = ['nameEmail', 'accountType', 'role', 'industry', 'countries', 'challenge', 'thanks']
+const FLOW_ORG        = ['nameEmail', 'accountType', 'company', 'role', 'industry', 'countries', 'challenge', 'boards', 'focusAreas', 'aiPolicy', 'integrations', 'thanks']
 
 export default function OnboardingPage() {
   const navigate = useNavigate()
@@ -88,16 +139,28 @@ export default function OnboardingPage() {
   const [data, setData] = useState({
     name: '',
     email: '',
-    industry: '',
-    locations: [],
-    intentions: [],
+    accountType: '',
     companyName: '',
     companySize: '',
     role: '',
+    industry: '',
+    locations: [],
+    challenge: '',
+    // Mid-level (Organisation flow only)
+    boards: '',
+    focusAreas: [],
+    aiPolicy: '',
+    integrations: [],
   })
 
+  // Active flow depends on C1 (account type). Default to org until the user
+  // picks, so progress dots show the longer flow on first paint.
+  const flow = data.accountType === 'individual' ? FLOW_INDIVIDUAL : FLOW_ORG
+  const stepKey = flow[step] ?? 'thanks'
+  const questionStepCount = flow.length - 1 // exclude final 'thanks'
+
   function next() {
-    setStep(s => Math.min(s + 1, TOTAL_STEPS - 1))
+    setStep(s => Math.min(s + 1, flow.length - 1))
   }
   function back() {
     setStep(s => Math.max(s - 1, 0))
@@ -109,14 +172,6 @@ export default function OnboardingPage() {
     update(k, v)
     next()
   }
-  function toggleIntent(v) {
-    setData(d => {
-      const set = new Set(d.intentions)
-      if (set.has(v)) set.delete(v)
-      else set.add(v)
-      return { ...d, intentions: [...set] }
-    })
-  }
   function toggleLocation(v) {
     setData(d => {
       const set = new Set(d.locations)
@@ -125,10 +180,17 @@ export default function OnboardingPage() {
       return { ...d, locations: [...set] }
     })
   }
+  function toggleMulti(key, v) {
+    setData(d => {
+      const set = new Set(d[key])
+      if (set.has(v)) set.delete(v)
+      else set.add(v)
+      return { ...d, [key]: [...set] }
+    })
+  }
 
   const canContinueStep0 = data.name.trim() && /\S+@\S+\.\S+/.test(data.email)
-  // Progress dots: shown on every question step (0-5), hidden on final thanks
-  const showDots = step < QUESTION_STEPS
+  const showDots = stepKey !== 'thanks'
 
   return (
     <div className="flex h-screen w-full flex-col bg-white">
@@ -148,7 +210,7 @@ export default function OnboardingPage() {
       {/* Content */}
       <div className="flex-1 overflow-auto px-6 py-12 flex items-center justify-center">
         <div className="w-full max-w-3xl">
-          {step === 0 && (
+          {stepKey === 'nameEmail' && (
             <div className="mx-auto max-w-[600px]">
               <Step heading="Help us personalize your experience">
                 <div className="flex flex-col gap-5">
@@ -175,7 +237,27 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {step === 1 && (
+          {stepKey === 'accountType' && (
+            <Step heading="Are you joining as an individual, or setting Ethos up for your whole organisation?">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {ACCOUNT_TYPES.map(opt => (
+                  <LargeOptionCard
+                    key={opt.value}
+                    icon={opt.icon}
+                    iconBg={opt.iconBg}
+                    iconColor={opt.iconColor}
+                    label={opt.label}
+                    description={opt.description}
+                    selected={data.accountType === opt.value}
+                    onClick={() => pickAndAdvance('accountType', opt.value)}
+                  />
+                ))}
+              </div>
+              <NavRow onBack={back} onSkip={next} />
+            </Step>
+          )}
+
+          {stepKey === 'company' && (
             <div className="mx-auto max-w-[600px]">
               <Step heading="Tell us about your organisation">
                 <div className="flex flex-col gap-5">
@@ -213,25 +295,28 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {step === 2 && (
-            <Step heading="What best describes your role?">
-              <CardGrid>
+          {stepKey === 'role' && (
+            <Step heading="What best describes your professional role?">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {ROLES.map(opt => (
-                  <OptionCard
+                  <LargeOptionCard
                     key={opt.value}
                     icon={opt.icon}
+                    iconBg={opt.iconBg}
+                    iconColor={opt.iconColor}
                     label={opt.label}
+                    description={opt.description}
                     selected={data.role === opt.value}
                     onClick={() => pickAndAdvance('role', opt.value)}
                   />
                 ))}
-              </CardGrid>
+              </div>
               <NavRow onBack={back} onSkip={next} />
             </Step>
           )}
 
-          {step === 3 && (
-            <Step heading="Which industry are you in?">
+          {stepKey === 'industry' && (
+            <Step heading="What industry or sector are you in?">
               <CardGrid>
                 {INDUSTRIES.map(opt => (
                   <OptionCard
@@ -247,8 +332,11 @@ export default function OnboardingPage() {
             </Step>
           )}
 
-          {step === 4 && (
-            <Step heading="Countries you operate within" subheading="Select all that apply">
+          {stepKey === 'countries' && (
+            <Step
+              heading={data.accountType === 'individual' ? 'Where do you practise?' : 'Countries you operate within'}
+              subheading="Select all that apply"
+            >
               <CardGrid>
                 {LOCATIONS.map(opt => (
                   <OptionCard
@@ -268,10 +356,10 @@ export default function OnboardingPage() {
             </Step>
           )}
 
-          {step === 5 && (
-            <Step heading="What would you like to do with Ethos?" subheading="Select all that apply">
+          {stepKey === 'challenge' && (
+            <Step heading="What's the single biggest challenge you're hoping Ethos helps with right now?">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {INTENTIONS.map(opt => (
+                {CHALLENGES.map(opt => (
                   <LargeOptionCard
                     key={opt.value}
                     icon={opt.icon}
@@ -279,16 +367,90 @@ export default function OnboardingPage() {
                     iconColor={opt.iconColor}
                     label={opt.label}
                     description={opt.description}
-                    selected={data.intentions.includes(opt.value)}
-                    onClick={() => toggleIntent(opt.value)}
+                    selected={data.challenge === opt.value}
+                    onClick={() => pickAndAdvance('challenge', opt.value)}
                   />
                 ))}
               </div>
+              <NavRow onBack={back} onSkip={next} />
+            </Step>
+          )}
+
+          {stepKey === 'boards' && (
+            <Step heading="Do you have a board, or sit on any boards?">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {BOARDS.map(opt => (
+                  <LargeOptionCard
+                    key={opt.value}
+                    icon={opt.icon}
+                    iconBg={opt.iconBg}
+                    iconColor={opt.iconColor}
+                    label={opt.label}
+                    description={opt.description}
+                    selected={data.boards === opt.value}
+                    onClick={() => pickAndAdvance('boards', opt.value)}
+                  />
+                ))}
+              </div>
+              <NavRow onBack={back} onSkip={next} />
+            </Step>
+          )}
+
+          {stepKey === 'focusAreas' && (
+            <Step heading="What are your key focus areas?" subheading="Select all that apply">
+              <CardGrid>
+                {FOCUS_AREAS.map(opt => (
+                  <OptionCard
+                    key={opt.value}
+                    icon={opt.icon}
+                    label={opt.label}
+                    selected={data.focusAreas.includes(opt.value)}
+                    onClick={() => toggleMulti('focusAreas', opt.value)}
+                  />
+                ))}
+              </CardGrid>
               <NavRow onBack={back} onSkip={next} onNext={next} nextLabel="Continue" />
             </Step>
           )}
 
-          {step === 6 && (
+          {stepKey === 'aiPolicy' && (
+            <Step heading="Are AI tools permitted in your organisation?">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {AI_POLICIES.map(opt => (
+                  <LargeOptionCard
+                    key={opt.value}
+                    icon={opt.icon}
+                    iconBg={opt.iconBg}
+                    iconColor={opt.iconColor}
+                    label={opt.label}
+                    description={opt.description}
+                    selected={data.aiPolicy === opt.value}
+                    onClick={() => pickAndAdvance('aiPolicy', opt.value)}
+                  />
+                ))}
+              </div>
+              <NavRow onBack={back} onSkip={next} />
+            </Step>
+          )}
+
+          {stepKey === 'integrations' && (
+            <Step heading="Any existing tools you'd want Ethos to connect with?" subheading="Select all that apply">
+              <CardGrid>
+                {INTEGRATIONS.map(opt => (
+                  <OptionCard
+                    key={opt.value}
+                    icon={opt.icon}
+                    label={opt.label}
+                    selected={data.integrations.includes(opt.value)}
+                    onClick={() => toggleMulti('integrations', opt.value)}
+                  />
+                ))}
+              </CardGrid>
+              <NavRow onBack={back} onSkip={next} onNext={next} nextLabel="Continue" />
+            </Step>
+          )}
+
+          {stepKey === 'thanks' && (
             <div className="mx-auto max-w-[600px]">
               <Step heading={`Thanks${data.name ? `, ${data.name.split(' ')[0]}` : ''}.`}>
                 <p className="text-base text-foreground/70 leading-relaxed">
@@ -319,7 +481,7 @@ export default function OnboardingPage() {
       {/* Footer: progress dots */}
       {showDots && (
         <div className="shrink-0 px-6 pb-8 flex justify-center">
-          <ProgressDots count={QUESTION_STEPS} active={step} />
+          <ProgressDots count={questionStepCount} active={step} />
         </div>
       )}
     </div>

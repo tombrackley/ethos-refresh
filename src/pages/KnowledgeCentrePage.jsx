@@ -1,5 +1,4 @@
 import { useState, useMemo, useRef } from 'react'
-import EthosAIPanel from '@/components/EthosAIPanel'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -1031,31 +1030,6 @@ export default function KnowledgeCentrePage() {
         </>
       )}
 
-      <Feature flag="FEATURE_AI_PANEL">
-      <EthosAIPanel
-        onAdd={handleAiAdd}
-        subtitle="Content intelligence"
-        contextLine={<>Showing <span className="font-semibold text-foreground">10 suggestions</span> based on your role, practice areas, and learning activity.</>}
-        tabs={[
-          { key: 'all', label: 'All', filter: () => true },
-          { key: 'legislation', label: 'Legislation', filter: (i) => i.tab === 'legislation' },
-          { key: 'courses', label: 'Courses', filter: (i) => i.tab === 'courses' },
-          { key: 'updates', label: 'Updates', filter: (i) => i.tab === 'updates' },
-        ]}
-        suggestions={[
-          { tab: 'legislation', type: 'legislation', typeLabel: 'Suggested Legislation', title: 'Privacy Act 1988 (Cth)', description: 'Highly relevant based on your practice areas and jurisdiction. Recent amendments to the Australian Privacy Principles may impact client advisory.', priority: 'high', source: 'Firm legislation', status: 'added' },
-          { tab: 'legislation', type: 'legislation', typeLabel: 'Suggested Legislation', title: 'Fair Work Act 2009 (Cth)', description: 'Applicable given Employment practice area selection. Key changes to casual employment definitions effective 2024.', priority: 'high', source: 'Client legislation', status: 'added' },
-          { tab: 'updates', type: 'update', typeLabel: 'Regulatory Update', title: 'ASIC Regulatory Guide 271', description: 'Updated guidance on internal dispute resolution. Relevant to your compliance and risk management responsibilities.', priority: 'medium', source: 'Regulatory update', status: 'new' },
-          { tab: 'courses', type: 'course', typeLabel: 'Recommended Course', title: 'AI Governance Fundamentals', description: 'New course covering AI risk frameworks, algorithmic accountability, and responsible AI governance. 6 modules.', priority: 'medium', source: 'Knowledge Centre', status: 'new' },
-          { tab: 'courses', type: 'framework', typeLabel: 'Recommended Framework', title: 'ESG Reporting Frameworks', description: 'Your engagement with ESG content is low compared to peers. New mandatory reporting requirements take effect Jul 2026.', priority: 'high', source: 'Knowledge Centre', status: 'new' },
-          { tab: 'updates', type: 'update', typeLabel: 'New Publication', title: 'Cyber Security Governance Framework v2', description: 'Major update to the cyber security governance framework. Includes new APRA CPS 234 alignment guidance.', priority: 'medium', source: 'Knowledge Centre', status: 'new' },
-          { tab: 'legislation', type: 'legislation', typeLabel: 'Suggested Legislation', title: 'Treasury Laws Amendment Act 2025', description: 'New director liability provisions relevant to your Governance Mastery learning goal.', priority: 'high', source: 'Legislation', status: 'new' },
-          { tab: 'courses', type: 'course', typeLabel: 'Trending Course', title: 'Board Effectiveness Case Studies', description: 'Most viewed content this month among governance professionals. 3 new case studies added.', priority: 'low', source: 'Knowledge Centre', status: 'new' },
-          { tab: 'legislation', type: 'risk', typeLabel: 'Compliance Risk', title: 'AML/CTF Act Amendments', description: 'Significant amendments to AML/CTF reporting obligations. Review recommended before 30 Jun 2026 deadline.', priority: 'high', source: 'Regulatory risk', status: 'review' },
-          { tab: 'updates', type: 'update', typeLabel: 'New Guide', title: 'Modern Slavery Reporting Guide', description: 'Comprehensive guide covering modern slavery statement obligations and best practice reporting frameworks.', priority: 'medium', source: 'Knowledge Centre', status: 'new' },
-        ]}
-      />
-      </Feature>
     </div>
   )
 }
