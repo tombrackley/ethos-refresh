@@ -22,7 +22,7 @@ export const PATH_TO_PAGE = {
   '/govern/policies': 'Policies & Procedures',
   '/govern/delegations': 'Delegations of Authority',
   '/govern/company-register': 'Company Register',
-  '/vault': 'Vault',
+  '/vault': 'Core',
   '/resources': 'Resource Library',
   '/talent': 'Talent',
   '/insights': 'Insights',

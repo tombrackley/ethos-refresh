@@ -3,6 +3,10 @@ import { IconShieldCheck3 } from '@central-icons-react/round-outlined-radius-2-s
 import { IconTeam } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconTeam'
 import { IconGraduateCap } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconGraduateCap'
 import { IconSparkleCentral } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconSparkleCentral'
+import { IconRadar } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconRadar'
+import { IconLock } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconLock'
+import { IconTree } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconTree'
+import { IconTrending1 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconTrending1'
 
 export const getStartedCards = [
   {
@@ -22,6 +26,15 @@ export const getStartedCards = [
     body: 'Configure boards, committees and meeting cadences to keep governance running smoothly.',
     ctaLabel: 'Configure boards',
     ctaHref: '/govern/boards-committees',
+  },
+  {
+    id: 'personalise-focus',
+    icon: IconSparkleCentral,
+    accent: 'brand',
+    title: 'Personalise your feed',
+    body: 'Choose the topics that should surface first in Insights, Learn and your daily briefings.',
+    ctaLabel: 'Pick focus areas',
+    action: 'focusAreas',
   },
   {
     id: 'invite-team',
@@ -50,4 +63,15 @@ export const getStartedCards = [
     ctaLabel: 'See it in action',
     ctaHref: '/insights',
   },
+]
+
+// Personal preference — surfaced via the 'personalise-focus' task in the Get Started widget.
+// Distinct from the org-level CHALLENGES anchor selected during onboarding.
+export const FOCUS_AREAS = [
+  { value: 'ai_gov',          label: 'AI governance',        icon: IconSparkleCentral },
+  { value: 'cyber',           label: 'Cybersecurity',        icon: IconLock },
+  { value: 'esg',             label: 'ESG & sustainability', icon: IconTree },
+  { value: 'risk_compliance', label: 'Risk & compliance',    icon: IconRadar },
+  { value: 'cpd',             label: 'CPD & skills',         icon: IconGraduateCap },
+  { value: 'transactions',    label: 'M&A / transactions',   icon: IconTrending1 },
 ]

@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { User, Settings, UserCog, LogOut, PanelLeft, ChevronRight, X, ArrowRight } from 'lucide-react'
+import { User, Settings, UserCog, LogOut, PanelLeft, ChevronRight, X } from 'lucide-react'
 import { IconBell } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconBell'
 import { IconCalendar1 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconCalendar1'
 import { useSidebar } from '@/components/ui/sidebar'
@@ -31,28 +31,55 @@ const NOTIFICATIONS = [
     featured: true,
   },
   {
+    id: 'assigned-journey',
+    sender: 'Sarah Chen',
+    title: 'Sarah Chen assigned you a Learning Journey',
+    body: '"AI Governance Fundamentals" — 6 modules, due 30 June. Starts when you open it.',
+    time: '1 hour ago',
+    noThumbnail: true,
+  },
+  {
+    id: 'audit-ready',
+    sender: 'Mark Davies',
+    title: 'Q1 2026 Audit pack ready for your review',
+    body: 'Mark Davies prepared the evidence trail across 14 controls in Comply › Audit & Evidence.',
+    time: '3 hours ago',
+    noThumbnail: true,
+  },
+  {
+    id: 'cpd-match',
+    title: 'New CPD event matches your interests',
+    body: '"Director Duties in 2026" — 2.5 points, Governance & Board Effectiveness. Tuesday at 12:00.',
+    time: 'Yesterday',
+    noThumbnail: true,
+  },
+  {
     id: 'learn',
     title: 'Introducing Learn',
     body: 'Track CPD, deliver training, and grow team capability with structured learning journeys.',
     time: '2 days ago',
+    read: true,
   },
   {
     id: 'insights',
     title: 'Introducing Insights',
     body: 'Curated regulatory intelligence, news, and briefings tailored to your industry.',
     time: '4 days ago',
+    read: true,
   },
   {
     id: 'comply-audit',
     title: 'New: Comply Audit & Evidence',
     body: 'Preparing for audits just got easier. Manage evidence and audit trails from a single workspace.',
     time: '1 week ago',
+    read: true,
   },
   {
     id: 'ask-ethos',
     title: 'Ask Ethos got smarter',
     body: 'Better answers from your data — try the context-aware mode for more relevant responses.',
     time: '2 weeks ago',
+    read: true,
   },
 ]
 
@@ -111,7 +138,7 @@ export function TopBar({ onLogout }) {
           className="relative inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-[0.6rem] border border-border bg-white px-2.5 h-8 text-sm font-medium text-foreground shadow-none transition-colors duration-75 hover:bg-accent hover:border-foreground/20 active:bg-accent/80 active:border-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:bg-white disabled:text-muted-foreground disabled:border-border disabled:opacity-50"
         >
           <AskEthosSparkle className="size-4" />
-          Ask Ethos
+          Ask
         </button>
         <button
           type="button"
@@ -211,31 +238,58 @@ function NotificationsPopover({ onClose }) {
   )
 }
 
-function FeaturedNotification({ title, body, time, isLast }) {
+function NotifAvatar({ sender }) {
+  if (sender) {
+    const initials = sender.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    return (
+      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-700">
+        {initials}
+      </span>
+    )
+  }
   return (
-    <div className={`flex flex-col gap-3 p-4 ${!isLast ? 'border-b border-border' : ''}`}>
-      <div>
-        <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-        <p className="mt-1 text-sm text-slate-600 leading-relaxed">{body}</p>
+    <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-white overflow-hidden">
+      <img src={tenant.icon} alt="" className="size-4 rounded-sm" />
+    </span>
+  )
+}
+
+function UnreadDot({ visible }) {
+  return (
+    <span className={`mt-1.5 size-2 shrink-0 rounded-full ${visible ? 'bg-blue-500' : 'bg-transparent'}`} />
+  )
+}
+
+function FeaturedNotification({ sender, title, body, time, read, isLast }) {
+  return (
+    <div className={`flex gap-3 p-4 cursor-pointer transition-colors hover:bg-muted/50 ${!isLast ? 'border-b border-border' : ''}`}>
+      <NotifAvatar sender={sender} />
+      <div className="flex-1 min-w-0 flex flex-col gap-3">
+        <div>
+          <h4 className="text-sm font-semibold text-foreground">{title}</h4>
+          <p className="mt-1 text-sm text-slate-600 leading-relaxed">{body}</p>
+        </div>
+        <div className="aspect-[16/9] w-full rounded-lg bg-slate-100" />
+        <span className="text-xs text-muted-foreground">{time}</span>
       </div>
-      <div className="aspect-[16/9] w-full rounded-lg bg-slate-100" />
-      <span className="text-xs text-muted-foreground">{time}</span>
+      <UnreadDot visible={!read} />
     </div>
   )
 }
 
-function CompactNotification({ title, body, time, isLast }) {
+function CompactNotification({ sender, title, body, time, read, isLast, noThumbnail }) {
   return (
-    <div className={`flex gap-3 p-4 ${!isLast ? 'border-b border-border' : ''}`}>
+    <div className={`flex gap-3 p-4 cursor-pointer transition-colors hover:bg-muted/50 ${!isLast ? 'border-b border-border' : ''}`}>
+      <NotifAvatar sender={sender} />
       <div className="flex-1 min-w-0">
-        <h4 className="flex items-center gap-1 text-sm font-semibold text-foreground">
-          {title}
-          <ArrowRight className="size-3.5 text-muted-foreground" />
-        </h4>
+        <h4 className="text-sm font-semibold text-foreground">{title}</h4>
         <p className="mt-1 line-clamp-2 text-sm text-slate-600 leading-relaxed">{body}</p>
         <span className="mt-2 block text-xs text-muted-foreground">{time}</span>
       </div>
-      <div className="size-20 shrink-0 rounded-lg bg-slate-100" />
+      <div className="flex flex-col items-end gap-2 shrink-0">
+        <UnreadDot visible={!read} />
+        {!noThumbnail && <div className="size-20 rounded-lg bg-slate-100" />}
+      </div>
     </div>
   )
 }

@@ -24,10 +24,10 @@ export default function LandingPage() {
             Start Onboarding
           </Button>
           <Button variant="outline" onClick={() => start('launch')} className="h-10">
-            View Launch Demo
+            June 30 Version
           </Button>
           <Button onClick={() => start('full')} className="h-10">
-            View Full Platform
+            Full Platform Demo
           </Button>
         </div>
       </div>

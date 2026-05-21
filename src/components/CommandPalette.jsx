@@ -21,7 +21,6 @@ import { IconSpeedDots } from '@central-icons-react/round-filled-radius-2-stroke
 import { IconShieldCheck3 } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconShieldCheck3'
 import { IconLaw } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconLaw'
 import { IconTasks } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconTasks'
-import { IconShortcut } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconShortcut'
 import { IconBooks } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconBooks'
 import { IconPeopleIdCard } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconPeopleIdCard'
 import { IconLightbulbGlow } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconLightbulbGlow'
@@ -32,6 +31,7 @@ import { IconPlugin1 } from '@central-icons-react/round-filled-radius-2-stroke-1
 import { IconUser } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconUser'
 import { IconSparkleCentral } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconSparkleCentral'
 import { IconCalendar1 } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconCalendar1'
+import { IconAtom } from '@central-icons-react/round-filled-radius-2-stroke-1.5/IconAtom'
 
 const ICON_FOR_PAGE = {
   Control: IconSpeedDots,
@@ -41,7 +41,7 @@ const ICON_FOR_PAGE = {
   Respond: IconTasks,
   Meet: IconTasks,
   'Time & Efficiency': IconTasks,
-  Vault: IconShortcut,
+  Core: IconAtom,
   'Resource Library': IconBooks,
   Talent: IconPeopleIdCard,
   Insights: IconLightbulbGlow,
@@ -63,7 +63,7 @@ const NAV_PAGES = [
   'Conflict Management', 'Risk & Controls', 'Incidents & Breaches', 'Audit & Evidence',
   'Boards & Committees', 'Govern Meetings', 'Board Papers', 'Policies & Procedures',
   'Delegations of Authority', 'Company Register',
-  'Vault', 'Resource Library', 'Talent',
+  'Core', 'Resource Library', 'Talent',
   'Insights', 'Learn', 'Learning Journeys', 'Knowledge Centre', 'CPD Tracker', 'CPD Events', 'Skills Profile',
   'Community',
   'Profile', 'Settings', 'Integrations',
@@ -76,7 +76,7 @@ const PAGE_FLAG_MAP = {
   'Boards & Committees': 'PAGE_GOVERN_BOARDS_COMMITTEES', 'Govern Meetings': 'PAGE_GOVERN_MEETINGS',
   'Board Papers': 'PAGE_GOVERN_BOARD_PAPERS', 'Policies & Procedures': 'PAGE_GOVERN_POLICIES',
   'Delegations of Authority': 'PAGE_GOVERN_DELEGATIONS', 'Company Register': 'PAGE_GOVERN_COMPANY_REGISTER',
-  Vault: 'PAGE_VAULT', 'Resource Library': 'PAGE_RESOURCES', Talent: 'PAGE_TALENT',
+  Core: 'PAGE_VAULT', 'Resource Library': 'PAGE_RESOURCES', Talent: 'PAGE_TALENT',
   Insights: 'PAGE_INSIGHTS', Learn: 'PAGE_LEARN', 'Learning Journeys': 'PAGE_LEARN_JOURNEYS',
   'Knowledge Centre': 'PAGE_LEARN_KNOWLEDGE_CENTRE', 'CPD Tracker': 'PAGE_LEARN_CPD',
   'CPD Events': 'PAGE_LEARN_CPD_EVENTS', 'Skills Profile': 'PAGE_LEARN_SKILLS',

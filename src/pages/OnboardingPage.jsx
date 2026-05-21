@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { IconX } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconX'
 import { IconShieldCheck3 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconShieldCheck3'
 import { IconLaw } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconLaw'
 import { IconTasks } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconTasks'
@@ -18,19 +17,12 @@ import { IconGlobe } from '@central-icons-react/round-outlined-radius-2-stroke-1
 import { IconDirectorChair } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconDirectorChair'
 import { IconUserSettings } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconUserSettings'
 import { IconUserGroup } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconUserGroup'
-import { IconBoard } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconBoard'
-import { IconSettingsGear1 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconSettingsGear1'
 import { IconUser } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconUser'
 import { IconRadar } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconRadar'
 import { IconCircleCheck } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconCircleCheck'
+import { IconCheckmark1 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconCheckmark1'
 import { IconCircleMinus } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconCircleMinus'
 import { IconCircleDashed } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconCircleDashed'
-import { IconSparkleCentral } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconSparkleCentral'
-import { IconLock } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconLock'
-import { IconTree } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconTree'
-import { IconFolders } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconFolders'
-import { IconLayersThree } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconLayersThree'
-import { IconMicrosoftCopilot } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconMicrosoftCopilot'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -68,11 +60,11 @@ const LOCATIONS = [
 
 // C4 — the single biggest challenge anchor. Maps to a primary space.
 const CHALLENGES = [
-  { value: 'govern',   label: 'Governance operations',   description: 'Managing boards, meetings, policies, and governance paperwork.',         icon: IconLaw,           iconBg: 'bg-violet-200',  iconColor: 'text-violet-900' },
-  { value: 'comply',   label: 'Regulatory monitoring',   description: 'Staying on top of regulatory changes and obligations across my sector.', icon: IconShieldCheck3,  iconBg: 'bg-blue-200',    iconColor: 'text-blue-900' },
-  { value: 'work',     label: 'Legal work',              description: 'Managing legal matters, contracts, or document review.',                  icon: IconTasks,         iconBg: 'bg-amber-200',   iconColor: 'text-amber-900' },
-  { value: 'learn',    label: 'Learning & CPD',          description: 'Professional development, CPD compliance, and team capability tracking.', icon: IconGraduateCap,   iconBg: 'bg-emerald-200', iconColor: 'text-emerald-900' },
-  { value: 'insights', label: 'Leadership visibility',   description: 'Getting cross-team visibility, daily briefings, and a single source of signal.', icon: IconLightbulbGlow, iconBg: 'bg-rose-200', iconColor: 'text-rose-900' },
+  { value: 'govern',   label: 'Governance operations',   description: 'Managing boards, meetings, policies, and governance paperwork.',         icon: IconLaw,           iconBg: 'bg-slate-100', iconColor: 'text-foreground' },
+  { value: 'comply',   label: 'Regulatory monitoring',   description: 'Staying on top of regulatory changes and obligations across my sector.', icon: IconShieldCheck3,  iconBg: 'bg-slate-100', iconColor: 'text-foreground' },
+  { value: 'work',     label: 'Legal work',              description: 'Managing legal matters, contracts, or document review.',                  icon: IconTasks,         iconBg: 'bg-slate-100', iconColor: 'text-foreground' },
+  { value: 'learn',    label: 'Learning & CPD',          description: 'Professional development, CPD compliance, and team capability tracking.', icon: IconGraduateCap,   iconBg: 'bg-slate-100', iconColor: 'text-foreground' },
+  { value: 'insights', label: 'Leadership visibility',   description: 'Getting cross-team visibility, daily briefings, and a single source of signal.', icon: IconLightbulbGlow, iconBg: 'bg-slate-100', iconColor: 'text-foreground' },
 ]
 
 const COMPANY_SIZES = [
@@ -86,29 +78,19 @@ const COMPANY_SIZES = [
 
 // C2 — tech area selector. Routes which spaces and CPD regimes load.
 const ROLES = [
-  { value: 'legal',       label: 'Legal',       description: 'Lawyer, GC, in-house counsel, legal ops',            icon: IconLaw,           iconBg: 'bg-amber-200',   iconColor: 'text-amber-900' },
-  { value: 'governance',  label: 'Governance',  description: 'Director, CoSec, board secretary, governance pro',   icon: IconDirectorChair, iconBg: 'bg-violet-200',  iconColor: 'text-violet-900' },
-  { value: 'risk',        label: 'Risk',        description: 'Risk manager, CRO, enterprise or operational risk',  icon: IconRadar,         iconBg: 'bg-rose-200',    iconColor: 'text-rose-900' },
-  { value: 'compliance',  label: 'Compliance',  description: 'Compliance officer, AML, regulatory affairs',        icon: IconShieldCheck3,  iconBg: 'bg-blue-200',    iconColor: 'text-blue-900' },
-  { value: 'executive',   label: 'Executive',   description: 'CEO, MD, founder, practice principal, SME owner',    icon: IconUserSettings,  iconBg: 'bg-emerald-200', iconColor: 'text-emerald-900' },
-  { value: 'other',       label: 'Other',       description: 'Multi-disciplinary or doesn’t quite fit',         icon: IconDotGrid1x3Horizontal, iconBg: 'bg-slate-200', iconColor: 'text-slate-900' },
+  { value: 'legal',       label: 'Legal',       description: 'Lawyer, GC, in-house counsel, legal ops',            icon: IconLaw,           iconBg: 'bg-slate-100', iconColor: 'text-foreground' },
+  { value: 'governance',  label: 'Governance',  description: 'Director, CoSec, board secretary, governance pro',   icon: IconDirectorChair, iconBg: 'bg-slate-100', iconColor: 'text-foreground' },
+  { value: 'risk',        label: 'Risk',        description: 'Risk manager, CRO, enterprise or operational risk',  icon: IconRadar,         iconBg: 'bg-slate-100', iconColor: 'text-foreground' },
+  { value: 'compliance',  label: 'Compliance',  description: 'Compliance officer, AML, regulatory affairs',        icon: IconShieldCheck3,  iconBg: 'bg-slate-100', iconColor: 'text-foreground' },
+  { value: 'executive',   label: 'Executive',   description: 'CEO, MD, founder, practice principal, SME owner',    icon: IconUserSettings,  iconBg: 'bg-slate-100', iconColor: 'text-foreground' },
+  { value: 'other',       label: 'Other',       description: 'Multi-disciplinary or doesn’t quite fit',         icon: IconDotGrid1x3Horizontal, iconBg: 'bg-slate-100', iconColor: 'text-foreground' },
 ]
 
 // M1 — board involvement (drives Govern config + ASIC integration).
 const BOARDS = [
-  { value: 'yes_aus',  label: 'Yes — in Australia',     description: 'Triggers ASIC integration and an Australian governance map.',  icon: IconGovernment,  iconBg: 'bg-emerald-200', iconColor: 'text-emerald-900' },
-  { value: 'yes_intl', label: 'Yes — internationally',  description: 'Multi-jurisdiction support with a world board map.',           icon: IconGlobe,       iconBg: 'bg-blue-200',    iconColor: 'text-blue-900' },
+  { value: 'yes_aus',  label: 'Yes, in Australia',      description: 'Triggers ASIC integration and an Australian governance map.',  icon: IconGovernment,  iconBg: 'bg-emerald-200', iconColor: 'text-emerald-900' },
+  { value: 'yes_intl', label: 'Yes, internationally',   description: 'Multi-jurisdiction support with a world board map.',           icon: IconGlobe,       iconBg: 'bg-blue-200',    iconColor: 'text-blue-900' },
   { value: 'no',       label: 'No / not applicable',    description: 'We’ll minimise Govern in your workspace.',                icon: IconCircleMinus, iconBg: 'bg-slate-200',   iconColor: 'text-slate-900' },
-]
-
-// M2 — focus areas (filters Insights & Learn).
-const FOCUS_AREAS = [
-  { value: 'ai_gov',         label: 'AI governance',          icon: IconSparkleCentral },
-  { value: 'cyber',          label: 'Cybersecurity',          icon: IconLock },
-  { value: 'esg',            label: 'ESG & sustainability',   icon: IconTree },
-  { value: 'risk_compliance',label: 'Risk & compliance',      icon: IconRadar },
-  { value: 'cpd',            label: 'CPD & skills',           icon: IconGraduateCap },
-  { value: 'transactions',   label: 'M&A / transactions',     icon: IconTrending1 },
 ]
 
 // M4 — AI policy readiness.
@@ -119,19 +101,23 @@ const AI_POLICIES = [
 ]
 
 // M5 — existing tools to integrate (multi-select).
+// Brand options use the live favicon; generic options fall back to an icon component.
 const INTEGRATIONS = [
-  { value: 'm365',         label: 'Microsoft 365',         icon: IconMicrosoftCopilot },
-  { value: 'dms',          label: 'Document management',   icon: IconFolders },
-  { value: 'board_portal', label: 'Board portal',          icon: IconBoard },
-  { value: 'practice_mgmt',label: 'Practice management',   icon: IconLayersThree },
-  { value: 'none',         label: 'None for now',          icon: IconCircleMinus },
+  { value: 'm365',     label: 'Microsoft 365',     description: 'Outlook, Teams, SharePoint, OneDrive', domain: 'microsoft.com' },
+  { value: 'box',      label: 'Box',               description: 'Document storage & collaboration',     domain: 'box.com' },
+  { value: 'dropbox',  label: 'Dropbox',           description: 'File sync & sharing',                  domain: 'dropbox.com' },
+  { value: 'gws',      label: 'Google Workspace',  description: 'Gmail, Docs, Drive, Calendar',         domain: 'workspace.google.com' },
+  { value: 'diligent', label: 'Diligent',          description: 'Board portal & governance',            domain: 'diligent.com' },
+  { value: 'other',    label: 'Other',             description: '',                                     icon: IconDotGrid1x3Horizontal },
 ]
 
 // Flow step keys. C1 answer determines which flow is active.
 // Individual: Critical only.
-// Organisation: Critical + Mid-level (boards, focus areas, AI policy, integrations).
+// Organisation: Critical + Mid-level (boards, AI policy, integrations).
+// Focus areas live in the in-app Get Started widget — they're a personal preference
+// (filters Insights & Learn), distinct from the org-level challenge anchor (C4).
 const FLOW_INDIVIDUAL = ['nameEmail', 'accountType', 'role', 'industry', 'countries', 'challenge', 'thanks']
-const FLOW_ORG        = ['nameEmail', 'accountType', 'company', 'role', 'industry', 'countries', 'challenge', 'boards', 'focusAreas', 'aiPolicy', 'integrations', 'thanks']
+const FLOW_ORG        = ['nameEmail', 'accountType', 'company', 'role', 'industry', 'countries', 'challenge', 'boards', 'aiPolicy', 'integrations', 'thanks']
 
 export default function OnboardingPage() {
   const navigate = useNavigate()
@@ -148,7 +134,6 @@ export default function OnboardingPage() {
     challenge: '',
     // Mid-level (Organisation flow only)
     boards: '',
-    focusAreas: [],
     aiPolicy: '',
     integrations: [],
   })
@@ -197,14 +182,13 @@ export default function OnboardingPage() {
       {/* Top bar */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-6">
         <img src={tenant.logo} alt={tenant.appName} className="h-7 w-auto rounded-sm" />
-        <button
-          type="button"
-          aria-label="Close onboarding"
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => navigate('/')}
-          className="flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
-          <IconX className="size-4" />
-        </button>
+          Exit
+        </Button>
       </div>
 
       {/* Content */}
@@ -396,23 +380,6 @@ export default function OnboardingPage() {
             </Step>
           )}
 
-          {stepKey === 'focusAreas' && (
-            <Step heading="What are your key focus areas?" subheading="Select all that apply">
-              <CardGrid>
-                {FOCUS_AREAS.map(opt => (
-                  <OptionCard
-                    key={opt.value}
-                    icon={opt.icon}
-                    label={opt.label}
-                    selected={data.focusAreas.includes(opt.value)}
-                    onClick={() => toggleMulti('focusAreas', opt.value)}
-                  />
-                ))}
-              </CardGrid>
-              <NavRow onBack={back} onSkip={next} onNext={next} nextLabel="Continue" />
-            </Step>
-          )}
-
           {stepKey === 'aiPolicy' && (
             <Step heading="Are AI tools permitted in your organisation?">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -440,7 +407,15 @@ export default function OnboardingPage() {
                   <OptionCard
                     key={opt.value}
                     icon={opt.icon}
+                    leading={opt.domain ? (
+                      <img
+                        src={`https://www.google.com/s2/favicons?domain=${opt.domain}&sz=64`}
+                        alt=""
+                        className="size-4 shrink-0 rounded-sm"
+                      />
+                    ) : undefined}
                     label={opt.label}
+                    description={opt.description}
                     selected={data.integrations.includes(opt.value)}
                     onClick={() => toggleMulti('integrations', opt.value)}
                   />
@@ -452,10 +427,15 @@ export default function OnboardingPage() {
 
           {stepKey === 'thanks' && (
             <div className="mx-auto max-w-[600px]">
+              <div className="mb-4 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500">
+                <IconCheckmark1 className="size-4 text-white [&_path]:stroke-[2.5]" />
+              </div>
               <Step heading={`Thanks${data.name ? `, ${data.name.split(' ')[0]}` : ''}.`}>
                 <p className="text-base text-foreground/70 leading-relaxed">
-                  We've received your details. The Ethika team will be in touch shortly to set up your
-                  account and walk you through the platform.
+                  Thanks for sharing your details. The Ethos team will be in touch shortly to
+                  confirm your account, tailor the platform around your role, sector, and focus
+                  areas, and prepare a demo of the spaces most relevant to your work. In the
+                  meantime, feel free to explore using the Launch demo below.
                 </p>
                 <div className="flex flex-wrap gap-2 pt-2">
                   <Button onClick={() => navigate('/')} className="h-10 px-5">
@@ -537,7 +517,7 @@ function CardGrid({ children }) {
   )
 }
 
-function OptionCard({ icon: Icon, leading, label, selected, onClick }) {
+function OptionCard({ icon: Icon, leading, label, description, selected, onClick }) {
   return (
     <button
       type="button"
@@ -552,7 +532,12 @@ function OptionCard({ icon: Icon, leading, label, selected, onClick }) {
       <span className="flex h-5 items-center shrink-0">
         {leading ?? (Icon && <Icon className="size-4 text-foreground/80" />)}
       </span>
-      <span>{label}</span>
+      <div className="flex flex-col gap-0.5 min-w-0">
+        <span>{label}</span>
+        {description && (
+          <span className="text-[12px] font-normal text-muted-foreground leading-snug">{description}</span>
+        )}
+      </div>
     </button>
   )
 }
