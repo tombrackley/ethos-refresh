@@ -45,6 +45,7 @@ import { IconGraduateCap } from '@central-icons-react/round-outlined-radius-2-st
 import { IconSettingsGear1 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconSettingsGear1'
 import { IconTeam } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconTeam'
 import { IconAtom } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconAtom'
+import { IconBook } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconBook'
 
 const COMPLY_SUB_ITEMS = tenant.complySubItems
 const COMPLY_PAGES = COMPLY_SUB_ITEMS.map(i => i.page)
@@ -78,11 +79,12 @@ const LEARN_SUB_ITEMS = [
 const LEARN_PAGES = LEARN_SUB_ITEMS.map(i => i.page)
 
 const TOP_ITEMS = [
-  { title: 'Home',      icon: IconHomeRoof,       page: 'Home' },
-  { title: 'Insights',  icon: IconLightbulbGlow,  page: 'Insights' },
-  { title: 'Core',      icon: IconAtom,           page: 'Core',  tourKey: 'core' },
-  { title: 'Community', icon: IconTeam,           page: 'Community' },
-  { title: 'Manage',    icon: IconSettingsGear1,  page: 'Admin:Organisation Profile', tourKey: 'manage' },
+  { title: 'Home',             icon: IconHomeRoof,      page: 'Home' },
+  { title: 'Insights',         icon: IconLightbulbGlow, page: 'Insights' },
+  { title: 'Resources',        icon: IconBook,         page: 'Resource Library' },
+  { title: 'Core',             icon: IconAtom,          page: 'Core',  tourKey: 'core' },
+  { title: 'Community',        icon: IconTeam,          page: 'Community' },
+  { title: 'Manage',           icon: IconSettingsGear1, page: 'Admin:Organisation Profile', tourKey: 'manage' },
 ]
 
 const CORE_ITEMS = [
@@ -163,7 +165,7 @@ function isPageEnabled(pageName) {
 }
 
 // Launch-demo mode hides everything except a small set of items.
-const LAUNCH_TOP_VISIBLE = new Set(['Home', 'Insights', 'Core', 'Manage'])
+const LAUNCH_TOP_VISIBLE = new Set(['Home', 'Insights', 'Resources', 'Core', 'Manage'])
 const LAUNCH_CORE_VISIBLE = new Set(['Learn'])
 
 function getDemoMode() {
@@ -223,8 +225,11 @@ function useActivePage() {
   return 'Control'
 }
 
+const ADMIN_ORIGIN_KEY = 'ethos_admin_origin'
+
 export function AppSidebar({ onSearchClick }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const { toggleSidebar, state } = useSidebar()
   const collapsed = state === 'collapsed'
   const activePage = useActivePage()
@@ -232,7 +237,25 @@ export function AppSidebar({ onSearchClick }) {
   const handleNavigate = (page) => {
     if (collapsed) toggleSidebar()
     const path = PAGE_TO_PATH[page]
-    if (path) navigate(path)
+    if (!path) return
+    // Remember where the user was when they entered admin, so the back
+    // button can return them there. Don't overwrite if they're already
+    // inside admin (sub-page navigation).
+    if (page.startsWith('Admin:') && !location.pathname.startsWith('/admin')) {
+      try { sessionStorage.setItem(ADMIN_ORIGIN_KEY, location.pathname) } catch { /* ignore */ }
+    }
+    navigate(path)
+  }
+
+  const handleAdminBack = () => {
+    if (collapsed) toggleSidebar()
+    let target = '/home'
+    try {
+      const stored = sessionStorage.getItem(ADMIN_ORIGIN_KEY)
+      if (stored && !stored.startsWith('/admin')) target = stored
+      sessionStorage.removeItem(ADMIN_ORIGIN_KEY)
+    } catch { /* ignore */ }
+    navigate(target)
   }
 
   // Filter nav items by feature flags + launch-demo mode
@@ -282,7 +305,7 @@ export function AppSidebar({ onSearchClick }) {
               <SidebarMenuButton
                 size="lg"
                 tooltip="Back"
-                onClick={() => handleNavigate('Control')}
+                onClick={handleAdminBack}
                 className="gap-2 px-1"
               >
                 <ChevronLeft className="size-4 shrink-0" />

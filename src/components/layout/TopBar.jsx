@@ -18,7 +18,7 @@ import { IconCalendar1 } from '@central-icons-react/round-outlined-radius-2-stro
 import { useSidebar } from '@/components/ui/sidebar'
 
 // Pages whose content area is plain white — the topbar should match.
-const WHITE_BG_PATHS = new Set(['/vault'])
+const WHITE_BG_PATHS = new Set(['/vault', '/resources'])
 // Sections where every sub-route renders on a white shell.
 const WHITE_BG_PREFIXES = ['/home', '/control', '/comply', '/govern', '/matters', '/respond', '/meet', '/work', '/learn', '/knowledge', '/insights']
 

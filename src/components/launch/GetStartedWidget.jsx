@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronUp, X } from 'lucide-react'
+import { ChevronUp } from 'lucide-react'
 import { IconRocket } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconRocket'
 import { IconCheckmark1 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconCheckmark1'
 import { useSidebar } from '@/components/ui/sidebar'
@@ -9,8 +9,6 @@ import { getStartedCards } from '@/pages/home/getStartedContent'
 import {
   readCompleted,
   writeCompleted,
-  readDismissed,
-  writeDismissed,
   useCompletedJson,
 } from '@/lib/getStartedProgress'
 import { FocusAreasModal } from './FocusAreasModal'
@@ -31,7 +29,6 @@ export function GetStartedWidget() {
   const completed = (() => {
     try { return new Set(JSON.parse(completedJson)) } catch { return new Set() }
   })()
-  const [dismissed, setDismissed] = useState(readDismissed)
   const [focusModalOpen, setFocusModalOpen] = useState(false)
   const containerRef = useRef(null)
 
@@ -53,8 +50,6 @@ export function GetStartedWidget() {
     }
   }, [open])
 
-  if (dismissed) return null
-
   const total = getStartedCards.length
   const done = completed.size
   const percent = Math.round((done / total) * 100)
@@ -65,11 +60,6 @@ export function GetStartedWidget() {
     if (next.has(id)) next.delete(id)
     else next.add(id)
     writeCompleted(next)
-  }
-
-  function dismiss() {
-    writeDismissed(true)
-    setDismissed(true)
   }
 
   function handleTriggerClick() {
@@ -97,21 +87,11 @@ export function GetStartedWidget() {
       />
       {open && !collapsed && (
         <div className="absolute bottom-full left-0 mb-2 w-[320px] rounded-xl border border-border bg-white shadow-xl overflow-hidden">
-          <div className="flex items-start justify-between gap-2 px-4 pt-4 pb-3">
-            <div>
-              <h3 className="text-sm font-semibold text-foreground">Get started with Ethos</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {allDone ? 'You\'re all set — great work.' : `${done} of ${total} complete`}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={dismiss}
-              aria-label="Dismiss"
-              className="-mt-1 -mr-1 size-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              <X className="size-4" />
-            </button>
+          <div className="px-4 pt-4 pb-3">
+            <h3 className="text-sm font-semibold text-foreground">Get started with Ethos</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {allDone ? 'You\'re all set — great work.' : `${done} of ${total} complete`}
+            </p>
           </div>
           <div className="px-4 pb-1">
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">

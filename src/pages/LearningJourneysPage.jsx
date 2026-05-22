@@ -326,7 +326,7 @@ export default function LearningJourneysPage() {
 
     return (
       <div className="flex flex-1">
-        <div className="flex-1 px-6 pt-[60px] pb-6">
+        <div className="flex-1 bg-white px-8 pt-[30px] pb-6">
           <div className="max-w-4xl mx-auto space-y-6">
             <button onClick={() => setViewingJourney(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="size-4" /> Back to Learning Journeys
@@ -360,12 +360,18 @@ export default function LearningJourneysPage() {
 
   return (
     <div className="flex flex-1">
-      <div className="flex-1 px-6 pt-[60px] pb-6">
-        <div className="max-w-7xl mx-auto space-y-[60px]">
+      <div className="flex-1 bg-white px-8 pt-[52px] pb-6">
+        <div className="max-w-[1200px] mx-auto space-y-8">
 
-          {/* ── Gradient Hero ─────────────────────────────────────── */}
-          <div className="relative -mx-6 -mt-[60px] px-6 pt-[60px] pb-6">
-            <div className="pointer-events-none absolute inset-0 left-[calc(-50vw+50%)] w-screen bg-gradient-to-b from-[rgba(209,250,229,0.1)] to-[#F9FAFB]" />
+          <div>
+            <h1 className="text-[28px] leading-[30px] tracking-[-1.12px] font-normal text-[#0A0A0A]">Learning Journeys</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Structured paths to develop the capabilities your role demands.
+            </p>
+          </div>
+
+          {/* ── Hero ─────────────────────────────────────── */}
+          <div className="relative">
             <div className="relative space-y-6">
 
               {/* ── Your Journeys Card ──────────────────────────────────── */}

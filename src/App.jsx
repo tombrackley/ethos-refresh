@@ -49,7 +49,6 @@ import BoardPaperReviewPage from '@/pages/BoardPaperReviewPage'
 import { GovernShell } from '@/components/layout/GovernShell'
 import { ComplyShell } from '@/components/layout/ComplyShell'
 import { WorkShell } from '@/components/layout/WorkShell'
-import { LearnShell } from '@/components/layout/LearnShell'
 import AdminPage from '@/pages/AdminPage'
 import ExternalContentViewer from '@/pages/ExternalContentViewer'
 import ProfilePage from '@/pages/ProfilePage'
@@ -177,15 +176,11 @@ function AppLayout({ onLogout }) {
                 {gatedRoute('/talent', 'PAGE_TALENT', <TalentPage />)}
                 {gatedRoute('/insights', 'PAGE_INSIGHTS', <InsightsPage />)}
                 {gatedRoute('/insights/:id', 'PAGE_INSIGHTS', <InsightDetailPage />)}
-                {isEnabled('PAGE_LEARN') && (
-                  <Route path="/learn" element={<LearnShell />}>
-                    <Route index element={<LearnPage />} />
-                    {isEnabled('PAGE_LEARN_JOURNEYS') && <Route path="journeys" element={<LearningJourneysPage />} />}
-                    {isEnabled('PAGE_LEARN_CPD') && <Route path="cpd" element={<CPDTrackerPage />} />}
-                    {isEnabled('PAGE_LEARN_CPD_EVENTS') && <Route path="cpd/events" element={<CPDEventsPage />} />}
-                    {isEnabled('PAGE_LEARN_SKILLS') && <Route path="skills" element={<SkillsProfilePage />} />}
-                  </Route>
-                )}
+                {gatedRoute('/learn', 'PAGE_LEARN', <LearnPage />)}
+                {gatedRoute('/learn/journeys', 'PAGE_LEARN_JOURNEYS', <LearningJourneysPage />)}
+                {gatedRoute('/learn/cpd', 'PAGE_LEARN_CPD', <CPDTrackerPage />)}
+                {gatedRoute('/learn/cpd/events', 'PAGE_LEARN_CPD_EVENTS', <CPDEventsPage />)}
+                {gatedRoute('/learn/skills', 'PAGE_LEARN_SKILLS', <SkillsProfilePage />)}
                 {gatedRoute('/knowledge', 'PAGE_LEARN_KNOWLEDGE_CENTRE', <KnowledgeCentrePage />)}
                 {isEnabled('PAGE_LEARN_KNOWLEDGE_CENTRE') && (
                   <Route path="/knowledge-demo" element={<KnowledgeCentreDemoPage />} />

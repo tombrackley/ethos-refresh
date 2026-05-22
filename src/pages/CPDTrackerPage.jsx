@@ -207,25 +207,29 @@ export default function CPDTrackerPage() {
 
   return (
     <div className="flex flex-1">
-      <div className="flex-1 px-6 pt-[60px] pb-6">
-        <div className="max-w-7xl mx-auto space-y-10">
+      <div className="flex-1 bg-white px-8 pt-[52px] pb-6">
+        <div className="max-w-[1200px] mx-auto space-y-8">
 
-          {/* ── Gradient Hero ─────────────────────────────────────── */}
-          <div className="relative -mx-6 -mt-[60px] px-6 pt-[60px] pb-6">
-            <div className="pointer-events-none absolute inset-0 left-[calc(-50vw+50%)] w-screen bg-gradient-to-b from-[rgba(209,250,229,0.1)] to-[#F9FAFB]" />
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h1 className="text-[28px] leading-[30px] tracking-[-1.12px] font-normal text-[#0A0A0A]">CPD Tracker</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Log activities and stay on top of your CPD requirements.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Clock className="size-3.5" /> CPD period ends 30 Jun 2026
+              </span>
+              <Button size="sm" className="gap-1.5" onClick={() => setShowLogForm(true)}>
+                <Plus className="size-4" /> Log CPD
+              </Button>
+            </div>
+          </div>
+
+          {/* ── Hero ─────────────────────────────────────── */}
+          <div className="relative">
             <div className="relative space-y-6">
-
-              {/* Header row */}
-              <div className="flex items-end justify-end">
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Clock className="size-3.5" /> CPD period ends 30 Jun 2026
-                  </span>
-                  <Button size="sm" className="gap-1.5" onClick={() => setShowLogForm(true)}>
-                    <Plus className="size-4" /> Log CPD
-                  </Button>
-                </div>
-              </div>
 
               {/* CPD Regimes */}
               <button
