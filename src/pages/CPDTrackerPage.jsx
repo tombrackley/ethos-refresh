@@ -12,10 +12,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
   ArrowLeft, Clock, Check, CheckCircle2, ChevronDown, ChevronRight, MapPin, Plus,
-  BookOpen, Video, Users, Award, Link2, Upload, X, Search, Pencil,
+  BookOpen, Video, Users, Award, Link2, Upload, X, Search, Pencil, Settings,
   Sparkles, Calendar, Building2, Tag, ExternalLink, Shield, AlertTriangle,
 } from 'lucide-react'
 import tenant, { getCategoryBadgeVariant } from '@/config/tenant'
+import { cn } from '@/lib/utils'
 
 // ─── Tenant Data ─────────────────────────────────────────────────────────────
 
@@ -159,6 +160,33 @@ const CPD_ACTIVITY_TYPES = {
 }
 const ACTIVITY_TYPE_OPTIONS = Object.keys(CPD_ACTIVITY_TYPES)
 
+// Pending / complete indicator for a CPD regime.
+// Dashed grey ring while any category remains below requirement; green
+// circle with a tick once every category is met.
+function RegimeStatusIcon({ complete, size = 32 }) {
+  if (complete) {
+    return (
+      <div
+        className="rounded-full bg-emerald-500 flex items-center justify-center shrink-0"
+        style={{ width: size, height: size }}
+      >
+        <Check className="size-4 text-white" strokeWidth={3} />
+      </div>
+    )
+  }
+  return (
+    <svg width={size} height={size} className="shrink-0">
+      <circle
+        cx={size / 2} cy={size / 2} r={(size - 2) / 2}
+        fill="none"
+        stroke="#9ca3af"
+        strokeWidth="1.5"
+        strokeDasharray="3 3"
+      />
+    </svg>
+  )
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function CPDTrackerPage() {
@@ -166,6 +194,14 @@ export default function CPDTrackerPage() {
   const [showLogForm, setShowLogForm] = useState(false)
   const [showRegimeOverlay, setShowRegimeOverlay] = useState(false)
   const [selectedRegimeIds, setSelectedRegimeIds] = useState(DEFAULT_SELECTED)
+  const [collapsedRegimes, setCollapsedRegimes] = useState(() => new Set())
+
+  const toggleRegime = (id) => setCollapsedRegimes(prev => {
+    const next = new Set(prev)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    return next
+  })
   const [logForm, setLogForm] = useState({ type: '', points: '', description: '', link: '' })
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [enrolledIds, setEnrolledIds] = useState(() => UPCOMING_WORKSHOPS.filter(w => w.status === 'Booked').map(w => w.id))
@@ -206,8 +242,8 @@ export default function CPDTrackerPage() {
   }
 
   return (
-    <div className="flex flex-1">
-      <div className="flex-1 bg-white px-8 pt-[52px] pb-6">
+    <div className="flex flex-1 min-h-0">
+      <div className="flex-1 overflow-y-auto bg-white px-8 pt-[52px] pb-6">
         <div className="max-w-[1200px] mx-auto space-y-8">
 
           <div className="flex items-end justify-between gap-4">
@@ -230,24 +266,6 @@ export default function CPDTrackerPage() {
           {/* ── Hero ─────────────────────────────────────── */}
           <div className="relative">
             <div className="relative space-y-6">
-
-              {/* CPD Regimes */}
-              <button
-                onClick={() => setShowRegimeOverlay(true)}
-                className="flex items-center gap-2 rounded-[8px] border border-[#f5f5f5] bg-white px-4 py-2.5 w-full hover:border-[#d4d4d4] transition-colors group cursor-pointer"
-              >
-                <span className="text-xs font-medium text-muted-foreground shrink-0">CPD Regimes:</span>
-                <div className="flex items-center gap-1.5 flex-1 min-w-0 flex-wrap">
-                  {selectedRegimes.length > 0 ? selectedRegimes.map(r => (
-                    <span key={r.id} className="inline-flex items-center h-6 px-2 rounded-md border border-[#e5e7eb] bg-[#f9fafb] text-xs font-medium text-[#374151]">
-                      {r.name}
-                    </span>
-                  )) : (
-                    <span className="text-xs text-muted-foreground">No regimes selected</span>
-                  )}
-                </div>
-                <Pencil className="size-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-              </button>
 
               {/* ── Your CPD Overview Card ──────────────────────────────── */}
               <div className="rounded-[6px] border border-[#E2E8F0] bg-white p-6 space-y-6">
@@ -307,50 +325,73 @@ export default function CPDTrackerPage() {
           </div>
 
           {/* ── CPD Requirements by Regime ─────────────────────────── */}
-          {selectedRegimes.length > 0 && (
-            <div className="rounded-[8px] border border-[rgba(0,0,0,0.05)] bg-white p-6 space-y-6">
+          <div className="rounded-[8px] border border-[rgba(0,0,0,0.05)] bg-white p-6 space-y-2">
+            <div className="flex items-center justify-between gap-4">
               <h2 className="text-[20px] leading-[28px] tracking-[-0.6px] font-medium text-[#0a0a0a]">CPD Requirements</h2>
-              <div className="space-y-6">
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowRegimeOverlay(true)}>
+                <Settings className="size-4" /> Manage
+              </Button>
+            </div>
+            {selectedRegimes.length === 0 ? (
+              <div className="rounded-[8px] bg-muted/40 p-8 text-center">
+                <p className="text-sm text-muted-foreground">No CPD regimes selected.</p>
+                <p className="text-xs text-muted-foreground mt-1">Click Manage to add the regimes you need to track.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#E2E8F0]">
                 {selectedRegimes.map(regime => {
                   const regimeCompleted = regime.categories.reduce((s, c) => s + c.completed, 0)
-                  const regimePct = regime.totalHours > 0 ? Math.round((regimeCompleted / regime.totalHours) * 100) : 0
+                  const allComplete = regime.categories.every(c => c.completed >= c.required)
+                  const expanded = !collapsedRegimes.has(regime.id)
                   return (
-                    <div key={regime.id} className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
+                    <div key={regime.id} className="py-5 first:pt-2 last:pb-0">
+                      <button
+                        onClick={() => toggleRegime(regime.id)}
+                        className="w-full flex items-center gap-4 text-left"
+                      >
+                        <RegimeStatusIcon complete={allComplete} />
+                        <div className="flex-1 min-w-0">
                           <h3 className="text-sm font-semibold text-[#0a0a0a]">{regime.name}</h3>
-                          <p className="text-xs text-muted-foreground mt-0.5">{regime.period} &middot; {regimeCompleted}/{regime.totalHours} {regime.unit}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {regime.period} &middot; {regimeCompleted}/{regime.totalHours} {regime.unit}
+                          </p>
                         </div>
-                        <span className={`inline-flex items-center h-6 px-1.5 rounded-md border text-xs font-medium ${regimePct >= 100 ? 'border-[#a7f3d0] bg-[#ecfdf5] text-[#153e40]' : 'border-[#e5e7eb] bg-[#f9fafb] text-[#374151]'}`}>
-                          {regimePct}%
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {regime.categories.map((cat, i) => {
-                          const isComplete = cat.completed >= cat.required
-                          return (
-                            <div key={`${regime.id}-${cat.name}-${i}`} className={`flex items-center justify-between h-10 px-3 rounded-[8px] border border-border ${isComplete ? 'bg-[#f7fee7]' : 'bg-white'}`}>
-                              <div className="flex items-center gap-[5px]">
-                                {isComplete && (
-                                  <span className="flex items-center justify-center size-3 rounded-full bg-[#047857] shrink-0">
-                                    <Check className="size-2 text-white" strokeWidth={3} />
+                        <ChevronDown className={cn(
+                          'size-4 text-muted-foreground transition-transform shrink-0',
+                          expanded && 'rotate-180',
+                        )} />
+                      </button>
+
+                      {expanded && (
+                        <div className="mt-4 rounded-[8px] bg-muted/40 p-3">
+                          <div className="grid grid-cols-2 gap-2">
+                            {regime.categories.map((cat, i) => {
+                              const isComplete = cat.completed >= cat.required
+                              return (
+                                <div key={`${regime.id}-${cat.name}-${i}`} className={`flex items-center justify-between h-10 px-3 rounded-[8px] border border-border ${isComplete ? 'bg-[#f7fee7]' : 'bg-white'}`}>
+                                  <div className="flex items-center gap-[5px]">
+                                    {isComplete && (
+                                      <span className="flex items-center justify-center size-3 rounded-full bg-[#047857] shrink-0">
+                                        <Check className="size-2 text-white" strokeWidth={3} />
+                                      </span>
+                                    )}
+                                    <p className="text-sm font-medium text-foreground tracking-[-0.15px] leading-5">{cat.name}</p>
+                                  </div>
+                                  <span className={`inline-flex items-center h-6 px-1.5 rounded-[6px] border text-xs font-medium shrink-0 ${isComplete ? 'bg-[#f7fee7] border-[#d9f99d] text-[#365314]' : 'bg-[#f9fafb] border-[#e5e7eb] text-[#374151]'}`}>
+                                    {cat.completed} / {cat.required} {regime.unit === 'points' ? 'pt' : 'hr'}
                                   </span>
-                                )}
-                                <p className="text-sm font-medium text-foreground tracking-[-0.15px] leading-5">{cat.name}</p>
-                              </div>
-                              <span className={`inline-flex items-center h-6 px-1.5 rounded-[6px] border text-xs font-medium shrink-0 ${isComplete ? 'bg-[#f7fee7] border-[#d9f99d] text-[#365314]' : 'bg-[#f9fafb] border-[#e5e7eb] text-[#374151]'}`}>
-                                {cat.completed} / {cat.required} {regime.unit === 'points' ? 'pt' : 'hr'}
-                              </span>
-                            </div>
-                          )
-                        })}
-                      </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )
                 })}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* ── Log CPD Overlay ───────────────────────────────────────── */}
           {showLogForm && createPortal(

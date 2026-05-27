@@ -11,11 +11,6 @@ const STEPS = [
     body: 'Spaces group the work you do in Ethos by focus area — Learn for CPD and knowledge, Comply for risk and obligations, Govern for boards and meetings. You\'ll unlock more spaces as your account is configured.',
   },
   {
-    tourKey: 'core',
-    title: 'Core',
-    body: 'Core is where you shape Ethos\'s understanding of you and your organisation — your context, preferences, key documents and reference material. The more you set up here, the smarter every space gets.',
-  },
-  {
     tourKey: 'manage',
     title: 'Manage',
     body: 'Admins use Manage to configure the workspace — invite users, set permissions, connect integrations and tailor each space to how your team operates.',

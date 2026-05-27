@@ -29,6 +29,7 @@
       "PAGE_LEARN_KNOWLEDGE_CENTRE": "Learn",
       "PAGE_LEARN_CPD": "Learn",
       "PAGE_LEARN_CPD_EVENTS": "Learn",
+      "PAGE_LEARN_EVENTS": "Learn",
       "PAGE_LEARN_SKILLS": "Learn",
 
       "PAGE_VAULT": "Knowledge",
@@ -96,6 +97,7 @@
     "PAGE_LEARN_KNOWLEDGE_CENTRE": true,
     "PAGE_LEARN_CPD": true,
     "PAGE_LEARN_CPD_EVENTS": true,
+    "PAGE_LEARN_EVENTS": true,
     "PAGE_LEARN_SKILLS": true,
     "PAGE_ADMIN": true,
     "PAGE_ETHIKA_ADMIN": true,

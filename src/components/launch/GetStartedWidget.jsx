@@ -11,7 +11,6 @@ import {
   writeCompleted,
   useCompletedJson,
 } from '@/lib/getStartedProgress'
-import { FocusAreasModal } from './FocusAreasModal'
 
 const ACCENT_BG = {
   blue: 'bg-blue-100',
@@ -29,7 +28,6 @@ export function GetStartedWidget() {
   const completed = (() => {
     try { return new Set(JSON.parse(completedJson)) } catch { return new Set() }
   })()
-  const [focusModalOpen, setFocusModalOpen] = useState(false)
   const containerRef = useRef(null)
 
   useEffect(() => {
@@ -70,21 +68,8 @@ export function GetStartedWidget() {
     setOpen(o => !o)
   }
 
-  function handleFocusSaved(values) {
-    if (values.length > 0) {
-      const next = new Set(readCompleted())
-      next.add('personalise-focus')
-      writeCompleted(next)
-    }
-  }
-
   return (
     <div ref={containerRef} className="relative">
-      <FocusAreasModal
-        open={focusModalOpen}
-        onClose={() => setFocusModalOpen(false)}
-        onSave={handleFocusSaved}
-      />
       {open && !collapsed && (
         <div className="absolute bottom-full left-0 mb-2 w-[320px] rounded-xl border border-border bg-white shadow-xl overflow-hidden">
           <div className="px-4 pt-4 pb-3">
@@ -139,23 +124,13 @@ export function GetStartedWidget() {
                     >
                       {isDone && <IconCheckmark1 className="size-3 [&_path]:stroke-[3]" />}
                     </button>
-                    {card.action === 'focusAreas' ? (
-                      <button
-                        type="button"
-                        onClick={() => { setFocusModalOpen(true); setOpen(false) }}
-                        className="flex-1 min-w-0 text-left"
-                      >
-                        {body}
-                      </button>
-                    ) : (
-                      <Link
-                        to={card.ctaHref}
-                        onClick={() => toggleComplete(card.id)}
-                        className="flex-1 min-w-0"
-                      >
-                        {body}
-                      </Link>
-                    )}
+                    <Link
+                      to={card.ctaHref}
+                      onClick={() => toggleComplete(card.id)}
+                      className="flex-1 min-w-0"
+                    >
+                      {body}
+                    </Link>
                   </div>
                 </li>
               )

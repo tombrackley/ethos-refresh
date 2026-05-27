@@ -1,11 +1,21 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/button'
-import { X, Lock } from 'lucide-react'
+import { X, Lock, Upload, Sparkles, Check, Plus, FileText } from 'lucide-react'
 import SearchableChipPicker from '@/components/shared/SearchableChipPicker'
 import { readFocusProfile, writeFocusProfile } from '@/lib/focusProfile'
 import { SKILLS } from '@/pages/home/getStartedContent'
 import tenant from '@/config/tenant'
+import { cn } from '@/lib/utils'
+
+// Mock skills an AI pass would surface from an uploaded CV.
+const CV_SUGGESTED = [
+  'Contract Negotiation',
+  'Stakeholder Management',
+  'Financial Analysis',
+  'Mergers & Acquisitions',
+  'Project Management',
+]
 
 // "Manage Skills" overlay launched from the Skills Profile page.
 // Required skills are read-only (org-assigned). Additional skills are
@@ -23,6 +33,7 @@ export default function FocusSkillsOverlay({ onClose }) {
     }
   })
   const [saved, setSaved] = useState(false)
+  const [cvStatus, setCvStatus] = useState('idle') // idle | processing | done
 
   const assignedSkills = (tenant.pages.learn.skillsProfile?.skills || [])
     .filter(s => s.category === 'mandatory')
@@ -33,6 +44,15 @@ export default function FocusSkillsOverlay({ onClose }) {
       if (next.has(value)) next.delete(value)
       else next.add(value)
       return { ...prev, [field]: next }
+    })
+    setSaved(false)
+  }
+
+  function addAllSuggested() {
+    setProfile(prev => {
+      const next = new Set(prev.additionalSkills)
+      CV_SUGGESTED.forEach(s => next.add(s))
+      return { ...prev, additionalSkills: next }
     })
     setSaved(false)
   }
@@ -66,6 +86,67 @@ export default function FocusSkillsOverlay({ onClose }) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+          {/* Import from CV */}
+          <section className="rounded-lg border border-dashed border-border bg-muted/20 p-4">
+            <div className="flex items-start gap-3">
+              <div className="size-9 rounded-md bg-brand-50 flex items-center justify-center shrink-0">
+                <Upload className="size-4 text-brand-700" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-semibold text-foreground">Import skills from your CV</h3>
+                <p className="mt-0.5 text-sm text-muted-foreground">Upload your CV and we'll suggest skills to track — you choose which to keep.</p>
+
+                {cvStatus === 'idle' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3 gap-1.5"
+                    onClick={() => { setCvStatus('processing'); setTimeout(() => setCvStatus('done'), 900) }}
+                  >
+                    <Upload className="size-3.5" /> Upload CV
+                  </Button>
+                )}
+
+                {cvStatus === 'processing' && (
+                  <p className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground">
+                    <Sparkles className="size-3.5 text-brand-600 animate-pulse" /> Reading your CV…
+                  </p>
+                )}
+
+                {cvStatus === 'done' && (
+                  <div className="mt-3 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <FileText className="size-3.5" /> Tom_Brackley_CV.pdf
+                      </span>
+                      <button onClick={addAllSuggested} className="text-xs font-medium text-brand-700 hover:text-brand-800 transition-colors">
+                        Add all
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {CV_SUGGESTED.map(s => {
+                        const added = profile.additionalSkills.has(s)
+                        return (
+                          <button
+                            key={s}
+                            onClick={() => toggle('additionalSkills', s)}
+                            className={cn(
+                              'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition-colors',
+                              added ? 'border-brand-200 bg-brand-50 text-brand-800' : 'border-border bg-white text-foreground hover:bg-muted/40',
+                            )}
+                          >
+                            {added ? <Check className="size-3" /> : <Plus className="size-3" />}
+                            {s}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
           {/* Read-only: required skills */}
           {assignedSkills.length > 0 && (
             <section>

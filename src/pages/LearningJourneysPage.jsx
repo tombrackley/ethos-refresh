@@ -4,7 +4,7 @@ import Feature from '@/components/Feature'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
 import {
   Clock,
   Check,
@@ -299,6 +299,7 @@ export default function LearningJourneysPage() {
     e3: { note: 'Reviewed the full AML/CTF program. Identified two gaps around enhanced CDD for high-risk customers and a missing procedure for tipping-off obligations.', date: 'Feb 2026' },
   })
   const [aiSuggested, setAiSuggested] = useState([])
+  const [journeyTab, setJourneyTab] = useState('in-progress')
 
   const handleAiAdd = (item) => {
     setAiSuggested(prev => {
@@ -325,8 +326,8 @@ export default function LearningJourneysPage() {
     const loggedCount = elements.filter(e => learningLogs[e.id]).length
 
     return (
-      <div className="flex flex-1">
-        <div className="flex-1 bg-white px-8 pt-[30px] pb-6">
+      <div className="flex flex-1 min-h-0">
+        <div className="flex-1 overflow-y-auto bg-white px-8 pt-[30px] pb-6">
           <div className="max-w-4xl mx-auto space-y-6">
             <button onClick={() => setViewingJourney(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="size-4" /> Back to Learning Journeys
@@ -359,8 +360,8 @@ export default function LearningJourneysPage() {
   const completedJourneys = ALL_JOURNEYS.filter(j => j.status === 'completed')
 
   return (
-    <div className="flex flex-1">
-      <div className="flex-1 bg-white px-8 pt-[52px] pb-6">
+    <div className="flex flex-1 min-h-0">
+      <div className="flex-1 overflow-y-auto bg-white px-8 pt-[52px] pb-6">
         <div className="max-w-[1200px] mx-auto space-y-8">
 
           <div>
@@ -374,24 +375,48 @@ export default function LearningJourneysPage() {
           <div className="relative">
             <div className="relative space-y-6">
 
-              {/* ── Your Journeys Card ──────────────────────────────────── */}
-              <div className="rounded-[6px] border border-[#E2E8F0] bg-white p-6 space-y-5">
+              {/* ── Your Journeys ──────────────────────────────────────── */}
+              <div className="space-y-5">
                 <h2 className="text-[20px] leading-[28px] tracking-[-0.6px] font-medium text-[#0a0a0a]">Your Journeys</h2>
 
-                <Tabs defaultValue="in-progress">
-                  <TabsList className="h-auto bg-transparent p-0 gap-2 mb-4">
-                    <TabsTrigger value="in-progress" className="h-8 rounded-full text-sm px-4 py-1.5 border border-transparent data-[state=active]:bg-[#153e40] data-[state=active]:text-white data-[state=active]:border-transparent data-[state=inactive]:text-[#153e40] data-[state=inactive]:bg-[#f5f5f5] data-[state=active]:shadow-none">
-                      In Progress ({activeJourneys.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="available" className="h-8 rounded-full text-sm px-4 py-1.5 border border-transparent data-[state=active]:bg-[#153e40] data-[state=active]:text-white data-[state=active]:border-transparent data-[state=inactive]:text-[#153e40] data-[state=inactive]:bg-[#f5f5f5] data-[state=active]:shadow-none">
-                      Available ({availableJourneys.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="completed" className="h-8 rounded-full text-sm px-4 py-1.5 border border-transparent data-[state=active]:bg-[#153e40] data-[state=active]:text-white data-[state=active]:border-transparent data-[state=inactive]:text-[#153e40] data-[state=inactive]:bg-[#f5f5f5] data-[state=active]:shadow-none">
-                      Completed ({completedJourneys.length})
-                    </TabsTrigger>
-                  </TabsList>
+                <div className="flex flex-wrap items-center gap-3">
+                  {[
+                    { key: 'in-progress', label: 'In Progress', count: activeJourneys.length },
+                    { key: 'available', label: 'Available', count: availableJourneys.length },
+                    { key: 'completed', label: 'Completed', count: completedJourneys.length },
+                  ].map(tab => {
+                    const active = journeyTab === tab.key
+                    return (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => setJourneyTab(tab.key)}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 h-8 border transition-colors',
+                          active
+                            ? 'bg-[#dffff2] border-[rgba(14,95,91,0.5)]'
+                            : 'bg-muted/60 hover:bg-muted border-transparent',
+                        )}
+                      >
+                        <span className={cn(
+                          'text-sm font-medium tracking-[-0.28px]',
+                          active ? 'text-[#0e5f5b]' : 'text-foreground',
+                        )}>
+                          {tab.label}
+                        </span>
+                        <span className={cn(
+                          'text-xs',
+                          active ? 'text-[rgba(14,95,91,0.5)]' : 'text-muted-foreground',
+                        )}>
+                          {tab.count}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
 
-                  <TabsContent value="in-progress" className="mt-0 space-y-3">
+                {journeyTab === 'in-progress' && (
+                  <div className="space-y-3">
                     {activeJourneys.map((journey) => {
                       const elements = journey.elements || []
                       const loggedCount = elements.filter(e => learningLogs[e.id]).length
@@ -399,7 +424,7 @@ export default function LearningJourneysPage() {
                       return (
                         <div
                           key={journey.name}
-                          className="rounded-[8px] border border-[#ecf2f5] bg-white p-5 cursor-pointer hover:border-brand-200 hover:shadow-sm transition-all"
+                          className="rounded-[12px] border border-[#ecf2f5] bg-white p-5 cursor-pointer hover:border-brand-200 hover:shadow-sm transition-all"
                           onClick={() => setViewingJourney(journey)}
                         >
                           <div className="flex items-center gap-4">
@@ -444,16 +469,18 @@ export default function LearningJourneysPage() {
                     {activeJourneys.length === 0 && (
                       <p className="text-sm text-muted-foreground py-4">No journeys in progress. Start one from the available journeys below.</p>
                     )}
-                  </TabsContent>
+                  </div>
+                )}
 
-                  <TabsContent value="available" className="mt-0 space-y-3">
+                {journeyTab === 'available' && (
+                  <div className="space-y-3">
                     {availableJourneys.map((journey) => {
                       const elements = journey.elements || []
 
                       return (
                         <div
                           key={journey.name}
-                          className="rounded-[8px] border border-[#ecf2f5] bg-white p-5 cursor-pointer hover:border-brand-200 hover:shadow-sm transition-all"
+                          className="rounded-[12px] border border-[#ecf2f5] bg-white p-5 cursor-pointer hover:border-brand-200 hover:shadow-sm transition-all"
                           onClick={() => setViewingJourney(journey)}
                         >
                           <div className="flex items-start justify-between">
@@ -480,16 +507,18 @@ export default function LearningJourneysPage() {
                     {availableJourneys.length === 0 && (
                       <p className="text-sm text-muted-foreground py-4">No available journeys at the moment.</p>
                     )}
-                  </TabsContent>
+                  </div>
+                )}
 
-                  <TabsContent value="completed" className="mt-0 space-y-3">
+                {journeyTab === 'completed' && (
+                  <div className="space-y-3">
                     {completedJourneys.map((journey) => {
                       const elements = journey.elements || []
 
                       return (
                         <div
                           key={journey.name}
-                          className="rounded-[8px] border border-[#ecf2f5] bg-white p-5 cursor-pointer hover:border-brand-200 hover:shadow-sm transition-all"
+                          className="rounded-[12px] border border-[#ecf2f5] bg-white p-5 cursor-pointer hover:border-brand-200 hover:shadow-sm transition-all"
                           onClick={() => setViewingJourney(journey)}
                         >
                           <div className="flex items-start justify-between">
@@ -514,84 +543,12 @@ export default function LearningJourneysPage() {
                     {completedJourneys.length === 0 && (
                       <p className="text-sm text-muted-foreground py-4">No completed journeys yet.</p>
                     )}
-                  </TabsContent>
-                </Tabs>
+                  </div>
+                )}
               </div>
 
             </div>
           </div>
-
-          {/* ── Development Focus ──────────────────────────────────── */}
-              <div className="space-y-5">
-                <div>
-                  <h2 className="text-[20px] leading-[28px] tracking-[-0.6px] font-medium text-[#0a0a0a]">Development Focus</h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">Skills you're actively developing and areas you want to explore. This shapes recommendations across the platform.</p>
-                </div>
-
-                <div className="flex gap-4 items-start">
-                  {/* Active card */}
-                  <div className="flex-1 rounded-[8px] border border-[#ecf2f5] bg-white overflow-hidden">
-                    <div className="px-4 py-3 border-b border-[#ecf2f5] bg-white">
-                      <p className="text-sm font-semibold text-[#0a0a0a]">Active</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Skills being developed through your CPD activities and learning journeys</p>
-                    </div>
-                    {[
-                      { label: 'Ethics & Professional Responsibility', source: 'CPD', dots: 4 },
-                      { label: 'Governance & Board Effectiveness', source: 'CPD', dots: 3 },
-                      { label: 'Risk & Compliance', source: 'CPD + Journey', dots: 3 },
-                      { label: 'Regulatory Change Management', source: 'Journey', dots: 2 },
-                      { label: 'AML/CTF', source: 'Journey', dots: 1 },
-                      { label: 'ESG Reporting', source: 'Journey', dots: 1 },
-                    ].map((skill, i, arr) => (
-                      <div key={skill.label} className={`grid grid-cols-[1fr_80px] gap-0 items-center px-4 py-2.5 ${i < arr.length - 1 ? 'border-b border-[#f5f5f5]' : ''}`}>
-                        <span className="text-sm font-medium text-[#0a0a0a] truncate pr-2">{skill.label}</span>
-                        <div className="flex items-center justify-end gap-[3px]">
-                          {Array.from({ length: MAX_DOTS }).map((_, d) => (
-                            <span key={d} className={`size-2 rounded-full ${d < skill.dots ? 'bg-brand-600' : 'bg-[#e5e7eb]'}`} />
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Interests card */}
-                  <div className="flex-1 rounded-[8px] border border-[#ecf2f5] bg-white overflow-hidden">
-                    <div className="px-4 py-3 border-b border-[#ecf2f5] bg-white flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-[#0a0a0a]">Interests</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Areas you want to develop. Adding here influences recommendations across the system.</p>
-                      </div>
-                      <button className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0 ml-3" onClick={() => setShowAddFocus(true)}>
-                        <Plus className="size-3.5" /> Add
-                      </button>
-                    </div>
-                    {personalFocus.map((skill, i) => (
-                      <div key={skill.label} className={`group grid grid-cols-[1fr_60px_30px] gap-0 items-center px-4 py-2.5 ${i < personalFocus.length - 1 ? 'border-b border-[#f5f5f5]' : ''}`}>
-                        <span className="text-sm font-medium text-[#0a0a0a] truncate pr-2">{skill.label}</span>
-                        <div className="flex items-center justify-center gap-[3px]">
-                          {Array.from({ length: MAX_DOTS }).map((_, d) => (
-                            <span key={d} className={`size-2 rounded-full ${d < skill.dots ? 'bg-purple-500' : 'bg-[#e5e7eb]'}`} />
-                          ))}
-                        </div>
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => setPersonalFocus(prev => prev.filter(s => s.label !== skill.label))}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
-                          >
-                            <X className="size-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    {personalFocus.length === 0 && (
-                      <div className="px-4 py-4 text-center">
-                        <p className="text-sm text-muted-foreground">Add areas of interest to get personalised suggestions.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-              </div>
 
               {/* ── AI Suggested For You ────────────────────────────── */}
               {aiSuggested.length > 0 && (

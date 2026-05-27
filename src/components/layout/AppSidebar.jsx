@@ -22,6 +22,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { GetStartedWidget } from '@/components/launch/GetStartedWidget'
+import { CoreStatusCard } from './CoreStatusCard'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,8 +45,7 @@ import { IconLightbulbGlow } from '@central-icons-react/round-outlined-radius-2-
 import { IconGraduateCap } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconGraduateCap'
 import { IconSettingsGear1 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconSettingsGear1'
 import { IconTeam } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconTeam'
-import { IconAtom } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconAtom'
-import { IconBook } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconBook'
+import { IconPeopleIdCard } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconPeopleIdCard'
 
 const COMPLY_SUB_ITEMS = tenant.complySubItems
 const COMPLY_PAGES = COMPLY_SUB_ITEMS.map(i => i.page)
@@ -66,6 +66,7 @@ const WORK_SUB_ITEMS = [
   { title: 'Respond', page: 'Respond' },
   { title: 'Meet', page: 'Meet' },
   { title: 'Time & Efficiency', page: 'Time & Efficiency' },
+  { title: 'Resources', page: 'Resource Library' },
 ]
 const WORK_PAGES = WORK_SUB_ITEMS.map(i => i.page)
 
@@ -73,6 +74,7 @@ const LEARN_SUB_ITEMS = [
   { title: 'Overview', page: 'Learn' },
   { title: 'Learning Journeys', page: 'Learning Journeys' },
   { title: 'CPD Tracker', page: 'CPD Tracker' },
+  { title: 'Learning Events', page: 'Learning Events' },
   { title: 'Skills Profile', page: 'Skills Profile' },
   { title: 'Knowledge Centre', page: 'Knowledge Centre' },
 ]
@@ -81,8 +83,7 @@ const LEARN_PAGES = LEARN_SUB_ITEMS.map(i => i.page)
 const TOP_ITEMS = [
   { title: 'Home',             icon: IconHomeRoof,      page: 'Home' },
   { title: 'Insights',         icon: IconLightbulbGlow, page: 'Insights' },
-  { title: 'Resources',        icon: IconBook,         page: 'Resource Library' },
-  { title: 'Core',             icon: IconAtom,          page: 'Core',  tourKey: 'core' },
+  { title: 'Talent',           icon: IconPeopleIdCard,  page: 'Talent' },
   { title: 'Community',        icon: IconTeam,          page: 'Community' },
   { title: 'Manage',           icon: IconSettingsGear1, page: 'Admin:Organisation Profile', tourKey: 'manage' },
 ]
@@ -109,7 +110,6 @@ const PAGE_FLAG_MAP = {
   'Policies & Procedures': 'PAGE_GOVERN_POLICIES',
   'Delegations of Authority': 'PAGE_GOVERN_DELEGATIONS',
   'Company Register': 'PAGE_GOVERN_COMPANY_REGISTER',
-  'Core': 'PAGE_VAULT',
   'Resource Library': 'PAGE_RESOURCES',
   'Talent': 'PAGE_TALENT',
   'Insights': 'PAGE_INSIGHTS',
@@ -117,6 +117,7 @@ const PAGE_FLAG_MAP = {
   'Learning Journeys': 'PAGE_LEARN_JOURNEYS',
   'Knowledge Centre': 'PAGE_LEARN_KNOWLEDGE_CENTRE',
   'CPD Tracker': 'PAGE_LEARN_CPD',
+  'Learning Events': 'PAGE_LEARN_EVENTS',
   'Skills Profile': 'PAGE_LEARN_SKILLS',
   'Community': 'PAGE_COMMUNITY',
   'Integrations': 'PAGE_INTEGRATIONS',
@@ -165,7 +166,7 @@ function isPageEnabled(pageName) {
 }
 
 // Launch-demo mode hides everything except a small set of items.
-const LAUNCH_TOP_VISIBLE = new Set(['Home', 'Insights', 'Resources', 'Core', 'Manage'])
+const LAUNCH_TOP_VISIBLE = new Set(['Home', 'Insights', 'Manage'])
 const LAUNCH_CORE_VISIBLE = new Set(['Learn'])
 
 function getDemoMode() {
@@ -177,6 +178,7 @@ function getDemoMode() {
 }
 
 import { adminParentGroups } from '@/config/adminNav'
+import { PROFILE_SECTIONS } from '@/pages/profileSections'
 
 // Derive activePage name from current URL path
 function useActivePage() {
@@ -226,6 +228,7 @@ function useActivePage() {
 }
 
 const ADMIN_ORIGIN_KEY = 'ethos_admin_origin'
+const PROFILE_ORIGIN_KEY = 'ethos_profile_origin'
 
 export function AppSidebar({ onSearchClick }) {
   const navigate = useNavigate()
@@ -244,6 +247,10 @@ export function AppSidebar({ onSearchClick }) {
     if (page.startsWith('Admin:') && !location.pathname.startsWith('/admin')) {
       try { sessionStorage.setItem(ADMIN_ORIGIN_KEY, location.pathname) } catch { /* ignore */ }
     }
+    // Same idea for Profile: stash the origin so its back button returns there.
+    if (page === 'Profile' && location.pathname !== '/profile') {
+      try { sessionStorage.setItem(PROFILE_ORIGIN_KEY, location.pathname) } catch { /* ignore */ }
+    }
     navigate(path)
   }
 
@@ -256,6 +263,22 @@ export function AppSidebar({ onSearchClick }) {
       sessionStorage.removeItem(ADMIN_ORIGIN_KEY)
     } catch { /* ignore */ }
     navigate(target)
+  }
+
+  const handleProfileBack = () => {
+    if (collapsed) toggleSidebar()
+    let target = '/home'
+    try {
+      const stored = sessionStorage.getItem(PROFILE_ORIGIN_KEY)
+      if (stored && stored !== '/profile') target = stored
+      sessionStorage.removeItem(PROFILE_ORIGIN_KEY)
+    } catch { /* ignore */ }
+    navigate(target)
+  }
+
+  const handleProfileSectionClick = (key) => {
+    if (collapsed) toggleSidebar()
+    navigate(`/profile?section=${key}`)
   }
 
   // Filter nav items by feature flags + launch-demo mode
@@ -283,6 +306,9 @@ export function AppSidebar({ onSearchClick }) {
   )
 
   const isAdminMode = activePage.startsWith('Admin:')
+  const isProfileMode = location.pathname === '/profile'
+  const profileSectionParam = new URLSearchParams(location.search).get('section')
+  const activeProfileSection = PROFILE_SECTIONS.some(s => s.key === profileSectionParam) ? profileSectionParam : 'personal'
 
   const [openMenus, setOpenMenus] = useState(() => {
     const initial = {}
@@ -311,6 +337,16 @@ export function AppSidebar({ onSearchClick }) {
                 <ChevronLeft className="size-4 shrink-0" />
                 <span className="font-semibold text-sm group-data-[collapsible=icon]:hidden">Admin</span>
               </SidebarMenuButton>
+            ) : isProfileMode ? (
+              <SidebarMenuButton
+                size="lg"
+                tooltip="Back"
+                onClick={handleProfileBack}
+                className="gap-2 px-1"
+              >
+                <ChevronLeft className="size-4 shrink-0" />
+                <span className="font-semibold text-sm group-data-[collapsible=icon]:hidden">Profile & Settings</span>
+              </SidebarMenuButton>
             ) : (
               <div className="flex w-full items-center gap-2 group-data-[collapsible=icon]:justify-center">
                 <img
@@ -334,7 +370,7 @@ export function AppSidebar({ onSearchClick }) {
           </SidebarMenuItem>
         </SidebarMenu>
 
-        {!isAdminMode && (
+        {!isAdminMode && !isProfileMode && (
           <button
             type="button"
             onClick={onSearchClick}
@@ -349,7 +385,29 @@ export function AppSidebar({ onSearchClick }) {
       </SidebarHeader>
 
 
-      {isAdminMode ? (
+      {isProfileMode ? (
+        <SidebarContent>
+          <SidebarGroup className="py-1">
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0">
+                {PROFILE_SECTIONS.map(section => (
+                  <SidebarMenuItem key={section.key}>
+                    <SidebarMenuButton
+                      tooltip={section.label}
+                      isActive={activeProfileSection === section.key}
+                      onClick={() => handleProfileSectionClick(section.key)}
+                      className="gap-2.5 text-sidebar-nav-muted font-medium data-[active=true]:text-sidebar-accent-foreground"
+                    >
+                      {section.icon && <section.icon className="size-4 shrink-0 [&_path]:stroke-2" />}
+                      <span className="text-sm">{section.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      ) : isAdminMode ? (
         <>
           {/* Admin parent nav — grouped categories */}
           <SidebarContent>
@@ -475,10 +533,13 @@ export function AppSidebar({ onSearchClick }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                           tooltip={item.title}
-                          isActive={itemActive}
+                          isActive={itemActive && !(hasSubs && isOpen)}
                           onClick={() => {
-                            if (hasSubs) toggleMenu(item.title)
-                            handleNavigate(item.page ?? item.title)
+                            if (hasSubs) {
+                              toggleMenu(item.title)
+                            } else {
+                              handleNavigate(item.page ?? item.title)
+                            }
                           }}
                           data-tour={item.tourKey}
                           className={buttonClassName}
@@ -495,13 +556,13 @@ export function AppSidebar({ onSearchClick }) {
                           )}
                         </SidebarMenuButton>
                         {hasSubs && isOpen && (
-                          <SidebarMenuSub className="gap-0">
+                          <SidebarMenuSub className="gap-0 border-l-0 mx-0 pl-8 pr-0">
                             {item.subItems.map(sub => (
                               <SidebarMenuSubItem key={sub.title}>
                                 <SidebarMenuSubButton
                                   isActive={activePage === sub.page}
                                   onClick={() => handleNavigate(sub.page)}
-                                  className="text-muted-foreground/95"
+                                  className="w-full text-[13px] font-medium text-muted-foreground/95"
                                 >
                                   <span>{sub.title}</span>
                                 </SidebarMenuSubButton>
@@ -519,9 +580,16 @@ export function AppSidebar({ onSearchClick }) {
         </>
       )}
 
-      {demoMode === 'launch' && !isAdminMode && (
+      {demoMode === 'launch' && !isAdminMode && !isProfileMode && (
         <SidebarFooter className="px-3 pb-3 group-data-[collapsible=icon]:px-2">
           <GetStartedWidget />
+          <CoreStatusCard />
+        </SidebarFooter>
+      )}
+
+      {demoMode !== 'launch' && !isAdminMode && !isProfileMode && (
+        <SidebarFooter className="px-3 pb-3 group-data-[collapsible=icon]:px-2">
+          <CoreStatusCard />
         </SidebarFooter>
       )}
 

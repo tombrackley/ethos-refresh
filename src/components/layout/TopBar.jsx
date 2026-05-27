@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { PATH_TO_PAGE } from '@/lib/routes'
+import { NOTIFICATIONS } from '@/lib/notifications'
 import tenant from '@/config/tenant'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { AskEthosSparkle } from '@/components/AskEthosSparkle'
@@ -18,70 +19,9 @@ import { IconCalendar1 } from '@central-icons-react/round-outlined-radius-2-stro
 import { useSidebar } from '@/components/ui/sidebar'
 
 // Pages whose content area is plain white — the topbar should match.
-const WHITE_BG_PATHS = new Set(['/vault', '/resources'])
+const WHITE_BG_PATHS = new Set(['/vault', '/resources', '/notifications'])
 // Sections where every sub-route renders on a white shell.
 const WHITE_BG_PREFIXES = ['/home', '/control', '/comply', '/govern', '/matters', '/respond', '/meet', '/work', '/learn', '/knowledge', '/insights']
-
-const NOTIFICATIONS = [
-  {
-    id: 'welcome',
-    title: 'Welcome to Ethos',
-    body: 'Your governance, compliance, and learning platform. Use the sidebar to jump into each space and the Ask button to query Ethos directly.',
-    time: 'Just now',
-    featured: true,
-  },
-  {
-    id: 'assigned-journey',
-    sender: 'Sarah Chen',
-    title: 'Sarah Chen assigned you a Learning Journey',
-    body: '"AI Governance Fundamentals" — 6 modules, due 30 June. Starts when you open it.',
-    time: '1 hour ago',
-    noThumbnail: true,
-  },
-  {
-    id: 'audit-ready',
-    sender: 'Mark Davies',
-    title: 'Q1 2026 Audit pack ready for your review',
-    body: 'Mark Davies prepared the evidence trail across 14 controls in Comply › Audit & Evidence.',
-    time: '3 hours ago',
-    noThumbnail: true,
-  },
-  {
-    id: 'cpd-match',
-    title: 'New CPD event matches your interests',
-    body: '"Director Duties in 2026" — 2.5 points, Governance & Board Effectiveness. Tuesday at 12:00.',
-    time: 'Yesterday',
-    noThumbnail: true,
-  },
-  {
-    id: 'learn',
-    title: 'Introducing Learn',
-    body: 'Track CPD, deliver training, and grow team capability with structured learning journeys.',
-    time: '2 days ago',
-    read: true,
-  },
-  {
-    id: 'insights',
-    title: 'Introducing Insights',
-    body: 'Curated regulatory intelligence, news, and briefings tailored to your industry.',
-    time: '4 days ago',
-    read: true,
-  },
-  {
-    id: 'comply-audit',
-    title: 'New: Comply Audit & Evidence',
-    body: 'Preparing for audits just got easier. Manage evidence and audit trails from a single workspace.',
-    time: '1 week ago',
-    read: true,
-  },
-  {
-    id: 'ask-ethos',
-    title: 'Ask Ethos got smarter',
-    body: 'Better answers from your data — try the context-aware mode for more relevant responses.',
-    time: '2 weeks ago',
-    read: true,
-  },
-]
 
 function topbarBgClass(pathname) {
   if (WHITE_BG_PATHS.has(pathname)) return 'bg-white'
@@ -204,6 +144,7 @@ export function TopBar({ onLogout }) {
 }
 
 function NotificationsPopover({ onClose }) {
+  const navigate = useNavigate()
   return (
     <div className="absolute right-2 top-full mt-2 z-50 w-[420px] overflow-hidden rounded-xl border border-border bg-white shadow-lg">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -211,6 +152,7 @@ function NotificationsPopover({ onClose }) {
         <div className="flex items-center gap-1">
           <button
             type="button"
+            onClick={() => { onClose(); navigate('/notifications') }}
             className="rounded-md px-2 py-1 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             View all

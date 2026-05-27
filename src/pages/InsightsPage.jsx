@@ -24,6 +24,7 @@ import { InsightsFooter } from '@/components/insights/InsightsFooter'
 import { NEWS_DEMO_IMAGES } from '@/lib/insightsImages'
 import { cn } from '@/lib/utils'
 import { AskEthosSparkle } from '@/components/AskEthosSparkle'
+import { useAskEthos } from '@/context/useAskEthos'
 import {
   Search, Bell, ChevronRight, Play, ThumbsUp, ThumbsDown,
   Zap, TrendingUp, Minus, TrendingDown, Quote, MessageCircle,
@@ -47,6 +48,13 @@ const FOCUS = t.focusAreas ?? []
 const REGULATORY = t.regulatory ?? []
 const COMMUNITY = t.communityVoices ?? []
 const RISKS = t.emergingRisks ?? []
+
+// Right-rail "Suggested Actions" prompts — a role-level question plus the
+// curated regulatory actions from tenant config.
+const SUGGESTED_PROMPTS = [
+  'What are the emerging risks for my role?',
+  ...ACTIONS.map((a) => a.title),
+]
 
 const TABS = ['For You', 'News', 'Regulatory', 'Articles', 'Podcasts', 'Webinars', 'Community']
 
@@ -1734,7 +1742,7 @@ function CommunityCarousel({ items }) {
   const goPrev = (e) => { e.stopPropagation(); setIndex((index - 1 + total) % total) }
   const goNext = (e) => { e.stopPropagation(); setIndex((index + 1) % total) }
   return (
-    <div className="rounded-lg border border-border/40 bg-muted/20 p-4">
+    <div className="rounded-lg border border-border bg-white p-4">
       <Quote className="size-4 text-brand-300" />
       <p className="mt-2 text-base text-foreground leading-relaxed line-clamp-4 min-h-[80px]">&ldquo;{item.quote}&rdquo;</p>
       <div className="mt-1">
@@ -1777,6 +1785,7 @@ function CommunityCarousel({ items }) {
 
 export default function InsightsV3Page() {
   const navigate = useNavigate()
+  const { open: openEthos } = useAskEthos()
   const savedCount = getSavedInsights().length
   const [activeTab, setActiveTab] = useState('For You')
   const [searchQuery, setSearchQuery] = useState('')
@@ -1785,17 +1794,6 @@ export default function InsightsV3Page() {
     if (item?.id) navigate(`/insights/${item.id}`)
   }
   const [digestEnabled, setDigestEnabled] = useState(true)
-  const [pageAskOpen, setPageAskOpen] = useState(false)
-
-  // Cross-feed prompts for the side panel on the overview.
-  const pageAiSuggestions = [
-    'Summarise across focus areas',
-    'What are my emerging risks?',
-    'Upcoming deadlines',
-    'Major changes this week',
-    'What needs board attention?',
-    'Suggest reading for the week',
-  ]
 
   const today = new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -1971,13 +1969,6 @@ export default function InsightsV3Page() {
                 <WebinarsLayout sections={WEBINAR_SECTIONS} />
               )}
 
-              {activeTab !== 'News' && activeTab !== 'Regulatory' && activeTab !== 'Podcasts' && activeTab !== 'Webinars' && (
-                <div className="space-y-3">
-                  <h2 className="text-sm font-semibold text-foreground">Community Voices</h2>
-                  <CommunityCarousel items={COMMUNITY.slice(0, 5)} />
-                </div>
-              )}
-
               {activeTab !== 'News' && activeTab !== 'Regulatory' && activeTab !== 'Podcasts' && activeTab !== 'Webinars' && <Separator />}
 
               {/* Briefing Feed */}
@@ -2071,31 +2062,35 @@ export default function InsightsV3Page() {
                 </p>
               </div>
             </div>
-          </div>
 
-          <div className="sticky bottom-6 z-40 w-fit mx-auto">
-            <div className="flex items-center gap-1 rounded-full bg-white border border-border shadow-lg p-1.5">
-              <button
-                onClick={() => setPageAskOpen(o => !o)}
-                aria-label="Ask Ethos"
-                className="flex items-center gap-1.5 h-9 px-3 rounded-full text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
-              >
-                <AskEthosSparkle className="size-4" />
-                Ask Ethos
-              </button>
-            </div>
+            {/* ── Right Rail: Community Voices + Suggested Actions ── */}
+            {activeTab === 'For You' && (
+              <aside className="w-[340px] shrink-0 self-start space-y-8">
+                <div className="space-y-3">
+                  <h2 className="text-sm font-semibold text-foreground">Community Voices</h2>
+                  <CommunityCarousel items={COMMUNITY.slice(0, 5)} />
+                </div>
+                <div className="space-y-3">
+                  <h2 className="text-sm font-semibold text-foreground">Suggested Actions</h2>
+                  <div className="space-y-2">
+                    {SUGGESTED_PROMPTS.map((prompt) => (
+                      <button
+                        key={prompt}
+                        onClick={() => openEthos(prompt)}
+                        className="flex w-full items-center gap-2.5 rounded-lg bg-muted/40 px-3 py-2.5 text-left text-sm text-foreground hover:bg-muted transition-colors"
+                      >
+                        <AskEthosSparkle className="size-4 shrink-0" />
+                        <span className="truncate">{prompt}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </aside>
+            )}
           </div>
         </div>
 
       </div>
-
-      {pageAskOpen && (
-        <InsightAskPanel
-          suggestions={pageAiSuggestions}
-          onClose={() => setPageAskOpen(false)}
-          greeting="Explore insights in depth"
-        />
-      )}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AppSidebar } from '@/components/layout/AppSidebar'
@@ -54,13 +54,17 @@ import ExternalContentViewer from '@/pages/ExternalContentViewer'
 import ProfilePage from '@/pages/ProfilePage'
 import CPDTrackerPage from '@/pages/CPDTrackerPage'
 import CPDEventsPage from '@/pages/CPDEventsPage'
+import LearningEventsPage from '@/pages/LearningEventsPage'
 import LearningJourneysPage from '@/pages/LearningJourneysPage'
 import KnowledgeCentrePage from '@/pages/KnowledgeCentrePage'
 import KnowledgeCentreDemoPage from '@/pages/KnowledgeCentreDemoPage'
 import SkillsProfilePage from '@/pages/SkillsProfilePage'
+import SkillsProfilePageV2 from '@/pages/SkillsProfilePageV2'
+import SkillsProfilePageV3 from '@/pages/SkillsProfilePageV3'
 import InsightsPage from '@/pages/InsightsPage'
 import InsightDetailPage from '@/pages/InsightDetailPage'
 import CommunityPage from '@/pages/CommunityPage'
+import NotificationsPage from '@/pages/NotificationsPage'
 import FeatureFlagManagerPage from '@/pages/FeatureFlagManagerPage'
 
 function PlaceholderPage({ title }) {
@@ -84,9 +88,11 @@ function getDefaultPath() {
 
 function AppLayout({ onLogout }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const [selectedMatter, setSelectedMatter] = useState(null)
   const [commandOpen, setCommandOpen] = useState(false)
   const defaultPath = getDefaultPath()
+  const hideTopBar = location.pathname.startsWith('/admin') || location.pathname === '/profile'
 
   function navigateToMatter(matter) {
     setSelectedMatter(matter)
@@ -102,9 +108,9 @@ function AppLayout({ onLogout }) {
           <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
           <AskEthosDrawer />
 
-          <div className="flex flex-1 flex-col overflow-hidden p-2">
+          <div className="flex flex-1 flex-col overflow-hidden py-2 pr-2 pl-px">
             <main className="flex-1 overflow-hidden flex flex-col rounded-lg bg-background border border-[#E2E8F0]">
-              <TopBar onLogout={onLogout} />
+              {!hideTopBar && <TopBar onLogout={onLogout} />}
               <div className="flex-1 overflow-hidden flex">
               <Routes>
                 <Route path="/" element={<Navigate to="/home" replace />} />
@@ -178,9 +184,14 @@ function AppLayout({ onLogout }) {
                 {gatedRoute('/insights/:id', 'PAGE_INSIGHTS', <InsightDetailPage />)}
                 {gatedRoute('/learn', 'PAGE_LEARN', <LearnPage />)}
                 {gatedRoute('/learn/journeys', 'PAGE_LEARN_JOURNEYS', <LearningJourneysPage />)}
+                {gatedRoute('/learn/events', 'PAGE_LEARN_EVENTS', <LearningEventsPage />)}
                 {gatedRoute('/learn/cpd', 'PAGE_LEARN_CPD', <CPDTrackerPage />)}
                 {gatedRoute('/learn/cpd/events', 'PAGE_LEARN_CPD_EVENTS', <CPDEventsPage />)}
                 {gatedRoute('/learn/skills', 'PAGE_LEARN_SKILLS', <SkillsProfilePage />)}
+                <Route path="/learn/skills/empty" element={<SkillsProfilePage empty />} />
+                <Route path="/learn/skills/unconfirmed" element={<SkillsProfilePage unconfirmed />} />
+                <Route path="/learn/skills/v2" element={<SkillsProfilePageV2 />} />
+                <Route path="/learn/skills/v3" element={<SkillsProfilePageV3 />} />
                 {gatedRoute('/knowledge', 'PAGE_LEARN_KNOWLEDGE_CENTRE', <KnowledgeCentrePage />)}
                 {isEnabled('PAGE_LEARN_KNOWLEDGE_CENTRE') && (
                   <Route path="/knowledge-demo" element={<KnowledgeCentreDemoPage />} />
@@ -189,6 +200,7 @@ function AppLayout({ onLogout }) {
                 {gatedRoute('/integrations', 'PAGE_INTEGRATIONS', <IntegrationsPage />)}
                 {gatedRoute('/settings', 'PAGE_SETTINGS', <PlaceholderPage title="Settings" />)}
                 {gatedRoute('/profile', 'PAGE_PROFILE', <ProfilePage />)}
+                <Route path="/notifications" element={<NotificationsPage />} />
                 {isEnabled('PAGE_ADMIN') && <Route path="/admin/*" element={<AdminPage />} />}
                 <Route path="/flags" element={<FeatureFlagManagerPage />} />
                 <Route path="/view/:contentId" element={<ExternalContentViewer />} />

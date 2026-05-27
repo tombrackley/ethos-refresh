@@ -895,15 +895,15 @@ const configs = {
           { skill: 'Whistleblower Legislation', importance: 'Medium', currentLevel: 'Intermediate', targetLevel: 'Proficient', gap: 30 },
         ],
         upcomingWorkshops: [
-          { id: 1, title: 'ESG Disclosure & Reporting Standards', month: 'MAR', day: '12', year: '2026', time: '10:00 AM – 12:30 PM', location: 'Online', provider: 'Ethika Academy', type: 'Workshop', cpdHours: 2.5, cpdPoints: 2.5, category: 'Risk & Compliance', categories: ['Risk & Compliance', 'Governance & Board Effectiveness'], regimes: ['law-society-nsw', 'aicd'], isEthika: true, capacity: 40, registered: 32, waitlistCount: 0, status: 'Booked', description: 'Learn the latest ESG disclosure frameworks including ISSB standards, ASRS requirements, and practical approaches to sustainability reporting for Australian organisations.' },
-          { id: 2, title: 'Privacy Act Amendments — What You Need to Know', month: 'MAR', day: '19', year: '2026', time: '2:00 PM – 4:00 PM', location: 'Board Room 2', provider: 'Internal', type: 'Seminar', cpdHours: 2, cpdPoints: 2, category: 'Legal & Regulatory', categories: ['Legal & Regulatory'], regimes: ['law-society-nsw'], isEthika: false, status: 'Booked', description: 'Internal briefing on the 2026 Privacy Act amendments covering enhanced enforcement powers, the new privacy tort, and updated APP requirements for data handling.', externalDisclaimer: 'This event is organised and managed by your organisation. Ethika is not responsible for event content, scheduling, or attendance tracking.' },
-          { id: 3, title: 'Advanced Contract Negotiation', month: 'APR', day: '03', year: '2026', time: '9:00 AM – 1:00 PM', location: 'Sydney CBD', provider: 'Law Society NSW', type: 'Workshop', cpdHours: 4, cpdPoints: 4, category: 'Professional Skills', categories: ['Professional Skills', 'Substantive Law'], regimes: ['law-society-nsw'], isEthika: false, status: 'Waitlisted', description: 'Hands-on workshop covering advanced negotiation strategies, BATNA analysis, multi-party negotiations, and dealing with complex commercial terms.', externalDisclaimer: 'This event is organised and managed by Law Society NSW. Ethika is not responsible for event content, scheduling, or attendance tracking.' },
+          { id: 1, title: 'ESG Disclosure & Reporting Standards', month: 'MAR', day: '12', year: '2026', time: '10:00 AM – 12:30 PM', location: 'Online', provider: 'Ethika Academy', type: 'Workshop', price: 0, cpdHours: 2.5, cpdPoints: 2.5, category: 'Risk & Compliance', categories: ['Risk & Compliance', 'Governance & Board Effectiveness'], regimes: ['law-society-nsw', 'aicd'], isEthika: true, capacity: 40, registered: 32, waitlistCount: 0, status: 'Booked', description: 'Learn the latest ESG disclosure frameworks including ISSB standards, ASRS requirements, and practical approaches to sustainability reporting for Australian organisations.' },
+          { id: 2, title: 'Privacy Act Amendments — What You Need to Know', month: 'MAR', day: '19', year: '2026', time: '2:00 PM – 4:00 PM', location: 'Board Room 2', provider: 'Internal', type: 'Seminar', price: 0, cpdHours: 2, cpdPoints: 2, category: 'Legal & Regulatory', categories: ['Legal & Regulatory'], regimes: ['law-society-nsw'], isEthika: false, status: 'Booked', description: 'Internal briefing on the 2026 Privacy Act amendments covering enhanced enforcement powers, the new privacy tort, and updated APP requirements for data handling.', externalDisclaimer: 'This event is organised and managed by your organisation. Ethika is not responsible for event content, scheduling, or attendance tracking.' },
+          { id: 3, title: 'Advanced Contract Negotiation', month: 'APR', day: '03', year: '2026', time: '9:00 AM – 1:00 PM', location: 'Sydney CBD', provider: 'Law Society NSW', type: 'Workshop', price: 145, cpdHours: 4, cpdPoints: 4, category: 'Professional Skills', categories: ['Professional Skills', 'Substantive Law'], regimes: ['law-society-nsw'], isEthika: false, status: 'Waitlisted', description: 'Hands-on workshop covering advanced negotiation strategies, BATNA analysis, multi-party negotiations, and dealing with complex commercial terms.', externalDisclaimer: 'This event is organised and managed by Law Society NSW. Ethika is not responsible for event content, scheduling, or attendance tracking.' },
         ],
         suggestedWorkshops: [
-          { id: 4, title: 'AI in Legal Practice — Tools & Ethics', month: 'APR', day: '08', year: '2026', time: '9:00 AM – 12:00 PM', location: 'Online', provider: 'Ethika Academy', type: 'Workshop', cpdHours: 3, cpdPoints: 3, category: 'Substantive Law', categories: ['Substantive Law', 'Ethics & Professional Responsibility'], regimes: ['law-society-nsw', 'aicd'], isEthika: true, capacity: 30, registered: 30, waitlistCount: 4, relevance: 'Addresses AI & Legal Technology skills gap', matchScore: 95, description: 'Explore the practical applications of AI in legal work including document review, contract analysis, and research automation, alongside ethical considerations and responsible use frameworks.' },
-          { id: 5, title: 'Modern Slavery & Supply Chain Due Diligence', month: 'APR', day: '16', year: '2026', time: '1:00 PM – 3:00 PM', location: 'Board Room 1', provider: 'Law Society NSW', type: 'Seminar', cpdHours: 2, cpdPoints: 2, category: 'Ethics & Professional Responsibility', categories: ['Ethics & Professional Responsibility', 'Risk & Compliance'], regimes: ['law-society-nsw'], isEthika: false, registrationUrl: 'https://www.lawsociety.com.au/cpd/events/modern-slavery-due-diligence', relevance: 'Supports ESG & Sustainability focus area', matchScore: 88, description: 'Understand Modern Slavery Act reporting obligations, supply chain risk assessment methodologies, and practical due diligence frameworks for identifying and addressing forced labour risks.', externalDisclaimer: 'This event is organised and managed by Law Society NSW. Ethika is not responsible for event content, scheduling, or attendance tracking.' },
-          { id: 6, title: 'Cross-border Data Transfer Masterclass', month: 'MAY', day: '02', year: '2026', time: '10:00 AM – 1:30 PM', location: 'Sydney CBD', provider: 'International Bar Assoc.', type: 'Workshop', cpdHours: 3.5, cpdPoints: 3.5, category: 'Legal & Regulatory', categories: ['Legal & Regulatory'], regimes: ['law-society-nsw'], isEthika: false, relevance: 'Directly addresses Cross-border Data Transfers gap', matchScore: 92, description: 'Deep dive into cross-border data transfer mechanisms including standard contractual clauses, binding corporate rules, and navigating the evolving landscape of international data protection regulations.', externalDisclaimer: 'This event is organised and managed by International Bar Association. Ethika is not responsible for event content, scheduling, or attendance tracking.' },
-          { id: 7, title: 'Effective Board Reporting for Lawyers', month: 'MAY', day: '14', year: '2026', time: '12:30 PM – 1:30 PM', location: 'Board Room 2', provider: 'Internal', type: 'Lunch & Learn', cpdHours: 1, cpdPoints: 1, category: 'Governance & Board Effectiveness', categories: ['Governance & Board Effectiveness'], regimes: ['aicd'], isEthika: false, relevance: 'Builds on Board Governance Fundamentals', matchScore: 70, description: 'Practical session on preparing concise, decision-ready board papers and legal updates that drive effective governance outcomes.', externalDisclaimer: 'This event is organised internally by your organisation. Ethika is not responsible for event content, scheduling, or attendance tracking.' },
+          { id: 4, title: 'AI in Legal Practice — Tools & Ethics', month: 'APR', day: '08', year: '2026', time: '9:00 AM – 12:00 PM', location: 'Online', provider: 'Ethika Academy', type: 'Workshop', price: 0, cpdHours: 3, cpdPoints: 3, category: 'Substantive Law', categories: ['Substantive Law', 'Ethics & Professional Responsibility'], regimes: ['law-society-nsw', 'aicd'], isEthika: true, capacity: 30, registered: 30, waitlistCount: 4, relevance: 'Addresses AI & Legal Technology skills gap', matchScore: 95, description: 'Explore the practical applications of AI in legal work including document review, contract analysis, and research automation, alongside ethical considerations and responsible use frameworks.' },
+          { id: 5, title: 'Modern Slavery & Supply Chain Due Diligence', month: 'APR', day: '16', year: '2026', time: '1:00 PM – 3:00 PM', location: 'Board Room 1', provider: 'Law Society NSW', type: 'Seminar', price: 95, cpdHours: 2, cpdPoints: 2, category: 'Ethics & Professional Responsibility', categories: ['Ethics & Professional Responsibility', 'Risk & Compliance'], regimes: ['law-society-nsw'], isEthika: false, registrationUrl: 'https://www.lawsociety.com.au/cpd/events/modern-slavery-due-diligence', relevance: 'Supports ESG & Sustainability focus area', matchScore: 88, description: 'Understand Modern Slavery Act reporting obligations, supply chain risk assessment methodologies, and practical due diligence frameworks for identifying and addressing forced labour risks.', externalDisclaimer: 'This event is organised and managed by Law Society NSW. Ethika is not responsible for event content, scheduling, or attendance tracking.' },
+          { id: 6, title: 'Cross-border Data Transfer Masterclass', month: 'MAY', day: '02', year: '2026', time: '10:00 AM – 1:30 PM', location: 'Sydney CBD', provider: 'International Bar Assoc.', type: 'Workshop', price: 250, cpdHours: 3.5, cpdPoints: 3.5, category: 'Legal & Regulatory', categories: ['Legal & Regulatory'], regimes: ['law-society-nsw'], isEthika: false, relevance: 'Directly addresses Cross-border Data Transfers gap', matchScore: 92, description: 'Deep dive into cross-border data transfer mechanisms including standard contractual clauses, binding corporate rules, and navigating the evolving landscape of international data protection regulations.', externalDisclaimer: 'This event is organised and managed by International Bar Association. Ethika is not responsible for event content, scheduling, or attendance tracking.' },
+          { id: 7, title: 'Effective Board Reporting for Lawyers', month: 'MAY', day: '14', year: '2026', time: '12:30 PM – 1:30 PM', location: 'Board Room 2', provider: 'Internal', type: 'Lunch & Learn', price: 0, cpdHours: 1, cpdPoints: 1, category: 'Governance & Board Effectiveness', categories: ['Governance & Board Effectiveness'], regimes: ['aicd'], isEthika: false, relevance: 'Builds on Board Governance Fundamentals', matchScore: 70, description: 'Practical session on preparing concise, decision-ready board papers and legal updates that drive effective governance outcomes.', externalDisclaimer: 'This event is organised internally by your organisation. Ethika is not responsible for event content, scheduling, or attendance tracking.' },
         ],
         aiSummary: [
           'You have completed 18.5 of 25 required CPD points (74%) with 4 months remaining — on track to meet the June 30 deadline.',
@@ -984,64 +984,64 @@ const configs = {
           evidence: {
             sk1: {
               sources: [
-                { signal: 'Course Completion', detail: 'Ethics & Professional Responsibility — Advanced (95%)', weight: 'High' },
-                { signal: 'Scenario Assessment', detail: 'Scored 88/100 on ethical dilemma scenarios', weight: 'High' },
-                { signal: 'Work Signal', detail: '12 ethics-related matters handled in last 6 months', weight: 'Medium' },
+                { signal: 'Course Completion', detail: 'Ethics & Professional Responsibility — Advanced', date: 'Jan 2026', score: '95%' },
+                { signal: 'Scenario Assessment', detail: 'Ethical dilemma scenarios', date: 'Jan 2026', score: '88/100' },
+                { signal: 'Work Signal', detail: '12 ethics-related matters handled in last 6 months', date: 'Dec 2025' },
               ],
               cpdBodies: ['Law Society NSW', 'AICD'],
               recommendedAction: 'Maintain proficiency — consider mentoring junior staff on ethical decision-making frameworks.',
             },
             sk2: {
               sources: [
-                { signal: 'Course Completion', detail: 'AML/CTF Certification — Passed (92%)', weight: 'High' },
-                { signal: 'Work Signal', detail: '8 compliance reviews completed in last quarter', weight: 'Medium' },
-                { signal: 'Scenario Assessment', detail: 'Scored 85/100 on suspicious transaction identification', weight: 'High' },
+                { signal: 'Course Completion', detail: 'AML/CTF Certification — Passed', date: 'Jan 2026', score: '92%' },
+                { signal: 'Work Signal', detail: '8 compliance reviews completed in last quarter', date: 'Dec 2025' },
+                { signal: 'Scenario Assessment', detail: 'Suspicious transaction identification', date: 'Jan 2026', score: '85/100' },
               ],
               cpdBodies: ['Law Society NSW', 'AUSTRAC'],
               recommendedAction: 'Maintain certification currency — next renewal due Aug 2026.',
             },
             sk3: {
               sources: [
-                { signal: 'Course Completion', detail: 'Board Governance Fundamentals — Complete (78%)', weight: 'Medium' },
-                { signal: 'Scenario Assessment', detail: 'Scored 62/100 on director duties scenarios', weight: 'Medium' },
+                { signal: 'Course Completion', detail: 'Board Governance Fundamentals — Complete', date: 'Dec 2025', score: '78%' },
+                { signal: 'Scenario Assessment', detail: 'Director duties scenarios', date: 'Dec 2025', score: '62/100' },
               ],
               cpdBodies: ['AICD'],
               recommendedAction: 'Complete Board Governance Advanced module to reach target level.',
             },
             sk4: {
               sources: [
-                { signal: 'Course Completion', detail: 'Regulatory Frameworks Foundations — Complete (80%)', weight: 'Medium' },
-                { signal: 'Work Signal', detail: '5 regulatory change assessments performed this year', weight: 'Medium' },
+                { signal: 'Course Completion', detail: 'Regulatory Frameworks Foundations — Complete', date: 'Aug 2025', score: '80%' },
+                { signal: 'Work Signal', detail: '5 regulatory change assessments performed this year', date: 'Feb 2026' },
               ],
               cpdBodies: ['Law Society NSW'],
               recommendedAction: 'Attend upcoming Regulatory Change Workshop (Mar 2026) for additional CPD.',
             },
             sk5: {
               sources: [
-                { signal: 'Course Completion', detail: 'Contract Drafting Masterclass — Certified (90%)', weight: 'High' },
-                { signal: 'Work Signal', detail: '22 contracts drafted or reviewed in last 6 months', weight: 'High' },
+                { signal: 'Course Completion', detail: 'Contract Drafting Masterclass — Certified', date: 'Nov 2025', score: '90%' },
+                { signal: 'Work Signal', detail: '22 contracts drafted or reviewed in last 6 months', date: 'Nov 2025' },
               ],
               cpdBodies: ['Law Society NSW'],
               recommendedAction: 'Advanced proficiency achieved — share negotiation frameworks with team.',
             },
             sk6: {
               sources: [
-                { signal: 'Course Completion', detail: 'Privacy Act Essentials — In Progress (60%)', weight: 'Medium' },
-                { signal: 'Self-Assessment', detail: 'Self-rated intermediate on GDPR cross-border concepts', weight: 'Low' },
+                { signal: 'Course Completion', detail: 'Privacy Act Essentials — In Progress', date: 'Feb 2026', score: '60%' },
+                { signal: 'Self-Assessment', detail: 'Self-rated intermediate on GDPR cross-border concepts', date: 'Feb 2026' },
               ],
               cpdBodies: ['OAIC', 'IAPP'],
               recommendedAction: 'Enrol in Cross-border Data Transfer Masterclass (95% match).',
             },
             sk7: {
               sources: [
-                { signal: 'Work Signal', detail: 'Limited engagement — 1 ESG-related matter in last 12 months', weight: 'Low' },
+                { signal: 'Work Signal', detail: 'Limited engagement — 1 ESG-related matter in last 12 months', date: 'Oct 2025' },
               ],
               cpdBodies: [],
               recommendedAction: 'Critical gap — enrol in ESG Disclosure workshop on Mar 12.',
             },
             sk8: {
               sources: [
-                { signal: 'Course Completion', detail: 'AI Tools for Legal Professionals — Introductory (45%)', weight: 'Low' },
+                { signal: 'Course Completion', detail: 'AI Tools for Legal Professionals — Introductory', date: 'Sep 2025', score: '45%' },
               ],
               cpdBodies: [],
               recommendedAction: 'Growing requirement — start AI in Legal Practice workshop (4 CPD points).',

@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skills — simple & logical solutions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --fg: #0a0a0a;
+      --muted: #5f6776;
+      --soft: #e2e8f0;
+      --bg: #ffffff;
+      --bg-soft: #f5f7fa;
+      --brand: #153e40;
+      --brand-soft: #dffff2;
+      --brand-border: #77afa6;
+      --signal: #2563eb;
+      --signal-soft: #eff6ff;
+      --rating: #ca8a04;
+      --rating-soft: #fef9c3;
+      --warn-soft: #fef3c7;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 80px 32px 120px;
+    }
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 12px;
+    }
+    h1 {
+      font-size: 40px;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      font-weight: 600;
+      margin: 0 0 16px;
+    }
+    .lede {
+      font-size: 18px;
+      line-height: 1.55;
+      color: var(--muted);
+      margin: 0 0 56px;
+    }
+    h2 {
+      font-size: 22px;
+      letter-spacing: -0.015em;
+      font-weight: 600;
+      margin: 56px 0 8px;
+    }
+    h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 24px 0 8px;
+    }
+    .step-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin: 0 0 4px;
+    }
+    p { margin: 0 0 16px; color: var(--fg); }
+    p.lead { color: var(--muted); margin-top: -4px; margin-bottom: 24px; }
+    ul, ol { margin: 0 0 16px; padding-left: 22px; }
+    li { margin-bottom: 8px; }
+    li::marker { color: var(--muted); }
+    em { color: var(--brand); font-style: normal; font-weight: 500; }
+    strong { font-weight: 600; }
+    hr {
+      border: none;
+      border-top: 1px solid var(--soft);
+      margin: 0;
+    }
+
+    /* Diagrams */
+    .diagram {
+      background: var(--bg-soft);
+      border-radius: 16px;
+      padding: 32px 24px;
+      margin: 24px 0;
+    }
+    .diagram-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .diagram-row:last-child { margin-bottom: 0; }
+    .diagram-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .pill {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      background: white;
+      border: 1px solid var(--soft);
+      color: var(--fg);
+      min-width: 0;
+      text-align: left;
+    }
+    .pill .pill-sub {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .pill.canonical {
+      background: var(--brand);
+      color: white;
+      border-color: var(--brand);
+    }
+    .pill.canonical .pill-sub {
+      color: rgba(255,255,255,0.7);
+    }
+    .pill.signal {
+      background: var(--signal-soft);
+      border-color: #bfdbfe;
+      color: #1e3a8a;
+    }
+    .pill.signal .pill-sub {
+      color: rgba(30, 58, 138, 0.6);
+    }
+    .pill.rating {
+      background: var(--rating-soft);
+      border-color: #fde047;
+      color: #713f12;
+    }
+    .pill.rating .pill-sub {
+      color: rgba(113, 63, 18, 0.6);
+    }
+    .pill.aggregator {
+      background: white;
+      border: 1.5px dashed #94a3b8;
+      color: var(--muted);
+      font-style: italic;
+    }
+    .arrows {
+      text-align: center;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1;
+      margin: 6px 0 12px;
+      letter-spacing: 0.3em;
+    }
+    .arrow-label {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: -8px;
+      margin-bottom: 12px;
+      font-style: italic;
+    }
+
+    /* Three-lane layout for the end-to-end loop */
+    .lanes {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin: 24px 0;
+    }
+    .lane {
+      background: var(--bg-soft);
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .lane .lane-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin-bottom: 10px;
+    }
+    .lane ul { margin: 0; padding-left: 18px; }
+    .lane li { font-size: 13px; color: var(--fg); margin-bottom: 6px; }
+    .lane li::marker { color: var(--muted); }
+
+    /* Callout */
+    .callout {
+      background: var(--brand-soft);
+      border: 1px solid var(--brand-border);
+      border-radius: 16px;
+      padding: 22px 26px;
+      margin: 32px 0;
+    }
+    .callout h3 {
+      margin-top: 0;
+      color: var(--brand);
+    }
+    .callout p:last-child { margin-bottom: 0; }
+
+    /* Authority/source table */
+    .authority-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 16px 0 32px;
+      font-size: 14px;
+    }
+    .authority-table th, .authority-table td {
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--soft);
+    }
+    .authority-table th {
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--bg-soft);
+      border-bottom-color: var(--soft);
+    }
+    .authority-table th:first-child { border-top-left-radius: 10px; }
+    .authority-table th:last-child { border-top-right-radius: 10px; }
+    .authority-table tr:last-child td { border-bottom: none; }
+    .authority-table tr:last-child td:first-child { border-bottom-left-radius: 10px; }
+    .authority-table tr:last-child td:last-child { border-bottom-right-radius: 10px; }
+    .authority-table tbody tr:nth-child(even) { background: rgba(245, 247, 250, 0.5); }
+    .authority-table td:first-child {
+      font-weight: 600;
+      color: var(--fg);
+      white-space: nowrap;
+    }
+
+    @media (max-width: 720px) {
+      .lanes { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 18mm 16mm 18mm 16mm;
+      }
+      html, body {
+        background: #ffffff !important;
+        color: #0a0a0a !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color-adjust: exact;
+      }
+      .page {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      h1 { font-size: 28px; line-height: 1.15; }
+      h2 { font-size: 18px; margin-top: 28px; margin-bottom: 6px; }
+      h3 { font-size: 14px; margin-top: 16px; }
+      .lede { font-size: 15px; margin-bottom: 28px; }
+      p, li { font-size: 12.5px; line-height: 1.5; }
+      .diagram, .lane, .callout, .authority-table tr, .authority-table {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+      .callout {
+        background: #dffff2 !important;
+        border-color: #77afa6 !important;
+      }
+      .pill.canonical {
+        background: #153e40 !important;
+        color: #ffffff !important;
+      }
+      .pill.signal {
+        background: #eff6ff !important;
+        border-color: #bfdbfe !important;
+      }
+      .pill.rating {
+        background: #fef9c3 !important;
+        border-color: #fde047 !important;
+      }
+      .diagram, .lane, .authority-table th, .authority-table tbody tr:nth-child(even) {
+        background: #f5f7fa !important;
+      }
+      .pill { background: #ffffff !important; }
+      a { text-decoration: none; color: inherit; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <p class="eyebrow">Reference</p>
+    <h1>Skills — simple &amp; logical solutions</h1>
+    <p class="lede">
+      Skills, stripped back to a human-owned model. The user manages their own skill levels with light AI assistance — the platform surfaces skills and evidence, it doesn't compute a score. CPD compliance stays a separate layer that works exactly as it does today.
+    </p>
+
+    <hr />
+
+    <!-- TWO LAYERS -->
+    <h2>1 · Two layers, kept separate</h2>
+    <p>
+      CPD and the Skills Profile answer different questions, are owned differently, and must not be conflated. CPD is rules-driven and stays exactly as it is today. The Skills Profile is human-owned and deliberately simple.
+    </p>
+
+    <div class="diagram">
+      <div class="diagram-row" style="align-items: stretch;">
+        <div class="pill signal" style="flex: 1;">
+          CPD skills · CPD Tracker
+          <span class="pill-sub" style="text-transform: none; letter-spacing: 0;">Compliance. Regime-defined categories, points, deadlines. Tracked exactly as today — this complexity is necessary because the regimes prescribe it.</span>
+        </div>
+        <div class="pill canonical" style="flex: 1;">
+          Skills Profile · Your Skills Matrix
+          <span class="pill-sub" style="text-transform: none; letter-spacing: 0;">Capability. You place each skill at Emerging / Established / Expert. Self-managed with light AI assistance — no weighting, no computed score.</span>
+        </div>
+      </div>
+      <div class="arrows">↕</div>
+      <div class="arrow-label">the only glue: a skill ↔ regime mapping, so a CPD activity can surface as <em>evidence</em> or a <em>nudge</em> on the matching profile skill</div>
+    </div>
+
+    <ul>
+      <li><strong>CPD = compliance, unchanged.</strong> Driven by external rules; the heavy structure belongs there and stays.</li>
+      <li><strong>Skills Profile = capability, user-owned.</strong> Because the user sets their own level, the measurement machinery (weights, scoring, rubrics) isn't needed.</li>
+      <li><strong>One thin connection.</strong> Completing a CPD activity credits the regime <em>and</em> shows up as supporting evidence on the mapped profile skill — it never auto-changes the level.</li>
+    </ul>
+
+    <!-- CANONICAL -->
+    <h2>2 · The canonical layer</h2>
+    <p>
+      The user sees one high-level skill. Regimes, org frameworks and roles <em>alias</em> onto it underneath — so you track <em>AI Governance</em> once, not five near-duplicates.
+    </p>
+
+    <div class="diagram">
+      <div class="diagram-label">What the user sees</div>
+      <div class="diagram-row">
+        <div class="pill">AI Governance</div>
+      </div>
+
+      <div class="arrows">↑</div>
+      <div class="diagram-label">Canonical skill (platform-owned)</div>
+      <div class="diagram-row">
+        <div class="pill canonical">
+          ai_governance
+          <span class="pill-sub">canonical</span>
+        </div>
+      </div>
+
+      <div class="arrows">↑ &nbsp; ↑ &nbsp; ↑</div>
+      <div class="diagram-label">Sources that map onto it</div>
+      <div class="diagram-row">
+        <div class="pill">AI Governance <span class="pill-sub">AICD CPD</span></div>
+        <div class="pill">Algorithmic Governance <span class="pill-sub">Law Society NSW</span></div>
+        <div class="pill">AI &amp; Emerging Tech <span class="pill-sub">Org framework</span></div>
+        <div class="pill">Tech &amp; Innovation <span class="pill-sub">Role: Partner</span></div>
+      </div>
+    </div>
+
+    <ul>
+      <li>The user's surface shows the canonical label — not 100 slightly-different keywords.</li>
+      <li>Mappings are platform-maintained — adding a new regime is a mapping exercise, not a redesign.</li>
+      <li>A logged activity fans out: it credits the CPD regime <em>and</em> surfaces as evidence on the mapped profile skill.</li>
+    </ul>
+
+    <!-- STATES -->
+    <h2>3 · How skills become yours — and the three starting points</h2>
+    <p>
+      Skills live in the platform catalog. Each user gets a <em>filtered subset</em> (their assigned skills) plus a <em>per-user record</em> — the level <strong>they</strong> set. Where a user starts depends on how much their org brought with them.
+    </p>
+
+    <div class="diagram">
+      <div class="diagram-label">Platform catalog · single source of truth</div>
+      <div class="diagram-row">
+        <span class="pill canonical">Ethics</span>
+        <span class="pill canonical">AML/CTF</span>
+        <span class="pill canonical">Governance</span>
+        <span class="pill canonical">Privacy</span>
+        <span class="pill canonical">AI Governance</span>
+        <span class="pill canonical" style="opacity: 0.6;">… more</span>
+      </div>
+      <div class="arrows">↓</div>
+      <div class="arrow-label">filtered by: org config · role expectations · CPD regimes · personal focus areas you add</div>
+      <div class="diagram-label">Your assigned skill set</div>
+      <div class="diagram-row">
+        <span class="pill">Ethics</span><span class="pill">AML/CTF</span><span class="pill">Governance</span><span class="pill">Privacy</span>
+      </div>
+    </div>
+
+    <p>Three entry states, because every org is somewhere different on the journey:</p>
+    <div class="lanes">
+      <div class="lane">
+        <p class="lane-title">Empty</p>
+        <ul>
+          <li>Org brought no skills data.</li>
+          <li>Matrix starts blank with an <strong>Upload CV</strong> prompt.</li>
+          <li>AI parses the CV and suggests skills you keep and place.</li>
+        </ul>
+      </div>
+      <div class="lane">
+        <p class="lane-title">Unconfirmed</p>
+        <ul>
+          <li>Org assigned skills (role / CV / framework).</li>
+          <li>They show <strong>pending</strong> — dashed, with ✓ confirm / ✕ reject.</li>
+          <li>Review, move to the right level, confirm. "Accept all" clears the lot.</li>
+        </ul>
+      </div>
+      <div class="lane">
+        <p class="lane-title">Established</p>
+        <ul>
+          <li>Your confirmed matrix.</li>
+          <li>Add skills any time (manually or via CV).</li>
+          <li>Nudges suggest moves as you complete activity.</li>
+        </ul>
+      </div>
+    </div>
+
+    <ul>
+      <li><strong>The skill is shared; the record is yours.</strong> "Ethics" is the same canonical concept everywhere; your level, evidence and placement are per-user.</li>
+      <li><strong>CV upload is the fast path.</strong> It's how a blank profile becomes useful in one step — Ramona's "first thing I'd do."</li>
+      <li><strong>The org can assign, the user confirms.</strong> An admin's assignment is a suggestion until the user reviews it.</li>
+    </ul>
+
+    <!-- LEVEL -->
+    <h2>4 · How a skill gets its level — you decide</h2>
+    <p>
+      The level isn't computed. The user <em>places</em> each skill into a level by self-assessment — on an honesty system — with the platform assisting, never overriding.
+    </p>
+
+    <div class="diagram">
+      <div class="diagram-label">You place the skill</div>
+      <div class="diagram-row">
+        <div class="pill">Emerging</div>
+        <div class="pill">Established</div>
+        <div class="pill rating">Expert</div>
+      </div>
+      <div class="arrow-label">drag between levels · or move via the card menu</div>
+
+      <div class="arrows">↑</div>
+      <div class="diagram-label">Light AI assistance (suggests — you confirm)</div>
+      <div class="diagram-row">
+        <div class="pill signal">CV parse <span class="pill-sub">pulls skills to place</span></div>
+        <div class="pill signal">Activity nudge <span class="pill-sub">"completed X — move up?"</span></div>
+        <div class="pill signal">Evidence <span class="pill-sub">context behind the level</span></div>
+      </div>
+    </div>
+
+    <ul>
+      <li><strong>AI suggests, the human decides.</strong> No model has final say over a level that affects pay or promotion — exactly the line Ramona drew.</li>
+      <li><strong>No weighting, no aggregation.</strong> There's no hidden score; the level is whatever the user set.</li>
+      <li><strong>Always editable.</strong> Drag it, use the ✓/✕ on a pending skill, or the card menu. You can challenge anything an admin or a nudge proposed.</li>
+    </ul>
+
+    <!-- EVIDENCE -->
+    <h2>5 · Evidence backs a level — it doesn't compute it</h2>
+    <p>
+      Each skill carries evidence: the things that justify where you've placed it. Evidence is <em>supporting context</em>, not a weighted input. It includes work done <strong>outside</strong> Ethos that the system can't see.
+    </p>
+
+    <div class="diagram">
+      <div class="diagram-label">Evidence on a skill</div>
+      <div class="diagram-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
+        <div class="pill" style="flex-direction: row; justify-content: space-between; align-items: center; gap: 12px;">
+          <span>AML/CTF Certification — Passed</span>
+          <span class="pill-sub" style="margin: 0; text-transform: none; letter-spacing: 0;">Course completion · Jan 2026 · 92%</span>
+        </div>
+        <div class="pill" style="flex-direction: row; justify-content: space-between; align-items: center; gap: 12px;">
+          <span>Suspicious transaction identification</span>
+          <span class="pill-sub" style="margin: 0; text-transform: none; letter-spacing: 0;">Scenario assessment · Jan 2026 · 85/100</span>
+        </div>
+        <div class="pill" style="flex-direction: row; justify-content: space-between; align-items: center; gap: 12px;">
+          <span>Led the Acme merger negotiation</span>
+          <span class="pill-sub" style="margin: 0; text-transform: none; letter-spacing: 0;">Self-reported · off-system</span>
+        </div>
+      </div>
+      <div class="arrow-label">row shows the title · hover for type · date · score · the user can add or remove any item</div>
+    </div>
+
+    <ul>
+      <li><strong>Sources:</strong> CPD completions, assessments and credentials (system), plus self-reported items the user adds.</li>
+      <li><strong>No weight field.</strong> Evidence informs the user's judgement; it doesn't roll into a number.</li>
+      <li><strong>User-controlled.</strong> Add evidence (including things Ethos can't observe) and remove anything stale or wrong.</li>
+    </ul>
+
+    <!-- LOOP -->
+    <h2>6 · The end-to-end loop</h2>
+    <p>
+      The platform's role is to surface, not to score. The user stays in control of the level at the end.
+    </p>
+
+    <div class="lanes">
+      <div class="lane">
+        <p class="lane-title">User does something</p>
+        <ul>
+          <li>Completes a CPD activity, assessment or credential</li>
+          <li>Uploads a CV</li>
+          <li>Does relevant work (incl. outside Ethos)</li>
+        </ul>
+      </div>
+      <div class="lane">
+        <p class="lane-title">Platform tags &amp; surfaces</p>
+        <ul>
+          <li>Maps the activity to a canonical skill</li>
+          <li>Credits the CPD regime (compliance)</li>
+          <li>Adds it as evidence on the profile skill</li>
+          <li>Optionally nudges: "move this up?"</li>
+        </ul>
+      </div>
+      <div class="lane">
+        <p class="lane-title">User decides</p>
+        <ul>
+          <li>Sets or confirms the level (Emerging / Established / Expert)</li>
+          <li>Accepts, ignores or dismisses a nudge</li>
+          <li>Adds or removes evidence</li>
+          <li>Reviews org-assigned skills</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- AUTHORITY TABLE -->
+    <h2>7 · Who owns what</h2>
+    <p>
+      If you can't point to who owns a piece of data, the page shouldn't render it. Under the human-owned model the split shifts decisively toward the user.
+    </p>
+
+    <table class="authority-table">
+      <thead>
+        <tr>
+          <th>Concept</th>
+          <th>Owner</th>
+          <th>Where it lives</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Canonical skill catalog</td>
+          <td>Ethos (platform)</td>
+          <td>Platform config</td>
+        </tr>
+        <tr>
+          <td>Skill ↔ regime / role / org aliases</td>
+          <td>Ethos + (optional) org admin</td>
+          <td>Platform config; org overrides</td>
+        </tr>
+        <tr>
+          <td>Which skills you're assigned</td>
+          <td>Org config · role · regimes · your focus areas</td>
+          <td>Filtered subset of the catalog</td>
+        </tr>
+        <tr>
+          <td><strong>Your skill level (Emerging / Established / Expert)</strong></td>
+          <td><strong>You</strong> — self-assessed (AI-suggested)</td>
+          <td>Per-user record; never system-set</td>
+        </tr>
+        <tr>
+          <td>Evidence items</td>
+          <td>System (CPD / assessment / credential) + you (self-reported)</td>
+          <td>Per-user, per-skill</td>
+        </tr>
+        <tr>
+          <td>AI assistance (CV parse, nudges)</td>
+          <td>Ethos AI</td>
+          <td>Suggestions only — never final</td>
+        </tr>
+        <tr>
+          <td>CPD compliance (regimes, points, deadlines)</td>
+          <td>Regimes</td>
+          <td>CPD Tracker — unchanged</td>
+        </tr>
+        <tr>
+          <td>Personal focus areas / added skills</td>
+          <td>You</td>
+          <td>Your matrix</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- WHAT FALLS OUT -->
+    <h2>8 · What this model deliberately leaves out</h2>
+    <p>
+      Concepts we removed because the user now owns the level — keeping them would re-introduce the complexity we set out to cut.
+    </p>
+
+    <ul>
+      <li><strong>System-computed / weighted levels.</strong> No aggregator, no per-signal weights, no hidden "score". The level is the user's call.</li>
+      <li><strong>"Request assessment" as a scorer.</strong> Removed. An assessment can <em>suggest</em> a starting point, but it doesn't set your level.</li>
+      <li><strong>Five-level scales &amp; fine granularity.</strong> Three levels is enough when a human is placing them.</li>
+      <li><strong>Role progression %.</strong> "72% to Partner" is fiction without a maintained role-skill matrix. Park it.</li>
+      <li><strong>Per-skill numeric targets, peer / industry comparisons.</strong> Out of scope until there's an authoritative source.</li>
+    </ul>
+
+    <div class="callout">
+      <h3>The test</h3>
+      <p>For any level, badge or evidence row, ask: <strong>who put it there — the user, a platform mapping, or a CPD regime?</strong> If the honest answer is "the system guessed it from weighted signals," it doesn't belong in this model. What survives is human-owned, traceable, and simple.</p>
+    </div>
+  </main>
+</body>
+</html>

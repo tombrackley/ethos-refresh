@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skills on Ethos — discussion brief</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --fg: #0a0a0a;
+      --muted: #5f6776;
+      --soft: #e2e8f0;
+      --bg: #ffffff;
+      --bg-soft: #f5f7fa;
+      --brand: #153e40;
+      --brand-soft: #dffff2;
+      --brand-border: #77afa6;
+      --accent: #2563eb;
+      --warn-soft: #fef3c7;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 80px 32px 120px;
+    }
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 12px;
+    }
+    h1 {
+      font-size: 40px;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      font-weight: 600;
+      margin: 0 0 16px;
+    }
+    .lede {
+      font-size: 18px;
+      line-height: 1.55;
+      color: var(--muted);
+      margin: 0 0 56px;
+    }
+    h2 {
+      font-size: 22px;
+      letter-spacing: -0.015em;
+      font-weight: 600;
+      margin: 56px 0 12px;
+    }
+    h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 24px 0 8px;
+      letter-spacing: 0;
+    }
+    p { margin: 0 0 16px; }
+    ul, ol { margin: 0 0 16px; padding-left: 22px; }
+    li { margin-bottom: 8px; }
+    li::marker { color: var(--muted); }
+    em { color: var(--brand); font-style: normal; font-weight: 500; }
+    strong { font-weight: 600; }
+    hr {
+      border: none;
+      border-top: 1px solid var(--soft);
+      margin: 0;
+    }
+
+    /* Core idea callout */
+    .callout {
+      background: var(--brand-soft);
+      border: 1px solid var(--brand-border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin: 24px 0;
+    }
+    .callout h3 {
+      margin-top: 0;
+      color: var(--brand);
+    }
+
+    /* Diagram */
+    .diagram {
+      background: var(--bg-soft);
+      border-radius: 16px;
+      padding: 32px;
+      margin: 24px 0;
+    }
+    .diagram-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .diagram-row:last-child { margin-bottom: 0; }
+    .diagram-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      background: white;
+      border: 1px solid var(--soft);
+      color: var(--fg);
+    }
+    .pill.canonical {
+      background: var(--brand);
+      color: white;
+      border-color: var(--brand);
+    }
+    .arrows {
+      text-align: center;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1;
+      margin: 6px 0;
+      letter-spacing: 0.3em;
+    }
+
+    /* Three surfaces */
+    .surfaces {
+      display: grid;
+      gap: 12px;
+      margin: 24px 0;
+    }
+    .surface {
+      border: 1px solid var(--soft);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .surface-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--brand);
+    }
+    .surface-detail {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .surface-detail em {
+      display: block;
+      color: var(--fg);
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    /* Guardrails */
+    .guardrails {
+      list-style: none;
+      padding: 0;
+      margin: 16px 0 0;
+    }
+    .guardrails li {
+      padding: 14px 18px;
+      border-left: 3px solid var(--brand);
+      background: var(--bg-soft);
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: var(--fg);
+    }
+    .guardrails li strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--fg);
+    }
+    .guardrails li span {
+      color: var(--muted);
+    }
+
+    /* Decisions */
+    .decisions {
+      counter-reset: decision;
+      list-style: none;
+      padding: 0;
+      margin: 16px 0 0;
+    }
+    .decisions li {
+      counter-increment: decision;
+      padding: 18px 20px 18px 56px;
+      border-radius: 12px;
+      background: var(--bg-soft);
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .decisions li::before {
+      content: counter(decision);
+      position: absolute;
+      left: 18px;
+      top: 18px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .decisions li strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .decisions li p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .footer-note {
+      margin-top: 56px;
+      padding: 20px 24px;
+      background: var(--bg-soft);
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .footer-note strong { color: var(--fg); }
+
+    @media print {
+      /* Page setup — A4 with reasonable margins */
+      @page {
+        size: A4;
+        margin: 18mm 16mm 18mm 16mm;
+      }
+
+      html, body {
+        background: #ffffff !important;
+        color: #0a0a0a !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color-adjust: exact;
+      }
+
+      .page {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* Tighten vertical rhythm for print */
+      h1 { font-size: 28px; line-height: 1.15; }
+      h2 { font-size: 18px; margin-top: 28px; margin-bottom: 8px; }
+      h3 { font-size: 14px; margin-top: 16px; }
+      .lede { font-size: 15px; margin-bottom: 28px; }
+      p, li { font-size: 12.5px; line-height: 1.5; }
+      .footer-note { font-size: 12px; }
+
+      /* Avoid orphaned sections / split cards across pages */
+      h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+      .callout, .diagram, .surface, .guardrails li, .decisions li, .footer-note {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      ul, ol { break-inside: auto; }
+
+      /* Preserve coloured backgrounds in the print/PDF output */
+      .callout {
+        background: #dffff2 !important;
+        border-color: #77afa6 !important;
+      }
+      .pill.canonical, .decisions li::before {
+        background: #153e40 !important;
+        color: #ffffff !important;
+      }
+      .pill, .surface, .footer-note, .diagram, .guardrails li, .decisions li {
+        background: #f5f7fa !important;
+      }
+      .pill { background: #ffffff !important; }
+      .guardrails li { border-left-color: #153e40 !important; }
+      em { color: #153e40 !important; }
+
+      /* Don't underline links in print */
+      a { text-decoration: none; color: inherit; }
+
+      /* Smaller diagram spacing for print */
+      .diagram { padding: 20px; }
+      .diagram-row { margin-bottom: 12px; }
+      .arrows { margin: 4px 0; font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <p class="eyebrow">Discussion brief</p>
+    <h1>Skills on Ethos</h1>
+    <p class="lede">
+      Skills sit at the intersection of three taxonomies — CPD regimes, organisational frameworks, and role expectations. Each names the same underlying concepts differently. If we model that once, the rest of the experience gets simple.
+    </p>
+
+    <hr />
+
+    <h2>The core idea</h2>
+    <p>
+      Underneath everything, the platform owns <strong>one canonical graph of skills</strong> — atomic, well-defined concepts like <em>AI governance</em>, <em>director duties</em>, <em>enterprise risk frameworks</em>. Every external label (a CPD regime competency, an org's framework, a role expectation) maps onto those canonical skills. Users and orgs never see the canonical layer. They see their own view.
+    </p>
+
+    <div class="diagram">
+      <div class="diagram-label">What the user sees</div>
+      <div class="diagram-row">
+        <span class="pill">AI Governance</span>
+      </div>
+      <div class="arrows">↑</div>
+      <div class="diagram-label">Maps to the canonical skill</div>
+      <div class="diagram-row">
+        <span class="pill canonical">canonical · ai_governance</span>
+      </div>
+      <div class="arrows">↑</div>
+      <div class="diagram-label">Aliased by every external source</div>
+      <div class="diagram-row">
+        <span class="pill">AICD: AI Governance</span>
+        <span class="pill">Org: AI &amp; Emerging Tech</span>
+        <span class="pill">State Bar: Algorithmic Governance</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h3>Why this is the unlock</h3>
+      <ul>
+        <li>Slight name differences disappear. Same concept, one entry in the user's view.</li>
+        <li>Activities credit multiple regimes automatically. Log a workshop once — the system fans it out to the user's CPD regime, the org's framework, and their role.</li>
+        <li>Adding a new regime is a mapping exercise, not a redesign.</li>
+      </ul>
+    </div>
+
+    <h2>Three surfaces, one model</h2>
+    <p>Same canonical data, three filtered views — each tuned to a different question.</p>
+
+    <div class="surfaces">
+      <div class="surface">
+        <div class="surface-label">User</div>
+        <div class="surface-detail">
+          “What am I expected to know? How am I tracking?”
+          <em>One flat list of skills. Each row shows: required by whom (regime + org + role), current level, recent activity.</em>
+        </div>
+      </div>
+      <div class="surface">
+        <div class="surface-label">Org admin</div>
+        <div class="surface-detail">
+          “Where are the gaps across my team?”
+          <em>Same skills as a heatmap. Quickly see where capability is thin and where to invest training.</em>
+        </div>
+      </div>
+      <div class="surface">
+        <div class="surface-label">Compliance</div>
+        <div class="surface-detail">
+          “Are we meeting our regime obligations?”
+          <em>Same skills scoped to a regime. Single source of truth for audits.</em>
+        </div>
+      </div>
+    </div>
+
+    <h2>Anti-complexity guardrails</h2>
+    <p>The risk in this space is over-modelling. A few non-negotiables:</p>
+
+    <ul class="guardrails">
+      <li>
+        <strong>Don't show users multiple taxonomies.</strong>
+        <span>One display label per skill, per user. Internal mappings stay internal.</span>
+      </li>
+      <li>
+        <strong>Don't make users self-tag activities.</strong>
+        <span>AI tags on log. User confirms or edits if needed.</span>
+      </li>
+      <li>
+        <strong>Don't make proficiency levels granular.</strong>
+        <span>Three states is enough: <em>Need it · Developing · Have it</em>. Beginner→Expert is too much to track, too little signal.</span>
+      </li>
+      <li>
+        <strong>Don't double-count progress visually.</strong>
+        <span>Unified progress bar. Hover or drill in for per-regime breakdown.</span>
+      </li>
+      <li>
+        <strong>Separate “must demonstrate” from “want to learn.”</strong>
+        <span>Required skills are obligations. Focus areas and learning goals are aspirations. Same page; different sections; different tone.</span>
+      </li>
+    </ul>
+
+    <h2>Concepts that need a sponsor</h2>
+    <p>
+      Some Skills concepts sound tidy in the UI but have no obvious source of truth underneath. They feel like the system <em>knows</em> something — when really the value is asserted because we typed it into a JSON file. In a prototype this is invisible; in a real product the user immediately asks "who decided that, and how do I change it?" and there's no answer. Two we hit during this round:
+    </p>
+
+    <h3>Role progression</h3>
+    <p>
+      A line saying "you're 72% of the way to Partner" implies a defined matrix of role → skill → required level, the people who maintain it, and a cross-org/cross-jurisdiction agreement on what "Partner" means. None of those exist by default. The honest options:
+    </p>
+    <ul>
+      <li><strong>Role-driven (org-defined matrices).</strong> Real but requires sustained admin work per org. Cross-org portability is hard. No org will staff this on day one.</li>
+      <li><strong>Self-set.</strong> The user declares their own target role. Soft, and indistinguishable from a Learning Goal.</li>
+      <li><strong>Drop it.</strong> Don't claim progress toward a role until there's a structure that defines what the role requires.</li>
+    </ul>
+    <p>
+      <em>Position:</em> drop until we have a story. The page shouldn't say "you're tracking toward X" if it doesn't actually know what X needs.
+    </p>
+
+    <h3>Skill targets (<code>targetLevel</code>)</h3>
+    <p>
+      "Target: Advanced" beside a skill implies someone (system, regulator, org) has decided what the user should be aiming for. They mostly haven't. The honest options:
+    </p>
+    <ul>
+      <li><strong>Role / org.</strong> Same friction as role progression — requires a maintained role-skill matrix.</li>
+      <li><strong>Regulator.</strong> Regulators prescribe <strong>hours and topics</strong>, not proficiency levels. "Be Proficient in AML" isn't how the rule reads.</li>
+      <li><strong>Self-set.</strong> User picks a target per skill. Conceptually clean but overlaps directly with Learning Goals on the Profile.</li>
+      <li><strong>Drop it.</strong> Skill has a current level, full stop. Gap-closing happens via Learn / Journeys without a numeric target.</li>
+    </ul>
+    <p>
+      <em>Position:</em> drop the target concept from Skills Profile. If we want "where do I want to get to?" framing, that's already a Learning Goal.
+    </p>
+
+    <div class="callout">
+      <h3>The pattern</h3>
+      <p>If you can't name <strong>who owns the value</strong> and <strong>where it's edited</strong>, the page shouldn't render it. A tidy-looking metric without an origin story is worse than no metric — it implies the system has authority it doesn't have. When evaluating a new piece of skills data, ask: "Where does this come from, who maintains it, and how does the user change it?" If any of those three answers is hand-wave, cut it before shipping.</p>
+    </div>
+
+    <h2>Setup is the biggest UX risk</h2>
+    <p>Most platforms collapse at the moment you have to configure a framework. The path that stays simple:</p>
+    <ul>
+      <li>Org admin picks: country, sector, primary regime(s). Platform proposes a starter skill set.</li>
+      <li>Role templates (NED, GC, Compliance Officer) come pre-mapped. Admin overrides per role if needed.</li>
+      <li>Users don't configure anything. Their skill list is derived from org + role + regime. They only pick personal <em>focus areas</em> and <em>learning goals</em> on top — the soft layer.</li>
+    </ul>
+
+    <h2>Four decisions worth making first</h2>
+
+    <ol class="decisions">
+      <li>
+        <strong>Who owns the canonical graph?</strong>
+        <p>Ethos-maintained — your IP, you map new regimes (defensible moat) — vs. AI-derived per org (less precise, less maintenance). This is the single biggest call.</p>
+      </li>
+      <li>
+        <strong>Whose label wins on screen?</strong>
+        <p>When two regimes name the same skill differently, do users see the platform's canonical name, their primary regime's name, or their org's preferred name?</p>
+      </li>
+      <li>
+        <strong>One section or two?</strong>
+        <p>Required skills (org / regime — obligation framing) and Focus areas + Learning goals (personal — aspiration framing): one combined surface or two co-located but distinct sections?</p>
+      </li>
+      <li>
+        <strong>Who owns the progression scale?</strong>
+        <p>Three sub-questions, all about authority over the rating system itself. <strong>What does each level mean?</strong> Beginner / Intermediate / Advanced needs a shared definition — without one, the scale is opinion. <strong>Who decides when someone has moved up?</strong> Self-assessment, manager sign-off, scenario engine, third-party assessor, or some combination. <strong>How do regime competencies map onto the canonical level scale?</strong> Does completing AICD's <em>Director Conduct</em> course make you Intermediate or Advanced? Until these three are answered, the level shown on a skill is just an assertion the system has no real basis for.</p>
+      </li>
+    </ol>
+
+    <div class="footer-note">
+      <strong>Starting point for the conversation:</strong> Ethos owns the canonical graph; display the user's primary regime's name as the visible label (it's what they recognise); keep obligation and aspiration as two visually-distinct sections on the same Skills page.
+    </div>
+  </main>
+</body>
+</html>

@@ -482,8 +482,8 @@ export default function LearnPage() {
     const loggedCount = elements.filter(e => learningLogs[e.id]).length
 
     return (
-      <div className="flex flex-1">
-        <div className="flex-1 bg-white px-8 pt-[30px] pb-6">
+      <div className="flex flex-1 min-h-0">
+        <div className="flex-1 overflow-y-auto bg-white px-8 pt-[30px] pb-6">
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Back */}
             <button onClick={() => setViewingJourney(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -514,8 +514,8 @@ export default function LearnPage() {
 
   // ── Main Learn Page ──
   return (
-    <div className="flex flex-1">
-      <div className="flex-1 bg-white px-8 pt-[52px] pb-6">
+    <div className="flex flex-1 min-h-0">
+      <div className="flex-1 overflow-y-auto bg-white px-8 pt-[52px] pb-6">
         <div className="max-w-[1200px] mx-auto space-y-8">
 
           <div className="flex items-end justify-between gap-4">
