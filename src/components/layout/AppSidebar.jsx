@@ -38,6 +38,7 @@ import {
   Search,
 } from 'lucide-react'
 import { IconHomeRoof } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconHomeRoof'
+import { IconDashboardMiddle } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconDashboardMiddle'
 import { IconShieldCheck3 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconShieldCheck3'
 import { IconLaw } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconLaw'
 import { IconTasks } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconTasks'
@@ -82,6 +83,7 @@ const LEARN_PAGES = LEARN_SUB_ITEMS.map(i => i.page)
 
 const TOP_ITEMS = [
   { title: 'Home',             icon: IconHomeRoof,      page: 'Home' },
+  { title: 'Control',          icon: IconDashboardMiddle, page: 'Control' },
   { title: 'Insights',         icon: IconLightbulbGlow, page: 'Insights' },
   { title: 'Talent',           icon: IconPeopleIdCard,  page: 'Talent' },
   { title: 'Community',        icon: IconTeam,          page: 'Community' },
@@ -583,7 +585,7 @@ export function AppSidebar({ onSearchClick }) {
       {demoMode === 'launch' && !isAdminMode && !isProfileMode && (
         <SidebarFooter className="px-3 pb-3 group-data-[collapsible=icon]:px-2">
           <GetStartedWidget />
-          <CoreStatusCard />
+          <CoreStatusCard baseline />
         </SidebarFooter>
       )}
 

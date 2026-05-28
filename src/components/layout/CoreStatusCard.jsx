@@ -3,14 +3,20 @@ import { IconAtom } from '@central-icons-react/round-outlined-radius-2-stroke-1.
 import { useSidebar } from '@/components/ui/sidebar'
 
 const STATUS_PREFIX = 'STATUS:'
-const STATUS_VALUE = 'EXCELLENT'
-const ACTIVE_FILES = 1432
-const STATUS_DETAIL = `${ACTIVE_FILES.toLocaleString()} files synced`
 
-export function CoreStatusCard() {
+// `baseline` is the fresh/onboarding state — Core has no documents yet, so it
+// sits at the first maturity stage (see Vault page STAGES: Baseline → Good →
+// Excellent → Supercharged across 19 baseline documents).
+const STATUS = {
+  default: { value: 'EXCELLENT', valueClass: 'text-emerald-700', detail: '1,432 files synced' },
+  baseline: { value: 'BASELINE', valueClass: 'text-amber-600', detail: '0 of 19 baseline documents' },
+}
+
+export function CoreStatusCard({ baseline = false }) {
   const navigate = useNavigate()
   const { state, toggleSidebar } = useSidebar()
   const collapsed = state === 'collapsed'
+  const status = baseline ? STATUS.baseline : STATUS.default
 
   function handleClick() {
     if (collapsed) {
@@ -50,11 +56,11 @@ export function CoreStatusCard() {
         {shimmerIcon('size-3.5')}
         <span className="font-mono text-[11px] font-semibold tracking-wider truncate">
           <span className="text-muted-foreground">{STATUS_PREFIX}</span>{' '}
-          <span className="text-emerald-700">{STATUS_VALUE}</span>
+          <span className={status.valueClass}>{status.value}</span>
         </span>
       </div>
       <p className="mt-1 text-xs text-muted-foreground leading-snug">
-        {STATUS_DETAIL}
+        {status.detail}
       </p>
     </button>
   )
