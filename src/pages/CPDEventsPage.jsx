@@ -825,8 +825,8 @@ export default function CPDEventsPage() {
   const TAB_TRIGGER_CLASS = "h-8 rounded-full text-sm px-3 py-1.5 gap-1.5 border border-transparent data-[state=active]:bg-[#153e40] data-[state=active]:text-white data-[state=active]:shadow-none data-[state=inactive]:text-[#153e40] data-[state=inactive]:bg-[#f5f5f5]"
 
   return (
-    <div className="flex flex-1 overflow-hidden bg-white">
-      <div className="flex-1 px-6 pt-8 pb-6">
+    <div className="flex flex-1 min-h-0 bg-white">
+      <div className="flex-1 overflow-y-auto px-6 pt-8 pb-6">
         <div className="max-w-7xl mx-auto space-y-6">
 
           {/* Back link */}

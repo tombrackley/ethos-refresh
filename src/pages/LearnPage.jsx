@@ -482,8 +482,8 @@ export default function LearnPage() {
     const loggedCount = elements.filter(e => learningLogs[e.id]).length
 
     return (
-      <div className="flex flex-1">
-        <div className="flex-1 px-6 pt-[60px] pb-6">
+      <div className="flex flex-1 min-h-0">
+        <div className="flex-1 overflow-y-auto bg-white px-8 pt-[30px] pb-6">
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Back */}
             <button onClick={() => setViewingJourney(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -514,23 +514,25 @@ export default function LearnPage() {
 
   // ── Main Learn Page ──
   return (
-    <div className="flex flex-1">
-      <div className="flex-1 px-6 pt-[60px] pb-6">
-        <div className="max-w-7xl mx-auto space-y-[60px]">
+    <div className="flex flex-1 min-h-0">
+      <div className="flex-1 overflow-y-auto bg-white px-8 pt-[52px] pb-6">
+        <div className="max-w-[1200px] mx-auto space-y-8">
 
-          {/* ── Hero: Header + Learning Profile ─────────────────────── */}
-          <div className="space-y-6 relative">
-          {/* Gradient background */}
-          <div className="absolute left-[calc(-50vw+50%)] right-[calc(-50vw+50%)] top-[-60px] h-[422px] bg-gradient-to-b from-[rgba(209,250,229,0.1)] to-[#F9FAFB] pointer-events-none" />
-
-          {/* ── Header ──────────────────────────────────────────────── */}
-          <div className="flex items-end justify-end relative">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h1 className="text-[28px] leading-[30px] tracking-[-1.12px] font-normal text-[#0A0A0A]">Overview</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Your CPD progress, learning journeys and capability — at a glance.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
               <Clock className="size-3.5" />
               CPD period ends {CPD_SUMMARY.periodEnd}
             </div>
           </div>
 
+          {/* ── Hero: Learning Profile ─────────────────────── */}
+          <div className="space-y-6 relative">
           {/* ── Learning Profile ─────────────────────────────────────── */}
           {(() => {
             const ds = computeDevelopmentScore(new Set(Object.keys(learningLogs)))

@@ -14,6 +14,8 @@ import tenant from '@/config/tenant'
 import { cn } from '@/lib/utils'
 import { AskEthosSparkle } from '@/components/AskEthosSparkle'
 import { ComplianceStatusBadge } from '@/components/shared/ComplianceStatusBadge'
+import { LaunchTour } from '@/components/launch/LaunchTour'
+import { useDemoMode } from '@/hooks/useDemoMode'
 
 const EXPLORE_ITEMS = [
   {
@@ -355,6 +357,8 @@ export default function HomeV3Page() {
   const firstName = tenant.user?.name?.split(' ')[0] ?? 'there'
   const [input, setInput] = useState('')
   const inputRef = useRef(null)
+  const demoMode = useDemoMode()
+  const isLaunch = demoMode === 'launch'
 
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   const [placeholderVisible, setPlaceholderVisible] = useState(true)
@@ -431,6 +435,8 @@ export default function HomeV3Page() {
 
         <LatestInsights />
       </div>
+
+      {isLaunch && <LaunchTour />}
     </div>
   )
 }

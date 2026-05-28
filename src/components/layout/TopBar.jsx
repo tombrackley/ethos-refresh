@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { PATH_TO_PAGE } from '@/lib/routes'
+import { NOTIFICATIONS } from '@/lib/notifications'
 import tenant from '@/config/tenant'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { AskEthosSparkle } from '@/components/AskEthosSparkle'
@@ -12,49 +13,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { User, Settings, UserCog, LogOut, PanelLeft, ChevronRight, X, ArrowRight } from 'lucide-react'
+import { User, Settings, UserCog, LogOut, PanelLeft, ChevronRight, X } from 'lucide-react'
 import { IconBell } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconBell'
 import { IconCalendar1 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconCalendar1'
 import { useSidebar } from '@/components/ui/sidebar'
 
 // Pages whose content area is plain white — the topbar should match.
-const WHITE_BG_PATHS = new Set(['/vault'])
+const WHITE_BG_PATHS = new Set(['/vault', '/resources', '/notifications'])
 // Sections where every sub-route renders on a white shell.
 const WHITE_BG_PREFIXES = ['/home', '/control', '/comply', '/govern', '/matters', '/respond', '/meet', '/work', '/learn', '/knowledge', '/insights']
-
-const NOTIFICATIONS = [
-  {
-    id: 'welcome',
-    title: 'Welcome to Ethos',
-    body: 'Your governance, compliance, and learning platform. Use the sidebar to jump into each space and the Ask button to query Ethos directly.',
-    time: 'Just now',
-    featured: true,
-  },
-  {
-    id: 'learn',
-    title: 'Introducing Learn',
-    body: 'Track CPD, deliver training, and grow team capability with structured learning journeys.',
-    time: '2 days ago',
-  },
-  {
-    id: 'insights',
-    title: 'Introducing Insights',
-    body: 'Curated regulatory intelligence, news, and briefings tailored to your industry.',
-    time: '4 days ago',
-  },
-  {
-    id: 'comply-audit',
-    title: 'New: Comply Audit & Evidence',
-    body: 'Preparing for audits just got easier. Manage evidence and audit trails from a single workspace.',
-    time: '1 week ago',
-  },
-  {
-    id: 'ask-ethos',
-    title: 'Ask Ethos got smarter',
-    body: 'Better answers from your data — try the context-aware mode for more relevant responses.',
-    time: '2 weeks ago',
-  },
-]
 
 function topbarBgClass(pathname) {
   if (WHITE_BG_PATHS.has(pathname)) return 'bg-white'
@@ -111,7 +78,7 @@ export function TopBar({ onLogout }) {
           className="relative inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-[0.6rem] border border-border bg-white px-2.5 h-8 text-sm font-medium text-foreground shadow-none transition-colors duration-75 hover:bg-accent hover:border-foreground/20 active:bg-accent/80 active:border-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:bg-white disabled:text-muted-foreground disabled:border-border disabled:opacity-50"
         >
           <AskEthosSparkle className="size-4" />
-          Ask Ethos
+          Ask
         </button>
         <button
           type="button"
@@ -177,6 +144,7 @@ export function TopBar({ onLogout }) {
 }
 
 function NotificationsPopover({ onClose }) {
+  const navigate = useNavigate()
   return (
     <div className="absolute right-2 top-full mt-2 z-50 w-[420px] overflow-hidden rounded-xl border border-border bg-white shadow-lg">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -184,6 +152,7 @@ function NotificationsPopover({ onClose }) {
         <div className="flex items-center gap-1">
           <button
             type="button"
+            onClick={() => { onClose(); navigate('/notifications') }}
             className="rounded-md px-2 py-1 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             View all
@@ -211,31 +180,58 @@ function NotificationsPopover({ onClose }) {
   )
 }
 
-function FeaturedNotification({ title, body, time, isLast }) {
+function NotifAvatar({ sender }) {
+  if (sender) {
+    const initials = sender.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    return (
+      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-700">
+        {initials}
+      </span>
+    )
+  }
   return (
-    <div className={`flex flex-col gap-3 p-4 ${!isLast ? 'border-b border-border' : ''}`}>
-      <div>
-        <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-        <p className="mt-1 text-sm text-slate-600 leading-relaxed">{body}</p>
+    <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-white overflow-hidden">
+      <img src={tenant.icon} alt="" className="size-4 rounded-sm" />
+    </span>
+  )
+}
+
+function UnreadDot({ visible }) {
+  return (
+    <span className={`mt-1.5 size-2 shrink-0 rounded-full ${visible ? 'bg-blue-500' : 'bg-transparent'}`} />
+  )
+}
+
+function FeaturedNotification({ sender, title, body, time, read, isLast }) {
+  return (
+    <div className={`flex gap-3 p-4 cursor-pointer transition-colors hover:bg-muted/50 ${!isLast ? 'border-b border-border' : ''}`}>
+      <NotifAvatar sender={sender} />
+      <div className="flex-1 min-w-0 flex flex-col gap-3">
+        <div>
+          <h4 className="text-sm font-semibold text-foreground">{title}</h4>
+          <p className="mt-1 text-sm text-slate-600 leading-relaxed">{body}</p>
+        </div>
+        <div className="aspect-[16/9] w-full rounded-lg bg-slate-100" />
+        <span className="text-xs text-muted-foreground">{time}</span>
       </div>
-      <div className="aspect-[16/9] w-full rounded-lg bg-slate-100" />
-      <span className="text-xs text-muted-foreground">{time}</span>
+      <UnreadDot visible={!read} />
     </div>
   )
 }
 
-function CompactNotification({ title, body, time, isLast }) {
+function CompactNotification({ sender, title, body, time, read, isLast, noThumbnail }) {
   return (
-    <div className={`flex gap-3 p-4 ${!isLast ? 'border-b border-border' : ''}`}>
+    <div className={`flex gap-3 p-4 cursor-pointer transition-colors hover:bg-muted/50 ${!isLast ? 'border-b border-border' : ''}`}>
+      <NotifAvatar sender={sender} />
       <div className="flex-1 min-w-0">
-        <h4 className="flex items-center gap-1 text-sm font-semibold text-foreground">
-          {title}
-          <ArrowRight className="size-3.5 text-muted-foreground" />
-        </h4>
+        <h4 className="text-sm font-semibold text-foreground">{title}</h4>
         <p className="mt-1 line-clamp-2 text-sm text-slate-600 leading-relaxed">{body}</p>
         <span className="mt-2 block text-xs text-muted-foreground">{time}</span>
       </div>
-      <div className="size-20 shrink-0 rounded-lg bg-slate-100" />
+      <div className="flex flex-col items-end gap-2 shrink-0">
+        <UnreadDot visible={!read} />
+        {!noThumbnail && <div className="size-20 rounded-lg bg-slate-100" />}
+      </div>
     </div>
   )
 }

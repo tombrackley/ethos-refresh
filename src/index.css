@@ -465,3 +465,27 @@ html {
   0%   { transform: translateX(-120%); }
   100% { transform: translateX(280%); }
 }
+
+/* Base layer: full stroke always visible in a soft turquoise */
+.core-shimmer-base {
+  color: oklch(0.78 0.12 195);
+}
+
+/* Overlay layer: bright cyan, but only a short dash is drawn at a time —
+   the dashoffset animation slides that dash along the SVG paths so the
+   highlight appears to "shimmer" along the icon's strokes. */
+.core-shimmer-flow {
+  color: oklch(0.92 0.17 185);
+  filter: drop-shadow(0 0 1.5px oklch(0.92 0.17 185 / 0.7));
+}
+.core-shimmer-flow path,
+.core-shimmer-flow circle,
+.core-shimmer-flow ellipse {
+  stroke-dasharray: 6 64;
+  animation: core-shimmer-flow 2.4s linear infinite;
+}
+
+@keyframes core-shimmer-flow {
+  0%   { stroke-dashoffset: 70; }
+  100% { stroke-dashoffset: 0; }
+}
