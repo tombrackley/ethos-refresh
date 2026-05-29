@@ -65,6 +65,7 @@ export const PATH_TO_PAGE = {
   '/admin/cpd-regimes': 'Admin:CPD Regimes',
   '/admin/cpd-events': 'Admin:CPD Events',
   '/admin/team-capability': 'Admin:Team Capability',
+  '/admin/role-profiles': 'Admin:Role Profiles',
   '/admin/knowledge-centre': 'Admin:Knowledge Centre',
 }
 

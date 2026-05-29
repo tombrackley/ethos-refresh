@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control — current implementation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --fg: #0a0a0a;
+      --muted: #5f6776;
+      --soft: #e2e8f0;
+      --bg: #ffffff;
+      --bg-soft: #f5f7fa;
+      --brand: #153e40;
+      --brand-soft: #dffff2;
+      --brand-border: #77afa6;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 72px 32px 96px;
+    }
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 12px;
+    }
+    h1 {
+      font-size: 32px;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      margin: 0 0 16px;
+    }
+    .lede {
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--muted);
+      margin: 0 0 36px;
+    }
+    h2 {
+      font-size: 18px;
+      margin: 44px 0 12px;
+      letter-spacing: -0.005em;
+    }
+    p { margin: 0 0 12px; }
+    code {
+      font-family: 'SFMono-Regular', Menlo, monospace;
+      font-size: 13px;
+      background: var(--bg-soft);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--fg);
+    }
+    hr { border: none; border-top: 1px solid var(--soft); margin: 0; }
+
+    /* Page structure sketch */
+    .structure {
+      display: grid;
+      gap: 8px;
+      margin: 12px 0 20px;
+    }
+    .structure .row {
+      display: grid;
+      gap: 8px;
+    }
+    .structure .row.two { grid-template-columns: 1fr 1fr; }
+    .structure .tile {
+      border: 1px solid var(--soft);
+      background: var(--bg-soft);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 14px;
+    }
+    .structure .tile strong {
+      display: block;
+      font-size: 14px;
+      color: var(--brand);
+      margin-bottom: 2px;
+    }
+    .structure .tile span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* Widget blocks */
+    .widget {
+      border: 1px solid var(--soft);
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin: 10px 0;
+    }
+    .widget h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: var(--brand);
+    }
+    .widget dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 4px 14px;
+      font-size: 14px;
+    }
+    .widget dt {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      padding-top: 2px;
+    }
+    .widget dd { margin: 0; }
+
+    /* Data feed table */
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      margin: 8px 0 20px;
+    }
+    .ref-table th {
+      text-align: left;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 10px 8px 0;
+      border-bottom: 1px solid var(--soft);
+      font-weight: 600;
+    }
+    .ref-table td {
+      padding: 9px 10px 9px 0;
+      border-bottom: 1px solid var(--soft);
+      vertical-align: top;
+    }
+    .ref-table td.first { font-weight: 600; color: var(--brand); white-space: nowrap; }
+    .ref-table td code { white-space: nowrap; }
+
+    .footer-note {
+      margin-top: 56px;
+      padding: 16px 20px;
+      background: var(--bg-soft);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .footer-note strong { color: var(--fg); }
+
+    @media (max-width: 640px) {
+      .structure .row.two { grid-template-columns: 1fr; }
+      .widget dl { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <p class="eyebrow">PRD · Control · Current implementation</p>
+    <h1>Control</h1>
+    <p class="lede">
+      The admin / leader surface — a cross-business performance lens covering health, matters, compliance, firm operating metrics, and team capacity.
+    </p>
+
+    <hr />
+
+    <h2>Page structure</h2>
+    <div class="structure">
+      <div class="row">
+        <div class="tile">
+          <strong>Health Snapshot</strong>
+          <span>Composite rating + four contributing signals</span>
+        </div>
+      </div>
+      <div class="row two">
+        <div class="tile">
+          <strong>Active Matters</strong>
+          <span>Live matters, ordered by urgency</span>
+        </div>
+        <div class="tile">
+          <strong>Compliance</strong>
+          <span>Obligation areas with overdue / in progress / up-to-date status</span>
+        </div>
+      </div>
+      <div class="row two">
+        <div class="tile">
+          <strong>Firm Health</strong>
+          <span>Operating metrics with target deltas</span>
+        </div>
+        <div class="tile">
+          <strong>Team Utilisation</strong>
+          <span>Per-person capacity</span>
+        </div>
+      </div>
+    </div>
+
+    <h2>Widgets</h2>
+
+    <div class="widget">
+      <h3>Health Snapshot</h3>
+      <dl>
+        <dt>Data</dt>
+        <dd>Composite org health rating, plus four contributing signals — <strong>Compliance</strong>, <strong>Risk Rating</strong>, <strong>Audit Readiness</strong>, <strong>Revenue</strong>. Each contributor shows a current value and a delta since the leader's last view.</dd>
+        <dt>Solves</dt>
+        <dd>"At a glance, how is the org doing — and which areas are moving the score up or down?"</dd>
+        <dt>Actions</dt>
+        <dd>Read only.</dd>
+      </dl>
+    </div>
+
+    <div class="widget">
+      <h3>Active Matters</h3>
+      <dl>
+        <dt>Data</dt>
+        <dd>Live matters with each matter's current status (Review / Active / On Hold). Sorted by urgency — Review first, On Hold last.</dd>
+        <dt>Solves</dt>
+        <dd>"Which matters need leadership attention right now?"</dd>
+        <dt>Actions</dt>
+        <dd>Click a matter to open its detail. Header chevron opens the full matters list.</dd>
+      </dl>
+    </div>
+
+    <div class="widget">
+      <h3>Compliance</h3>
+      <dl>
+        <dt>Data</dt>
+        <dd>Coarse-grained obligation areas (AML/KYC, CPD, Data Protection, Risk Assessments, Conflicts) with a status per area — overdue, in progress, or up to date.</dd>
+        <dt>Solves</dt>
+        <dd>"What compliance is overdue or in motion — and what does done look like?"</dd>
+        <dt>Actions</dt>
+        <dd>Hover a row for the precise status (e.g. <em>"3 overdue"</em>). Click the expand button to open the <strong>Compliance Checklist</strong> drawer — a per-area task list to review or mark done without leaving Control.</dd>
+      </dl>
+    </div>
+
+    <div class="widget">
+      <h3>Firm Health</h3>
+      <dl>
+        <dt>Data</dt>
+        <dd>Operating performance metrics — utilization, realization, collection, client NPS — each with current value, target, and delta since last period.</dd>
+        <dt>Solves</dt>
+        <dd>"Are firm operating metrics on target — which lines are moving against us?"</dd>
+        <dt>Actions</dt>
+        <dd>Read only.</dd>
+      </dl>
+    </div>
+
+    <div class="widget">
+      <h3>Team Utilisation</h3>
+      <dl>
+        <dt>Data</dt>
+        <dd>Each team member's current workload as a percentage of full capacity, surfaced as a horizontal bar chart.</dd>
+        <dt>Solves</dt>
+        <dd>"Who's stretched, who's got headroom — how evenly is the work distributed?"</dd>
+        <dt>Actions</dt>
+        <dd>Hover a row to see the person's active matter count. Sort by most or least utilised via the header dropdown.</dd>
+      </dl>
+    </div>
+
+    <h2>Data feeds</h2>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Widget</th>
+          <th>Source today</th>
+          <th>Production source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="first">Health Snapshot</td>
+          <td>Module constants</td>
+          <td>Health aggregation over Compliance / Risk / Audit / Revenue feeds</td>
+        </tr>
+        <tr>
+          <td class="first">Active Matters</td>
+          <td><code>tenant.pages.control.matters</code></td>
+          <td>Matters service, leader-scoped</td>
+        </tr>
+        <tr>
+          <td class="first">Compliance</td>
+          <td><code>tenant.pages.control.compliance</code></td>
+          <td>Obligations register</td>
+        </tr>
+        <tr>
+          <td class="first">Firm Health</td>
+          <td><code>tenant.pages.control.firmHealthMetrics</code></td>
+          <td>Practice management / finance warehouse</td>
+        </tr>
+        <tr>
+          <td class="first">Team Utilisation</td>
+          <td><code>tenant.pages.control.team</code></td>
+          <td>Time-entry / matter-allocation rollups</td>
+        </tr>
+        <tr>
+          <td class="first">Checklist tasks</td>
+          <td>Compliance items + per-item metadata</td>
+          <td>Same obligations register, plus per-obligation guidance content</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="footer-note">
+      <strong>Route:</strong> <code>/control</code> · <strong>File:</strong> <code>src/pages/ControlPage.jsx</code> · <strong>Sidebar:</strong> "Control" top-level item. Future three-layer hierarchy plan lives in <code>docs/control-analysis.html</code>.
+    </div>
+  </main>
+</body>
+</html>

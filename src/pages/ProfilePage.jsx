@@ -3,10 +3,16 @@ import { useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Camera, Check, Pencil, Lock } from 'lucide-react'
+import { Camera, Check, ChevronDown, Pencil, Lock } from 'lucide-react'
 import { FOCUS_AREAS, LEARNING_GOALS } from '@/pages/home/getStartedContent'
 import tenant from '@/config/tenant'
 import {
@@ -37,13 +43,26 @@ const INITIAL_PROFILE = {
   ],
 }
 
+// `realtime: true` means email for this type bypasses the global cadence and is
+// always sent immediately (mentions, deadlines, meeting prep). The user can
+// still opt out by unchecking the email channel.
 const NOTIFICATION_PREFS = [
-  { id: 'handbook', label: 'Handbook updates', desc: 'When handbook content is updated or new sections added', enabled: true },
-  { id: 'quiz', label: 'Quiz reminders', desc: 'Reminders to complete outstanding quizzes', enabled: true },
-  { id: 'comments', label: 'Comments & mentions', desc: 'When someone mentions you or replies to your comments', enabled: true },
-  { id: 'compliance', label: 'Compliance deadlines', desc: 'Upcoming compliance and governance deadlines', enabled: true },
-  { id: 'board', label: 'Board meeting prep', desc: 'Pre-reading and meeting preparation reminders', enabled: false },
-  { id: 'system', label: 'System announcements', desc: 'Platform updates and maintenance notices', enabled: false },
+  { id: 'handbook',   label: 'Handbook updates',     desc: 'When handbook content is updated or new sections added',     email: true,  inApp: true,  realtime: false },
+  { id: 'quiz',       label: 'Quiz reminders',       desc: 'Reminders to complete outstanding quizzes',                  email: true,  inApp: true,  realtime: false },
+  { id: 'comments',   label: 'Comments & mentions',  desc: 'When someone mentions you or replies to your comments',      email: true,  inApp: true,  realtime: true  },
+  { id: 'compliance', label: 'Compliance deadlines', desc: 'Upcoming compliance and governance deadlines',                email: true,  inApp: true,  realtime: true  },
+  { id: 'board',      label: 'Board meeting prep',   desc: 'Pre-reading and meeting preparation reminders',               email: false, inApp: true,  realtime: true  },
+  { id: 'system',     label: 'System announcements', desc: 'Platform updates and maintenance notices',                    email: false, inApp: true,  realtime: false },
+]
+
+// Email cadence options — controls how the email channel batches.
+// In-app is always real-time regardless of this setting.
+const EMAIL_CADENCE_OPTIONS = [
+  { value: 'realtime', label: 'Real-time' },
+  { value: 'daily',    label: 'Daily summary' },
+  { value: 'weekly',   label: 'Weekly summary' },
+  { value: 'monthly',  label: 'Monthly summary' },
+  { value: 'never',    label: 'Never' },
 ]
 
 // Sections the Get Started "Set up your profile" task walks the user through.
@@ -61,6 +80,7 @@ export default function ProfilePage() {
   const activeSection = validSections.includes(requestedSection) ? requestedSection : 'personal'
   const [profile, setProfile] = useState(INITIAL_PROFILE)
   const [notifications, setNotifications] = useState(NOTIFICATION_PREFS)
+  const [emailCadence, setEmailCadence] = useState('daily')
   const [editing, setEditing] = useState(fromGetStarted)
   const [saved, setSaved] = useState(false)
 
@@ -134,8 +154,8 @@ export default function ProfilePage() {
     setSaved(false)
   }
 
-  function toggleNotification(id) {
-    setNotifications(n => n.map(item => item.id === id ? { ...item, enabled: !item.enabled } : item))
+  function toggleChannel(id, channel) {
+    setNotifications(n => n.map(item => item.id === id ? { ...item, [channel]: !item[channel] } : item))
   }
 
   function handleSave() {
@@ -389,14 +409,67 @@ export default function ProfilePage() {
             {activeSection === 'notifications' && (
               <div className="space-y-6">
                 <h2 className="text-lg font-medium text-foreground">Notification Preferences</h2>
-                <div className="space-y-1">
+
+                {/* Email cadence — controls how email notifications are batched. In-app is always real-time. */}
+                <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Email cadence</p>
+                    <p className="text-sm text-muted-foreground">How often digest emails are sent. Urgent updates and in-app notifications are always real-time.</p>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-1.5">
+                        {EMAIL_CADENCE_OPTIONS.find(o => o.value === emailCadence)?.label}
+                        <ChevronDown className="size-3.5 text-muted-foreground" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      {EMAIL_CADENCE_OPTIONS.map(opt => (
+                        <DropdownMenuItem
+                          key={opt.value}
+                          onClick={() => setEmailCadence(opt.value)}
+                          className="text-sm"
+                        >
+                          {opt.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                <div>
+                  {/* Column headers */}
+                  <div className="flex items-center pb-2 border-b border-border">
+                    <div className="flex-1" />
+                    <div className="w-20 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</div>
+                    <div className="w-20 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground">In-app</div>
+                  </div>
+
                   {notifications.map((pref) => (
-                    <div key={pref.id} className="flex items-center justify-between py-3 border-b border-border/60 last:border-0">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{pref.label}</p>
+                    <div key={pref.id} className="flex items-center py-3 border-b border-border/60 last:border-0">
+                      <div className="flex-1 pr-4">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-foreground">{pref.label}</p>
+                          {pref.realtime && (
+                            <Badge variant="secondary" className="text-xs font-medium">Real-time</Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground">{pref.desc}</p>
                       </div>
-                      <Switch checked={pref.enabled} onCheckedChange={() => toggleNotification(pref.id)} />
+                      <div className="w-20 flex justify-center">
+                        <Checkbox
+                          checked={pref.email}
+                          onCheckedChange={() => toggleChannel(pref.id, 'email')}
+                          aria-label={`Email — ${pref.label}`}
+                        />
+                      </div>
+                      <div className="w-20 flex justify-center">
+                        <Checkbox
+                          checked={pref.inApp}
+                          onCheckedChange={() => toggleChannel(pref.id, 'inApp')}
+                          aria-label={`In-app — ${pref.label}`}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>

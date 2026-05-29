@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control — three-layer hierarchy for the leader's view</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --fg: #0a0a0a;
+      --muted: #5f6776;
+      --soft: #e2e8f0;
+      --bg: #ffffff;
+      --bg-soft: #f5f7fa;
+      --brand: #153e40;
+      --brand-soft: #dffff2;
+      --brand-border: #77afa6;
+      --accent: #2563eb;
+      --warn-soft: #fef3c7;
+      --warn-fg: #92400e;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 80px 32px 120px;
+    }
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 12px;
+    }
+    h1 {
+      font-size: 40px;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      margin: 0 0 20px;
+    }
+    .lede {
+      font-size: 18px;
+      line-height: 1.5;
+      color: var(--muted);
+      margin: 0 0 40px;
+    }
+    h2 {
+      font-size: 22px;
+      margin: 48px 0 12px;
+      letter-spacing: -0.01em;
+    }
+    h3 {
+      font-size: 15px;
+      margin: 28px 0 8px;
+      color: var(--fg);
+    }
+    p { margin: 0 0 16px; }
+    ul, ol { margin: 0 0 16px; padding-left: 22px; }
+    li { margin-bottom: 8px; }
+    li::marker { color: var(--muted); }
+    em { color: var(--brand); font-style: normal; font-weight: 500; }
+    strong { font-weight: 600; }
+    hr {
+      border: none;
+      border-top: 1px solid var(--soft);
+      margin: 0;
+    }
+
+    .callout {
+      background: var(--brand-soft);
+      border: 1px solid var(--brand-border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin: 24px 0;
+    }
+    .callout h3 {
+      margin-top: 0;
+      color: var(--brand);
+    }
+    .callout p:last-child { margin-bottom: 0; }
+
+    /* Two surfaces (Home / Control) */
+    .surfaces {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 24px 0;
+    }
+    .surface {
+      border: 1px solid var(--soft);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .surface .surface-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .surface .surface-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--brand);
+      margin-bottom: 10px;
+    }
+    .surface .surface-q {
+      font-size: 14px;
+      color: var(--fg);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .surface .surface-detail {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* Layer rail */
+    .layer {
+      border: 1px solid var(--soft);
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin: 16px 0;
+      position: relative;
+    }
+    .layer-1 { border-color: var(--brand-border); background: var(--brand-soft); }
+    .layer-2 { background: var(--bg-soft); }
+    .layer-3 { background: var(--bg); border-style: dashed; }
+    .layer-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--brand);
+      color: white;
+      margin-bottom: 12px;
+    }
+    .layer-1 .layer-tag { background: var(--brand); }
+    .layer-2 .layer-tag { background: #334155; }
+    .layer-3 .layer-tag { background: var(--muted); }
+    .layer-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 4px;
+      color: var(--brand);
+    }
+    .layer-q {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0 0 14px;
+      font-weight: 500;
+    }
+    .layer-q em { color: var(--brand); }
+    .layer-tiles {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr 1fr 1fr;
+      margin-top: 12px;
+    }
+    .layer-tiles.cols-2 { grid-template-columns: 1fr 1fr; }
+    .layer-tiles.cols-5 { grid-template-columns: repeat(5, 1fr); }
+    .tile {
+      background: white;
+      border: 1px solid var(--soft);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .tile-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--fg);
+      margin: 0 0 4px;
+    }
+    .tile-detail {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.45;
+    }
+    .layer p:last-child { margin-bottom: 0; }
+
+    /* Layer-2 component spine */
+    .component {
+      background: white;
+      border: 1px solid var(--soft);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .component:last-child { margin-bottom: 0; }
+    .component-head {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .component-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--brand);
+    }
+    .component-summary {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .component-tiles {
+      font-size: 12.5px;
+      color: var(--fg);
+      margin: 4px 0 0;
+    }
+    .component-tiles strong { font-weight: 600; }
+
+    /* Sketch frame for layout */
+    .sketch {
+      font-family: 'SFMono-Regular', Menlo, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      background: var(--bg-soft);
+      border-radius: 12px;
+      padding: 22px;
+      white-space: pre;
+      overflow-x: auto;
+      color: var(--fg);
+      border: 1px solid var(--soft);
+      margin: 16px 0 24px;
+    }
+
+    /* Small tables */
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      margin: 16px 0 24px;
+    }
+    .ref-table th {
+      text-align: left;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 12px 8px 0;
+      border-bottom: 1px solid var(--soft);
+    }
+    .ref-table td {
+      padding: 10px 12px 10px 0;
+      border-bottom: 1px solid var(--soft);
+      vertical-align: top;
+    }
+    .ref-table td.first {
+      font-weight: 600;
+      color: var(--brand);
+      white-space: nowrap;
+    }
+
+    /* Decisions */
+    .decisions {
+      counter-reset: decision;
+      list-style: none;
+      padding: 0;
+      margin: 16px 0 0;
+    }
+    .decisions li {
+      counter-increment: decision;
+      padding: 18px 20px 18px 56px;
+      border-radius: 12px;
+      background: var(--bg-soft);
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .decisions li::before {
+      content: counter(decision);
+      position: absolute;
+      left: 18px;
+      top: 18px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .decisions li strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .decisions li p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .footer-note {
+      margin-top: 56px;
+      padding: 20px 24px;
+      background: var(--bg-soft);
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .footer-note strong { color: var(--fg); }
+
+    @media (max-width: 720px) {
+      .surfaces { grid-template-columns: 1fr; }
+      .layer-tiles, .layer-tiles.cols-2, .layer-tiles.cols-5 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <p class="eyebrow">Working brief · 28 May 2026 · v2</p>
+    <h1>Control — three-layer hierarchy for the leader's view</h1>
+    <p class="lede">
+      Home is everyone's <strong>Personal Dashboard</strong> — settled. <strong>Control</strong> is the new admin / leader surface. The first draft of this brief inventoried every possible tile onto one flat dashboard. That isn't a hierarchy — it's a wall. This v2 keeps the breadth but arranges Control as <strong>three stacked layers</strong>, each answering one question the leader actually has.
+    </p>
+
+    <hr />
+
+    <h2>Position</h2>
+    <p>Two surfaces, not one. Don't conflate them.</p>
+
+    <div class="surfaces">
+      <div class="surface">
+        <div class="surface-label">Home</div>
+        <div class="surface-title">Personal Dashboard</div>
+        <p class="surface-q">"What do I need to do today?"</p>
+        <p class="surface-detail">Universal landing for every authenticated user. Greeting, today's calendar, to-do, recent activity, quick actions. Already shipped.</p>
+      </div>
+      <div class="surface">
+        <div class="surface-label">Control</div>
+        <div class="surface-title">Org performance lens</div>
+        <p class="surface-q">"How is the organisation actually doing?"</p>
+        <p class="surface-detail">Admin / leader only. Signal aggregation across all spaces. Role-gated and access-logged.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h3>One sentence</h3>
+      <p>Home is for <em>my day</em>. Control is for <em>our org</em>. Same person, two reasons to look at Ethos.</p>
+    </div>
+
+    <h2>Who sees Control</h2>
+    <p>Access is granted by Org Admin to control-authority roles. Non-authority users don't see the Control sidebar entry, and URL navigation returns "Not authorised".</p>
+    <ul>
+      <li><strong>Default authority roles:</strong> CEO, COO, GC, CRO, Practice Manager, Team Leader.</li>
+      <li><strong>Board roles:</strong> Board Chair / Committee Chair — configurable per board.</li>
+      <li><strong>Delegated:</strong> an authority user can grant read-only Control access to a colleague for a limited time (e.g. board-pack prep) — Phase 2.</li>
+      <li><strong>AI agents:</strong> no Control authority. The Org Health Score is a read-only output, not a decision.</li>
+    </ul>
+
+    <h2>The hierarchy</h2>
+    <p>Three layers, stacked on one page. Each layer has a single job. A leader can stop at Layer 1 most days; descends only when the headline tells them something needs attention.</p>
+
+    <div class="callout">
+      <h3>Why a hierarchy beats a flat grid</h3>
+      <p>A flat dashboard with 20 tiles forces the leader to <em>scan all of them on every visit</em> because nothing tells them which to look at first. A hierarchy says <em>start here, descend only if needed</em>. The information is the same; the cognitive load is much lower.</p>
+    </div>
+
+    <div class="layer layer-1">
+      <span class="layer-tag">Layer 1</span>
+      <p class="layer-title">The check-in — always visible, above the fold</p>
+      <p class="layer-q">Answers <em>"Is anything on fire? What shifted?"</em> — the 5-second read.</p>
+      <p>Three things only. Identical for every leader. If everything here is green and nothing's pending, the leader closes the tab — that's a win.</p>
+      <div class="layer-tiles">
+        <div class="tile">
+          <p class="tile-name">Org Health Score</p>
+          <p class="tile-detail">Composite gauge with trend. Click opens a breakdown drawer — components, contributions, "what changed since last view".</p>
+        </div>
+        <div class="tile">
+          <p class="tile-name">What changed since last view</p>
+          <p class="tile-detail">Timeline of org-level events — regulatory updates, control failures, new policies, board decisions.</p>
+        </div>
+        <div class="tile">
+          <p class="tile-name">Needs my attention</p>
+          <p class="tile-detail">Ranked list of items where I'm the named approver or owner. Cross-space, sorted by impact, not by source.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer layer-2">
+      <span class="layer-tag">Layer 2</span>
+      <p class="layer-title">Score component zones — the spine</p>
+      <p class="layer-q">Answers <em>"Where is the issue?"</em> — diagnostic, score-component-keyed.</p>
+      <p>The key idea: <strong>the five Org Health Score components ARE the information architecture</strong> for the body of the page. Not arbitrary tile groups. Score drops 4 points? The drawer says <em>why</em>, and the component zone underneath has the detail. Each zone has the same shape: a summary row, 2–3 supporting tiles, and a "Jump to space" link.</p>
+
+      <div class="component">
+        <div class="component-head">
+          <span class="component-name">Compliance</span>
+          <span class="component-summary">Obligations coverage, overdue items, attestations, regulatory horizon</span>
+        </div>
+        <p class="component-tiles"><strong>Tiles:</strong> Obligations posture · Overdue items · Attestation rate · Regulatory horizon · <em>industry sub-tiles (FAR, CPS 510, ASX continuous disclosure, ACNC standards, TGA reporting…)</em></p>
+      </div>
+
+      <div class="component">
+        <div class="component-head">
+          <span class="component-name">Risk</span>
+          <span class="component-summary">Heatmap, top movers, incidents, coverage gaps</span>
+        </div>
+        <p class="component-tiles"><strong>Tiles:</strong> Risk heatmap · Top movers since last view · Open incidents &amp; breaches · Coverage gaps</p>
+      </div>
+
+      <div class="component">
+        <div class="component-head">
+          <span class="component-name">Audit readiness</span>
+          <span class="component-summary">Findings, evidence, cadence</span>
+        </div>
+        <p class="component-tiles"><strong>Tiles:</strong> Open findings · Evidence completeness · Time-to-close · Audit cadence</p>
+      </div>
+
+      <div class="component">
+        <div class="component-head">
+          <span class="component-name">Control effectiveness</span>
+          <span class="component-summary">Tests, exceptions, ownership, conflicts</span>
+        </div>
+        <p class="component-tiles"><strong>Tiles:</strong> Tests due · Exceptions · Controls without owners · <em>Conflicts outstanding (an unresolved conflict is a control failure)</em></p>
+      </div>
+
+      <div class="component">
+        <div class="component-head">
+          <span class="component-name">Integration health</span>
+          <span class="component-summary">Uptime, sync, feed quality, admin signals</span>
+        </div>
+        <p class="component-tiles"><strong>Tiles:</strong> Source-system uptime · Last successful sync · Failed feeds · <em>Org Admin signals (security alerts, billing exceptions)</em></p>
+      </div>
+
+      <p style="margin-top:14px;">Industry packs render <strong>as content swaps inside the relevant component zone</strong> — FAR inside Compliance, AML/CTF inside Compliance + Risk, modern slavery reporting inside Compliance. There is no separate "Industry" section at this layer; that's what creates the "wall of industry tiles" problem.</p>
+    </div>
+
+    <div class="layer layer-3">
+      <span class="layer-tag">Layer 3</span>
+      <p class="layer-title">The operating view — parallel section, role-shaped</p>
+      <p class="layer-q">Answers <em>"How are we operating?"</em> — cross-business operating metrics that aren't part of the AI-aggregated score.</p>
+      <p>These tiles are real, useful, and live in the spaces they belong to. Control surfaces them in one place because the leader needs the rollup. They sit in a clearly-labelled section beneath Layer 2 so they don't dilute the score's diagnostic spine.</p>
+      <div class="layer-tiles">
+        <div class="tile">
+          <p class="tile-name">Team workload &amp; capacity</p>
+          <p class="tile-detail">Per-person utilisation, bench depth, hot-spots.</p>
+        </div>
+        <div class="tile">
+          <p class="tile-name">Action throughput by space</p>
+          <p class="tile-detail">Items opened vs closed, last 30 days. Trend per space.</p>
+        </div>
+        <div class="tile">
+          <p class="tile-name">Matter health</p>
+          <p class="tile-detail">Pipeline, at-risk, profitability. <em>Lawfirm-prominent.</em></p>
+        </div>
+        <div class="tile">
+          <p class="tile-name">Contract review queue</p>
+          <p class="tile-detail">Backlog, SLA, complexity. <em>In-house legal-prominent.</em></p>
+        </div>
+        <div class="tile">
+          <p class="tile-name">Board / committee cadence</p>
+          <p class="tile-detail">Upcoming meetings, papers due, decisions pending.</p>
+        </div>
+        <div class="tile">
+          <p class="tile-name">CPD risk indicator</p>
+          <p class="tile-detail">Directors / staff at risk of missing requirements. <em>Govpro-prominent.</em></p>
+        </div>
+      </div>
+    </div>
+
+    <h2>What this looks like</h2>
+    <p>Sketched layout, illustrative. Layer boundaries are real (Layer 1 stays visible / sticky on scroll); within a layer, tiles can be re-flowed responsively.</p>
+
+    <div class="sketch">────────────────────────────────────────────────────────────────────
+  Control                                  [AI: On]   [As: CRO ▾]
+  How {Org} is actually doing.             [Industry: APRA, Listed ▾]
+────────────────────────────────────────────────────────────────────
+
+  ▼ LAYER 1 — the check-in (always visible)
+
+  ┌────── Org Health Score ──────┐ ┌─ What changed ─┐ ┌─ Needs my ─┐
+  │   ╭───╮                      │ │ 5 events this  │ │ attention  │
+  │   │87%│  Composite trend ▲+1 │ │ week           │ │ 4 items    │
+  │   ╰───╯  [Breakdown ▸]       │ │ [Open ▸]       │ │ 1 critical │
+  └──────────────────────────────┘ └────────────────┘ └────────────┘
+
+  ▼ LAYER 2 — score component zones (the spine)
+
+  ┌─ Compliance · 87% ▲ +3 ──────────────────── Jump to Comply ▸ ─┐
+  │ Obligations · Overdue · Attestations · Regulatory horizon     │
+  │ Industry: FAR accountability · CPS 510 · ASX continuous disc. │
+  └───────────────────────────────────────────────────────────────┘
+  ┌─ Risk · 92% ─ flat ────────────────────── Jump to Risk ▸ ─────┐
+  │ Heatmap · Top movers · Incidents · Coverage gaps              │
+  └───────────────────────────────────────────────────────────────┘
+  ┌─ Audit readiness · 78% ▼ -4 ────────────── Jump to Audit ▸ ───┐
+  │ Findings · Evidence · Time-to-close · Cadence                 │
+  └───────────────────────────────────────────────────────────────┘
+  ┌─ Control effectiveness · 81% ▲ +1 ──── Jump to Controls ▸ ────┐
+  │ Tests due · Exceptions · Controls w/o owners · Conflicts      │
+  └───────────────────────────────────────────────────────────────┘
+  ┌─ Integration health · 99% ─ flat ──── Jump to Integrations ▸ ─┐
+  │ Uptime · Last sync · Failed feeds · Admin signals             │
+  └───────────────────────────────────────────────────────────────┘
+
+  ▼ LAYER 3 — how we're operating
+
+  ┌── Team workload ─┐ ┌── Throughput ──┐ ┌── Board cadence ─┐
+  │                  │ │                │ │                  │
+  └──────────────────┘ └────────────────┘ └──────────────────┘
+  ┌── Matter health ─┐ ┌── Contracts ───┐ ┌── CPD risk ──────┐
+  │                  │ │                │ │                  │
+  └──────────────────┘ └────────────────┘ └──────────────────┘</div>
+
+    <h2>How role shapes each layer</h2>
+    <p>Persona shaping is now a much smaller surface area. Layer 1 is universal. Layer 2 changes only what's <em>expanded by default</em> and which industry sub-tiles render. Layer 3 is where persona really pulls.</p>
+
+    <h3>Layer 2 — which component is expanded on first load</h3>
+    <p>All five zones are always present (the score has five components for every leader). Persona controls which open by default; the others are one click away. This stops the leader having to scroll on first visit to find what they care about.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Persona</th>
+          <th>Expanded by default</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="first">govpro</td><td>Compliance · Audit readiness</td><td>Director's lens — what's the board signing off on, what's about to be asked of us.</td></tr>
+        <tr><td class="first">govteam</td><td>Compliance · Control effectiveness</td><td>Secretariat's lens — coverage and the machine that keeps it.</td></tr>
+        <tr><td class="first">lawfirm</td><td>Compliance · Risk</td><td>Partner's lens — am I exposed, are matters clean.</td></tr>
+        <tr><td class="first">inhouselegal</td><td>Compliance · Risk</td><td>GC's lens — what's coming, what's open.</td></tr>
+        <tr><td class="first">inhousegrc</td><td>Risk · Audit readiness · Control effectiveness</td><td>CRO's lens — the components they own. Three open is acceptable for this persona.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Layer 3 — which operating tiles render and in what order</h3>
+    <p>The operating layer is where persona has the strongest pull. A CRO collapses most of this; a firm partner expands matter health to the top.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Persona</th>
+          <th>Tile order (first 3 shown above the rest)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="first">govpro</td><td>Board cadence · CPD risk · Action throughput · (others hidden by default)</td></tr>
+        <tr><td class="first">govteam</td><td>Action throughput · Board cadence · Coverage gaps · Team workload</td></tr>
+        <tr><td class="first">lawfirm</td><td>Matter health · Team workload · Action throughput · Board cadence</td></tr>
+        <tr><td class="first">inhouselegal</td><td>Contract review queue · Team workload · Board cadence · Action throughput</td></tr>
+        <tr><td class="first">inhousegrc</td><td>Action throughput · Team workload · Board cadence · (matter / contract hidden)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>How industry shapes Control</h2>
+    <p>Industry pack(s) are configured by Org Admin at onboarding. They drive <strong>content swaps inside Layer 2 component zones</strong> — not new tiles, not a separate layer. A widget like "Regulatory horizon" stays in its slot inside Compliance; its body swaps from generic to APRA-specific to ASX-specific. Orgs with multiple packs (e.g. a listed pharma) render both pack sub-tiles inside the relevant zones; each is collapsible.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Industry pack</th>
+          <th>Lives inside</th>
+          <th>Sub-tiles / references</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="first">APRA-regulated</td><td>Compliance · Risk</td><td>FAR accountability heatmap, CPS 230 operational resilience, CPS 510 board governance</td></tr>
+        <tr><td class="first">Listed (ASX / NZX)</td><td>Compliance</td><td>Continuous disclosure status, market-sensitive flag, Listing Rule 12.7 oversight</td></tr>
+        <tr><td class="first">Healthcare &amp; pharma</td><td>Compliance · Risk</td><td>TGA reporting, AHPRA professional regulation, clinical incident summary</td></tr>
+        <tr><td class="first">NFPs &amp; charities</td><td>Compliance</td><td>AIS readiness, ACNC Governance Standards 1–6</td></tr>
+        <tr><td class="first">Professional services</td><td>Compliance · Risk</td><td>CA ANZ / Law Society obligations, AML/CTF posture</td></tr>
+        <tr><td class="first">Industrial &amp; wholesale</td><td>Compliance · Risk</td><td>WHS posture, supply chain incidents, modern slavery reporting</td></tr>
+        <tr><td class="first">Education</td><td>Compliance · Risk</td><td>TEQSA / ASQA reporting, student welfare incidents</td></tr>
+        <tr><td class="first">Government</td><td>Compliance</td><td>PGPA performance reporting, statutory body governance posture</td></tr>
+        <tr><td class="first">Investment governance</td><td>Compliance</td><td>AFSL obligations, investment mandate compliance</td></tr>
+        <tr><td class="first">Financial services (non-APRA)</td><td>Compliance · Risk</td><td>AFSL obligations, AML/CTF, consumer credit posture</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <h3>The two axes compose without bloating</h3>
+      <p>A CRO at a listed pharma still gets the <em>inhousegrc</em> Layer 2 defaults (Risk + Audit + Controls expanded) <strong>and</strong> the <em>Listed + Health</em> content swaps (continuous disclosure inside Compliance; clinical incidents inside Risk). The page shape is the same as every other leader's. Only the contents differ.</p>
+    </div>
+
+    <h2>States to design</h2>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>State</th>
+          <th>When</th>
+          <th>Treatment</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="first">First-time view</td><td>First leader login</td><td>Coachmark walkthrough on the three layers. Empty-state copy in Layer 1: "Your org's signal will populate as data flows in."</td></tr>
+        <tr><td class="first">Score unavailable</td><td>AI service down or data incomplete</td><td>Layer 1 score panel reads "Score unavailable — last known: 84% (4h ago). Components still readable below." Layer 2 remains interactive.</td></tr>
+        <tr><td class="first">AI off</td><td>AI consent revoked org-wide</td><td>Aggregate score hidden; Layer 2 component zones render in full (deterministic). AI-off chip in the page header.</td></tr>
+        <tr><td class="first">Industry pack in flux</td><td>Org Admin changing packs</td><td>Banner: "Industry pack changing — tiles will refresh in N minutes." Affected Layer 2 sub-tiles greyed.</td></tr>
+        <tr><td class="first">Non-authority access</td><td>URL navigation by non-authority user</td><td>Full-page 404: "Not authorised. Contact your Org Admin if you should have access."</td></tr>
+        <tr><td class="first">No data in a tile</td><td>New org / never-used component</td><td>Inline empty state with a hint to the source space — e.g. "No risks logged. Open Risk &amp; Controls to add one."</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Handoffs into and out of Control</h2>
+    <p>Control is a hub, not an island. Two handoffs anchor it to the rest of the platform.</p>
+    <ul>
+      <li><strong>In — "Analyse in Control" from Insights.</strong> Each Insights item carries an "Analyse in Control" CTA. Clicking it opens Control with the relevant Layer 2 component expanded and the Insights context pre-loaded — e.g. an FAR update lands on Compliance, FAR sub-tile highlighted, policy diff in the side drawer. <em>v1</em> = land on tile with context. <em>Phase 2</em> = full Impact Modeller / scenario simulator.</li>
+      <li><strong>Out — "Jump to space" on every component zone.</strong> Each Layer 2 zone has a link that takes the leader from signal to the underlying records — Comply, Govern, Work, Vault — with the same filter applied.</li>
+    </ul>
+    <p>Inline quick actions in the page header keep the path back to action short: <strong>Start meeting · Create task · Ask AI · Jump to space</strong>.</p>
+
+    <h2>Cross-cutting requirements</h2>
+    <ul>
+      <li><strong>Entitlement-aware tiles.</strong> Tiles that aggregate from Board Confidential records are suppressed for non-board users (or shown with an "access scoped" footer). The Org Health Score is computed using only the requesting user's entitled data.</li>
+      <li><strong>Audit log every access.</strong> Control View opens are logged for ISO 42001 evidence — who, when, which score state was visible.</li>
+      <li><strong>Score reconciliation.</strong> The Score Verifier (2nd line agent) checks components reconcile to source data. A reconciliation failure is a measured AIMS incident, not a UI bug.</li>
+      <li><strong>Print &amp; export.</strong> A leader needs to drop the score view into a board pack — single-page print stylesheet and PDF export are table stakes.</li>
+      <li><strong>Sticky Layer 1.</strong> The check-in stays visible as the leader scrolls into Layer 2 / 3. They never lose the headline.</li>
+    </ul>
+
+    <h2>Open questions to lock in before build</h2>
+    <ol class="decisions">
+      <li>
+        <strong>Score scope under entitlement</strong>
+        <p>For a leader who can't see Board Confidential matters, does the Org Health Score reflect their entitled view only, or the full org with classified contributions abstracted? Both are defensible; the answer shapes the score's contract and what the breakdown drawer says.</p>
+      </li>
+      <li>
+        <strong>Multi-board roll-up for govpro</strong>
+        <p>For a director sitting on multiple boards, does Control roll up across all boards by default or scope to a selected board? Cross-board roll-up is more useful but harder to make trustworthy.</p>
+      </li>
+      <li>
+        <strong>Precedence when multiple industry packs collide</strong>
+        <p>When two packs both define a sub-tile (e.g. AML/CTF in Profserv and Financial services non-APRA), which one wins inside Compliance? Probably most-specific by jurisdiction, but it needs an explicit rule.</p>
+      </li>
+      <li>
+        <strong>Personalisation vs consistency</strong>
+        <p>Can a leader hide / re-order Layer 3 tiles within their persona, or is the order fixed for consistency across leaders of the same persona? Phase 2 question; impacts whether the tile registry needs a per-user store.</p>
+      </li>
+      <li>
+        <strong>"What changed since last view" baseline</strong>
+        <p>Per-leader last-viewed timestamp, or a fixed 24h diff? Per-leader is more useful but adds storage and a "you weren't here for two weeks" edge case. 24h is enough for v1.</p>
+      </li>
+      <li>
+        <strong>Industry tile authoring &amp; ownership</strong>
+        <p>Which content team writes the regulatory references (FAR templates, CPS 230 checkpoints, TGA reporting fields)? Sourcing this is the long pole on industry-pack quality at GA.</p>
+      </li>
+      <li>
+        <strong>Layer 2 default expansion behaviour</strong>
+        <p>Should the persona defaults be hard-coded for v1, or should a leader's last-expanded set persist? Persisting is friendlier but means two leaders of the same persona see different first views — which can be confusing if they share a call.</p>
+      </li>
+    </ol>
+
+    <div class="footer-note">
+      <strong>Based on:</strong> PRD — Control (Leader) v0.1, 27 April 2026 (Ramona Roach, Tom Spedding, Jon Vassiliou). GA target: 30 June 2026, at least 6 of 11 industry packs and 5 tech-area variants. This brief covers <strong>Control only</strong>; Home / Personal Dashboard is settled.<br /><br />
+      <strong>What changed in v2:</strong> the flat 20-tile widget catalogue and 20-row × 5-column persona matrix are gone. Replaced by a three-layer hierarchy where the five Org Health Score components <em>are</em> the information architecture for the body of the page. Same breadth of content; clearer parent-child structure.
+    </div>
+  </main>
+</body>
+</html>

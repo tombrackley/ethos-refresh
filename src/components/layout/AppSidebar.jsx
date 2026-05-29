@@ -38,6 +38,7 @@ import {
   Search,
 } from 'lucide-react'
 import { IconHomeRoof } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconHomeRoof'
+import { IconDashboardMiddle } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconDashboardMiddle'
 import { IconShieldCheck3 } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconShieldCheck3'
 import { IconLaw } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconLaw'
 import { IconTasks } from '@central-icons-react/round-outlined-radius-2-stroke-1.5/IconTasks'
@@ -82,6 +83,7 @@ const LEARN_PAGES = LEARN_SUB_ITEMS.map(i => i.page)
 
 const TOP_ITEMS = [
   { title: 'Home',             icon: IconHomeRoof,      page: 'Home' },
+  { title: 'Control',          icon: IconDashboardMiddle, page: 'Control' },
   { title: 'Insights',         icon: IconLightbulbGlow, page: 'Insights' },
   { title: 'Talent',           icon: IconPeopleIdCard,  page: 'Talent' },
   { title: 'Community',        icon: IconTeam,          page: 'Community' },
@@ -147,6 +149,7 @@ const PAGE_FLAG_MAP = {
   'Admin:CPD Regimes': 'PAGE_ADMIN_CPD_REGIMES',
   'Admin:CPD Events': 'PAGE_ADMIN_CPD_EVENTS',
   'Admin:Team Capability': 'PAGE_ADMIN_TEAM_CAPABILITY',
+  'Admin:Role Profiles': 'PAGE_ADMIN_ROLE_PROFILES',
   'Admin:Knowledge Centre': 'PAGE_ADMIN_KNOWLEDGE_CENTRE',
   'Profile': 'PAGE_PROFILE',
   // Comply sub-items
@@ -212,6 +215,7 @@ function useActivePage() {
       'cpd-regimes':       'Admin:CPD Regimes',
       'cpd-events':        'Admin:CPD Events',
       'team-capability':   'Admin:Team Capability',
+      'role-profiles':     'Admin:Role Profiles',
       'knowledge-centre':  'Admin:Knowledge Centre',
     }
     return slugToAdmin[slug] || 'Admin:Organisation Profile'
@@ -583,7 +587,7 @@ export function AppSidebar({ onSearchClick }) {
       {demoMode === 'launch' && !isAdminMode && !isProfileMode && (
         <SidebarFooter className="px-3 pb-3 group-data-[collapsible=icon]:px-2">
           <GetStartedWidget />
-          <CoreStatusCard />
+          <CoreStatusCard baseline />
         </SidebarFooter>
       )}
 

@@ -30,7 +30,14 @@ export const adminParentGroups = [
         ],
       },
       { label: 'Vault',           icon: Lock,     items: [{ title: 'Vault',            page: 'Admin:Vault' }] },
-      { label: 'Talent',          icon: Users,    items: [{ title: 'Talent',            page: 'Admin:Talent' }] },
+      {
+        label: 'Roles & Team',
+        icon: Users,
+        items: [
+          { title: 'Role Profiles',   page: 'Admin:Role Profiles' },
+          { title: 'Team Capability', page: 'Admin:Team Capability' },
+        ],
+      },
       { label: 'Activity & Logs', icon: Activity, items: [{ title: 'Activity & Logs',   page: 'Admin:Activity & Logs' }] },
       { label: 'Reporting',       icon: FileText, items: [{ title: 'Reporting',          page: 'Admin:Reporting' }] },
     ],
@@ -80,7 +87,6 @@ export const adminParentGroups = [
           { title: 'CPD Management',     page: 'Admin:CPD Management' },
           { title: 'CPD Regimes',        page: 'Admin:CPD Regimes' },
           { title: 'CPD Events',         page: 'Admin:CPD Events' },
-          { title: 'Team Capability',    page: 'Admin:Team Capability' },
           { title: 'Knowledge Centre',   page: 'Admin:Knowledge Centre' },
         ],
       },

@@ -21,7 +21,7 @@ import { useSidebar } from '@/components/ui/sidebar'
 // Pages whose content area is plain white — the topbar should match.
 const WHITE_BG_PATHS = new Set(['/vault', '/resources', '/notifications'])
 // Sections where every sub-route renders on a white shell.
-const WHITE_BG_PREFIXES = ['/home', '/control', '/comply', '/govern', '/matters', '/respond', '/meet', '/work', '/learn', '/knowledge', '/insights']
+const WHITE_BG_PREFIXES = ['/home', '/comply', '/govern', '/matters', '/respond', '/meet', '/work', '/learn', '/knowledge', '/insights']
 
 function topbarBgClass(pathname) {
   if (WHITE_BG_PATHS.has(pathname)) return 'bg-white'
