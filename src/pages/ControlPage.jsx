@@ -15,6 +15,7 @@ import {
   TrendingDown,
   Clock,
   ChevronRight,
+  ChevronDown,
   X,
   AlertCircle,
   CheckCircle2,
@@ -35,6 +36,8 @@ import {
   GraduationCap,
   ClipboardList,
   CircleDashed,
+  MoreHorizontal,
+  Search,
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
@@ -121,6 +124,140 @@ const MATTER_STATUS_DOT = {
   'On Hold': 'bg-[#828c9b]',
 }
 
+// Severity-dot colours for the Risk Rating widget.
+const RISK_SEVERITY_DOT = {
+  Critical: 'bg-[#c1412b]',
+  High:     'bg-[#d97706]',
+  Medium:   'bg-[#6181c9]',
+  Low:      'bg-[#828c9b]',
+}
+
+// Background palette for the severity pill — mirrors the Priorities widget
+// (pink / amber / yellow / grey) so the visual language matches.
+const RISK_SEVERITY_BADGE_BG = {
+  Critical: 'bg-[#FFE5E8]',
+  High:     'bg-[#FFE5BB]',
+  Medium:   'bg-[#FFF3B7]',
+  Low:      'bg-[#E5E7EB]',
+}
+
+// Row background tints for the Risk Rating widget — mirror the Compliance
+// pill rows. Only Critical gets a pink tint; High and Medium share the same
+// grey as Compliance's warning/neutral rows; Low gets the mint.
+const RISK_SEVERITY_BG = {
+  Critical: 'bg-[#fff7f7]',
+  High:     'bg-[#fcfcfc]',
+  Medium:   'bg-[#fcfcfc]',
+  Low:      'bg-[#fafffb]',
+}
+const RISK_SEVERITY_BG_HOVER = {
+  Critical: 'hover:bg-[#ffefef]',
+  High:     'hover:bg-[#f3f3f3]',
+  Medium:   'hover:bg-[#f3f3f3]',
+  Low:      'hover:bg-[#eafff0]',
+}
+
+// Severity → number of bars filled (out of 4) and the colour applied to them.
+// Unfilled bars are rendered greyed in the SignalBars component.
+const RISK_SEVERITY_BARS = {
+  Critical: 4,
+  High:     3,
+  Medium:   2,
+  Low:      1,
+}
+const RISK_SEVERITY_ICON_COLOR = {
+  Critical: 'text-[#c1412b]',
+  High:     'text-[#d97706]',
+  Medium:   'text-[#6181c9]',
+  Low:      'text-[#2aa16a]',
+}
+// Small tinted backplate behind the signal-bars icon — matches the Figma
+// 285:3707 row icon chip palette.
+const RISK_SEVERITY_ICON_BG = {
+  Critical: 'bg-[#ffdfdf]',
+  High:     'bg-[#fff4e1]',
+  Medium:   'bg-[#ebf6ff]',
+  Low:      'bg-[#e8fff6]',
+}
+
+// Mocked risk categories — each row is a category that rolls up the
+// individual risks underneath. `severity` is the highest severity across
+// the category; `count` is the open-risk count; `sub` feeds the tooltip.
+// Would come from the risk register service in production.
+const RISKS = [
+  { name: 'Regulatory & Compliance',      severity: 'Critical', count: 4, sub: '4 risks · 1 critical rising · 2 high' },
+  { name: 'Cyber & Information Security', severity: 'High',     count: 3, sub: '3 risks · 1 high steady · 2 medium' },
+  { name: 'Financial',                    severity: 'High',     count: 2, sub: '2 risks · 1 high rising · 1 medium' },
+  { name: 'People & Culture',             severity: 'Medium',   count: 2, sub: '2 risks · 2 medium steady' },
+  { name: 'Operational',                  severity: 'Low',      count: 4, sub: '4 risks · 3 low falling · 1 medium' },
+  { name: 'ESG & Climate',                severity: 'Low',      count: 1, sub: '1 risk · steady' },
+]
+
+const RISK_SEVERITY_ORDER = { Critical: 0, High: 1, Medium: 2, Low: 3 }
+const SORTED_RISKS = [...RISKS].sort(
+  (a, b) => (RISK_SEVERITY_ORDER[a.severity] ?? 99) - (RISK_SEVERITY_ORDER[b.severity] ?? 99),
+)
+
+// Detailed risk register for the Risks drawer — categories with the
+// individual risk statements underneath and the items causing each risk.
+// Would come from the risk register service in production.
+const RISK_REGISTER = [
+  {
+    category: 'Regulatory & Compliance', severity: 'Critical', count: 4,
+    risks: [
+      { name: 'Director personal liability under FAR', severity: 'Critical', owner: 'JW',
+        causes: ['Updated ASIC guidance (Mar 2026)', '3 accountability statements overdue', 'Reasonable-steps documentation gap'] },
+      { name: 'Privacy Act reform — data classification', severity: 'High', owner: 'KL',
+        causes: ['New data classification requirements', 'Mitigation plan not yet board-approved'] },
+      { name: 'AML/CTF program — new threshold rules', severity: 'Medium', owner: 'SM',
+        causes: ['AUSTRAC guidance Mar 2026', 'Threshold testing remediation underway'] },
+    ],
+  },
+  {
+    category: 'Cyber & Information Security', severity: 'High', count: 3,
+    risks: [
+      { name: 'Backup verification gap', severity: 'High', owner: 'DP',
+        causes: ['Quarterly restore tests overdue', 'DR plan last reviewed 2023'] },
+      { name: 'Vendor cyber posture', severity: 'Medium', owner: 'DP',
+        causes: ['2 vendors flagged in supply-chain review', 'SOC 2 reports outstanding'] },
+    ],
+  },
+  {
+    category: 'Financial', severity: 'High', count: 2,
+    risks: [
+      { name: 'Client concentration risk', severity: 'High', owner: 'SM',
+        causes: ['Top 3 clients = 47% revenue', 'No active diversification strategy'] },
+      { name: 'Working-capital exposure', severity: 'Medium', owner: 'SM',
+        causes: ['DSO trending up 8 days vs target'] },
+    ],
+  },
+  {
+    category: 'People & Culture', severity: 'Medium', count: 2,
+    risks: [
+      { name: 'Key-person succession', severity: 'Medium', owner: 'JW',
+        causes: ['2 partners with no documented successor', 'Succession plan due Q3'] },
+      { name: 'Talent retention', severity: 'Medium', owner: 'JW',
+        causes: ['Voluntary turnover up vs prior year'] },
+    ],
+  },
+  {
+    category: 'Operational', severity: 'Low', count: 4,
+    risks: [
+      { name: 'Office continuity', severity: 'Low', owner: 'SM',
+        causes: ['BCP rehearsal scheduled May 2026'] },
+      { name: 'Document management migration', severity: 'Low', owner: 'KL',
+        causes: ['Phase 2 cutover Q2 — on track'] },
+    ],
+  },
+  {
+    category: 'ESG & Climate', severity: 'Low', count: 1,
+    risks: [
+      { name: 'Climate disclosure readiness', severity: 'Low', owner: 'RL',
+        causes: ['AASB S2 training in progress', 'Scope 1 / 2 baseline complete'] },
+    ],
+  },
+]
+
 const COMPLIANCE_STATUS_TEXT = {
   good:    'text-[#2aa16a]',
   warning: 'text-[#c1412b]',
@@ -191,6 +328,27 @@ const SORTED_FIRM_HEALTH = [...FIRM_HEALTH].sort((a, b) => {
   return (aN < 0 ? 0 : 1) - (bN < 0 ? 0 : 1)
 })
 
+// Tooltip copy per Firm Health metric — a short definition plus the
+// underlying signals that move the number.
+const FIRM_HEALTH_META = {
+  'Utilization Rate': {
+    description: 'Share of billable hours against available capacity per fee-earner.',
+    contributors: ['Billable hours logged', 'Available capacity', 'Time-off and admin'],
+  },
+  'Realization Rate': {
+    description: 'Percentage of recorded billable work actually invoiced.',
+    contributors: ['Fee write-offs', 'Negotiated discounts', 'Invoicing discipline'],
+  },
+  'Collection Rate': {
+    description: 'Share of invoiced amounts collected within agreed terms.',
+    contributors: ['Days sales outstanding', 'Aging receivables', 'Bad debt provisions'],
+  },
+  'Client NPS': {
+    description: 'Net Promoter Score from quarterly client surveys (−100 to +100).',
+    contributors: ['Survey response rate', 'Promoters (9–10)', 'Detractors (0–6)'],
+  },
+}
+
 // Org Health Score contributors.
 // `trend` is the +/- percentage change since last view.
 const ORG_HEALTH_COMPONENTS = [
@@ -213,6 +371,46 @@ function MatterStatusBadge({ status }) {
       <span className="font-mono text-xs font-medium uppercase tracking-[0.3px] text-[#151d2b]">
         {status}
       </span>
+    </span>
+  )
+}
+
+// 4-bar signal indicator — `filled` bars use the parent's text colour
+// (currentColor); the remaining bars are rendered greyed.
+function SignalBars({ filled = 4 }) {
+  const heights = [4, 7, 10, 13]
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      className="size-4 shrink-0"
+      aria-hidden
+    >
+      {heights.map((h, i) => (
+        <rect
+          key={i}
+          x={1 + i * 4}
+          y={14 - h}
+          width={2.5}
+          height={h}
+          rx={0.5}
+          className={i < filled ? 'fill-current' : 'fill-[#cbd5e1]'}
+        />
+      ))}
+    </svg>
+  )
+}
+
+// Risk severity badge — coloured pill matching the Priorities widget style
+// (pink/amber/yellow/grey bg + dark mono uppercase text).
+function RiskSeverityBadge({ severity }) {
+  return (
+    <span className={cn(
+      'inline-flex items-center rounded-full font-mono uppercase tracking-wide text-[#151D2B] px-2 py-0.5 text-xs font-medium',
+      RISK_SEVERITY_BADGE_BG[severity] ?? 'bg-muted/30',
+    )}>
+      {severity}
     </span>
   )
 }
@@ -307,6 +505,21 @@ function TeamCapacityChart({ sort = 'desc' }) {
           </Tooltip>
         </li>
       ))}
+
+      {/* Footer — overflow stack + view all */}
+      <li className="flex items-center gap-3 px-3 pt-3">
+        <div className="flex -space-x-1.5">
+          <img src="https://i.pravatar.cc/96?img=15" alt="" className="size-6 rounded-full object-cover ring-2 ring-white" />
+          <img src="https://i.pravatar.cc/96?img=22" alt="" className="size-6 rounded-full object-cover ring-2 ring-white" />
+          <img src="https://i.pravatar.cc/96?img=33" alt="" className="size-6 rounded-full object-cover ring-2 ring-white" />
+          <span className="flex size-6 items-center justify-center rounded-full bg-[#f5f5f5] text-[10px] font-medium text-muted-foreground ring-2 ring-white">
+            +6
+          </span>
+        </div>
+        <Button variant="ghost" size="sm" className="text-sm text-muted-foreground gap-1 h-7 px-2 -ml-1">
+          View all
+        </Button>
+      </li>
     </ul>
   )
 }
@@ -432,14 +645,14 @@ function AiPanel({ onClose }) {
 // ─── Org Health feature section ──────────────────────────────────────────────
 
 // Overall Health Rating panel — left side of the OrgHealthFeature card.
-// Mint-tinted card with a labelled big-percent + 10-segment bar gauge + status
-// badge, matching the Figma node 284:1157.
+// Mint card with a labelled big-percent + 10-segment bar gauge + status
+// badge, matching the Figma node 284:1343.
 function OverallHealthCard({ rating = 86, status = 'GOOD' }) {
   const filledBars = Math.round(rating / 10)
   return (
-    <div className="relative h-full min-h-[184px] rounded-lg border border-[#e0fffd] bg-[#f8fdfd] px-6 py-7">
+    <div className="relative h-full min-h-[184px] rounded-2xl bg-[#e9ffec] px-7 py-7">
       {/* Status badge */}
-      <span className="absolute right-6 top-6 inline-flex items-center gap-1.5 rounded-full bg-[#d5ffda] px-2 py-0.5">
+      <span className="absolute right-6 top-7 inline-flex items-center gap-1.5 rounded-full bg-[#d5ffda] px-2 py-0.5">
         <span className="size-1.5 rounded-full bg-[#00bc7d]" aria-hidden />
         <span className="font-mono text-xs font-medium uppercase tracking-wide text-[#151d2b]">{status}</span>
       </span>
@@ -454,7 +667,7 @@ function OverallHealthCard({ rating = 86, status = 'GOOD' }) {
           <span
             key={i}
             aria-hidden
-            className={cn('h-[25px] w-[5px]', i < filledBars ? 'bg-[#76ed84]' : 'bg-[#d9d9d9]')}
+            className={cn('h-[25px] w-[5px]', i < filledBars ? 'bg-[#00bc7d]' : 'bg-[#d9d9d9]')}
           />
         ))}
       </div>
@@ -509,7 +722,7 @@ function OrgHealthFeature() {
   return (
     <div className="rounded-xl border border-[#E5EAEE] bg-white px-6 py-6">
       <h2 className="mb-5 text-base font-medium text-foreground">Health Snapshot</h2>
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-[420px_1fr] gap-8 items-stretch">
 
         {/* Left — overall health rating panel */}
         <OverallHealthCard rating={86} status="GOOD" />
@@ -649,11 +862,121 @@ function ComplianceChecklistDialog({ open, onOpenChange }) {
   )
 }
 
+// ─── Risk Register drawer ────────────────────────────────────────────────────
+
+function RiskRegisterDrawer({ open, onOpenChange }) {
+  if (!open) return null
+  const totalRisks = RISK_REGISTER.reduce((sum, c) => sum + c.count, 0)
+  return (
+    <div
+      role="dialog"
+      aria-labelledby="risk-register-title"
+      className="fixed inset-y-3 right-3 z-50 w-[560px] max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl border border-border shadow-xl flex flex-col overflow-hidden"
+    >
+      {/* X close */}
+      <button
+        type="button"
+        onClick={() => onOpenChange(false)}
+        aria-label="Close"
+        className="absolute top-4 right-4 z-10 flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+      >
+        <X className="size-4" />
+      </button>
+
+      {/* Header */}
+      <div className="flex flex-col px-6 pt-8 pb-5 shrink-0">
+        <h2 id="risk-register-title" className="text-xl font-semibold tracking-tight text-foreground">
+          Risks
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {totalRisks} risks across {RISK_REGISTER.length} categories — each risk lists the items currently causing it.
+        </p>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto px-6 pb-4">
+        {RISK_REGISTER.map((cat, idx) => (
+          <section
+            key={cat.category}
+            className={cn(idx > 0 && 'mt-6 border-t border-[#E5EAEE] pt-6')}
+          >
+            {/* Category header */}
+            <div className="flex items-center justify-between mb-2 px-1">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className={cn(
+                  'flex items-center justify-center shrink-0 rounded p-1',
+                  RISK_SEVERITY_ICON_BG[cat.severity] ?? 'bg-muted/30',
+                  RISK_SEVERITY_ICON_COLOR[cat.severity] ?? 'text-foreground',
+                )}>
+                  <SignalBars filled={RISK_SEVERITY_BARS[cat.severity] ?? 1} />
+                </span>
+                <h3 className="text-base font-medium leading-5 text-[#0A0A0A] truncate">{cat.category}</h3>
+              </div>
+              <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                {cat.count} {cat.count === 1 ? 'risk' : 'risks'}
+              </span>
+            </div>
+
+            {/* Risks under this category — collapsible <details> elements */}
+            <div className="space-y-2">
+              {cat.risks.map((risk) => (
+                <details
+                  key={risk.name}
+                  className={cn(
+                    'group rounded-lg overflow-hidden',
+                    RISK_SEVERITY_BG[risk.severity] ?? 'bg-muted/30',
+                  )}
+                >
+                  <summary className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                    <p className="text-sm font-medium leading-5 text-[#081120]">
+                      {risk.name}
+                    </p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <RiskSeverityBadge severity={risk.severity} />
+                      <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+                    </div>
+                  </summary>
+                  <div className="px-4 pb-3">
+                    <ul className="space-y-1">
+                      {risk.causes.map((c, i) => (
+                        <li key={i} className="flex gap-2 text-sm text-foreground/70">
+                          <span className="text-foreground/40" aria-hidden>·</span>
+                          <span>{c}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {risk.owner && (
+                      <p className="mt-2 text-sm text-foreground/70">
+                        Owner: <span className="text-foreground">{LEAD_NAMES[risk.owner] ?? risk.owner}</span>
+                      </p>
+                    )}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div className="flex justify-end border-t border-border px-6 py-4 shrink-0">
+        <Button
+          onClick={() => onOpenChange(false)}
+          className="bg-foreground hover:bg-foreground/90 text-background h-9"
+        >
+          Done
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function ControlPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [complianceOpen, setComplianceOpen] = useState(false)
+  const [risksOpen, setRisksOpen] = useState(false)
   const [teamSort, setTeamSort] = useState('desc')
   const now = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date())
 
@@ -679,36 +1002,8 @@ export default function ControlPage() {
           {/* Org Health feature */}
           <OrgHealthFeature />
 
-          {/* Row 1: Matters | Compliance */}
+          {/* Row 1: Compliance | Risk Rating */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-            <SectionCard
-              title="Active Matters"
-              titleBadge={
-                <span className="inline-flex items-center rounded border border-[#e9eaec] bg-white px-2 py-0.5 text-sm font-medium text-foreground/50">
-                  {SORTED_MATTERS.length}
-                </span>
-              }
-            >
-              {/* Row layout mirrors Figma 284:1738 — flat rows, stack icon +
-                  matter name on the left, dot-and-text status badge on the right. */}
-              <ul className="px-3 pb-3 space-y-2">
-                {SORTED_MATTERS.map((m) => (
-                  <li key={m.name}>
-                    <button
-                      type="button"
-                      className="flex w-full items-center justify-between gap-3 rounded-lg h-10 px-3 hover:bg-muted/40 transition-colors"
-                    >
-                      <span className="flex items-center gap-1.5 min-w-0">
-                        <IconLayersThree className="size-4 shrink-0 text-foreground [&_path]:stroke-2" />
-                        <span className="text-sm text-foreground truncate">{m.name}</span>
-                      </span>
-                      <MatterStatusBadge status={m.status} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </SectionCard>
 
             <SectionCard
               title="Compliance"
@@ -734,7 +1029,7 @@ export default function ControlPage() {
                       )}>
                       <span className="flex items-center gap-1.5 min-w-0">
                         <ComplianceIcon status={item.status} />
-                        <span className="text-sm font-medium text-muted-foreground truncate tracking-[-0.15px]">
+                        <span className="text-sm font-medium text-[#2A2A2A] truncate tracking-[-0.15px]">
                           {item.label}
                         </span>
                       </span>
@@ -760,39 +1055,97 @@ export default function ControlPage() {
               </ul>
             </SectionCard>
 
+            <SectionCard
+              title="Risk Rating"
+              actionIcon={Maximize2}
+              onAction={() => setRisksOpen(true)}
+              titleBadge={
+                <span className="inline-flex items-center rounded border border-[#e9eaec] bg-white px-2 py-0.5 text-sm font-medium text-foreground/50">
+                  92%
+                </span>
+              }
+            >
+              {/* Pill row style mirrors the Compliance card: tinted bg per
+                  severity, no left icon, severity badge on the right. */}
+              <ul className="px-3 pt-1 pb-3 space-y-2">
+                {SORTED_RISKS.map((r) => {
+                  const filled = RISK_SEVERITY_BARS[r.severity] ?? 1
+                  const iconColor = RISK_SEVERITY_ICON_COLOR[r.severity] ?? 'text-foreground'
+                  const iconBg = RISK_SEVERITY_ICON_BG[r.severity] ?? 'bg-muted/30'
+                  return (
+                    <li key={r.name}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            className={cn(
+                              'flex w-full items-center justify-between gap-3 rounded-lg h-10 px-3 transition-colors',
+                              RISK_SEVERITY_BG[r.severity] ?? 'bg-muted/30',
+                              RISK_SEVERITY_BG_HOVER[r.severity] ?? 'hover:bg-muted/40',
+                            )}
+                          >
+                            <span className="flex items-center gap-2 min-w-0">
+                              <span className={cn('flex items-center justify-center shrink-0 rounded p-1', iconBg, iconColor)}>
+                                <SignalBars filled={filled} />
+                              </span>
+                              <span className="text-sm font-medium text-[#2A2A2A] truncate tracking-[-0.15px]">
+                                {r.name}
+                              </span>
+                            </span>
+                            <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+                              {r.count} {r.count === 1 ? 'risk' : 'risks'}
+                            </span>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>{r.sub}</TooltipContent>
+                      </Tooltip>
+                    </li>
+                  )
+                })}
+              </ul>
+            </SectionCard>
+
           </div>
 
           {/* Row 2: Firm Health | Team Workload */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
             <SectionCard title="Firm Health" viewAllLabel={null}>
-              {/* Row layout mirrors the Figma 284:2873 — bordered pill rows
-                  tinted by trend direction (pink for negative, mint for
-                  positive/flat). Label + "Target X%" sub stack on the left;
-                  value + TrendChip on the right. */}
-              <div className="px-3 pb-3 pt-1 space-y-2">
+              {/* 2×2 grid of metric tiles — centred label / value / trend chip
+                  / target. Matches Figma 285:3375. */}
+              <div className="grid grid-cols-2 gap-2 p-3 pt-1">
                 {SORTED_FIRM_HEALTH.map((m) => {
                   const isNPS = m.label === 'Client NPS'
                   const trendNum = parseFloat(m.delta) || 0
-                  const rowBg = trendNum < 0 ? 'bg-[#fff7f7]' : 'bg-[#f7fffe]'
+                  const meta = FIRM_HEALTH_META[m.label]
                   return (
-                    <div
-                      key={m.label}
-                      className={cn('flex items-center justify-between gap-3 rounded-lg px-3 py-2', rowBg)}
-                    >
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-medium text-foreground tracking-[-0.15px]">{m.label}</span>
-                        <span className="text-xs text-muted-foreground">
-                          Target {m.target}{isNPS ? '' : '%'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-sm font-medium text-foreground tabular-nums leading-none">
-                          {m.value}{isNPS ? '' : '%'}
-                        </span>
-                        <TrendChip trend={trendNum} />
-                      </div>
-                    </div>
+                    <Tooltip key={m.label}>
+                      <TooltipTrigger asChild>
+                        <div
+                          tabIndex={0}
+                          className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#fcfcfc] px-4 py-6 cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-200"
+                        >
+                          <p className="text-sm font-medium text-foreground tracking-[-0.15px] text-center">
+                            {m.label}
+                          </p>
+                          <p className="text-xl font-medium text-foreground tabular-nums leading-7">
+                            {m.value}{isNPS ? '' : '%'}
+                          </p>
+                          <TrendChip trend={trendNum} />
+                          <p className="text-xs text-muted-foreground text-center">
+                            Target {m.target}{isNPS ? '' : '%'}
+                          </p>
+                        </div>
+                      </TooltipTrigger>
+                      {meta && (
+                        <TooltipContent side="bottom" className="max-w-[260px]">
+                          <p>{meta.description}</p>
+                          <p className="mt-1.5 opacity-70">
+                            Contributing: {meta.contributors.join(' · ')}
+                          </p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
                   )
                 })}
               </div>
@@ -806,7 +1159,7 @@ export default function ControlPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-xs text-muted-foreground gap-1 h-7 px-2 -mr-1"
+                      className="text-sm text-muted-foreground gap-1 h-7 px-2 -mr-1"
                     >
                       {teamSort === 'desc' ? 'Most utilised' : 'Least utilised'}
                       <ChevronDown className="size-3.5" />
@@ -900,6 +1253,87 @@ export default function ControlPage() {
 
           </div>
 
+          {/* Active Matters — full-width table view, modelled on the Vercel
+              "Active Branches" pattern. Title sits above the container.
+              Right-side columns are fixed-width and right-aligned. */}
+          <div>
+            <div className="flex items-center gap-2 mb-3 px-1">
+              <h2 className="text-base font-medium text-foreground">Active Matters</h2>
+              <span className="inline-flex items-center rounded border border-[#e9eaec] bg-white px-2 py-0.5 text-sm font-medium text-foreground/50">
+                {SORTED_MATTERS.length}
+              </span>
+            </div>
+
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+              <input
+                type="search"
+                placeholder="Search matters..."
+                aria-label="Search matters"
+                className="w-full h-10 pl-9 pr-3 rounded-lg border border-[#E5EAEE] bg-white text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-300"
+              />
+            </div>
+
+            <div className="rounded-lg border border-[#E5EAEE] bg-white overflow-hidden">
+              <div className="divide-y divide-[#E5EAEE]">
+                {SORTED_MATTERS.map((m) => (
+                  <div
+                    key={m.name}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors cursor-pointer"
+                  >
+                    {/* Name (flex-1, left-aligned) */}
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <IconLayersThree className="size-4 shrink-0 text-foreground [&_path]:stroke-2" />
+                      <span className="text-sm font-medium text-[#2A2A2A] truncate">{m.name}</span>
+                    </div>
+
+                    {/* Type (fixed width, left-aligned) */}
+                    <div className="hidden md:flex w-[120px] shrink-0">
+                      <span className="inline-flex h-6 items-center rounded-full border border-[#E5EAEE] bg-white px-2 text-xs text-foreground/70">
+                        {m.type}
+                      </span>
+                    </div>
+
+                    {/* Status (fixed width, left-aligned) */}
+                    <div className="w-[120px] shrink-0 flex">
+                      <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[#E5EAEE] bg-white px-2">
+                        <span
+                          aria-hidden
+                          className={cn('size-1.5 rounded-full', MATTER_STATUS_DOT[m.status] ?? 'bg-muted-foreground')}
+                        />
+                        <span className="font-mono text-xs font-medium uppercase tracking-[0.3px] text-[#151d2b]">
+                          {m.status}
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* Lead (fixed width, left-aligned) */}
+                    <div className="hidden md:flex w-[160px] shrink-0 items-center gap-2">
+                      <span className="flex size-6 items-center justify-center rounded-full bg-[#f5f5f5] text-[10px] font-medium text-muted-foreground">
+                        {m.lead}
+                      </span>
+                      <span className="text-sm text-foreground whitespace-nowrap">{LEAD_NAMES[m.lead] ?? m.lead}</span>
+                    </div>
+
+                    {/* Days (fixed width, left-aligned) */}
+                    <span className="w-[60px] shrink-0 text-left text-xs text-muted-foreground tabular-nums">
+                      {m.days}d
+                    </span>
+
+                    {/* View matter */}
+                    <button
+                      type="button"
+                      aria-label="View matter"
+                      className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                    >
+                      <ChevronRight className="size-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -909,6 +1343,7 @@ export default function ControlPage() {
       </div>
 
       <ComplianceChecklistDialog open={complianceOpen} onOpenChange={setComplianceOpen} />
+      <RiskRegisterDrawer open={risksOpen} onOpenChange={setRisksOpen} />
     </div>
   )
 }

@@ -149,6 +149,7 @@ const PAGE_FLAG_MAP = {
   'Admin:CPD Regimes': 'PAGE_ADMIN_CPD_REGIMES',
   'Admin:CPD Events': 'PAGE_ADMIN_CPD_EVENTS',
   'Admin:Team Capability': 'PAGE_ADMIN_TEAM_CAPABILITY',
+  'Admin:Role Profiles': 'PAGE_ADMIN_ROLE_PROFILES',
   'Admin:Knowledge Centre': 'PAGE_ADMIN_KNOWLEDGE_CENTRE',
   'Profile': 'PAGE_PROFILE',
   // Comply sub-items
@@ -214,6 +215,7 @@ function useActivePage() {
       'cpd-regimes':       'Admin:CPD Regimes',
       'cpd-events':        'Admin:CPD Events',
       'team-capability':   'Admin:Team Capability',
+      'role-profiles':     'Admin:Role Profiles',
       'knowledge-centre':  'Admin:Knowledge Centre',
     }
     return slugToAdmin[slug] || 'Admin:Organisation Profile'

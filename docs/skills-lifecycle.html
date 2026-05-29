@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skills lifecycle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --fg: #0a0a0a;
+      --muted: #5f6776;
+      --soft: #e2e8f0;
+      --softer: #f1f5f9;
+      --bg: #ffffff;
+      --bg-soft: #f8fafc;
+      --brand: #153e40;
+      --brand-soft: #dffff2;
+      --brand-border: #77afa6;
+      --brand-text: #0e5f5b;
+      --amber-soft: #fef3c7;
+      --amber-border: #f59e0b;
+      --amber-text: #92400e;
+      --member-soft: #dcfce7;
+      --member-border: #4ade80;
+      --member-text: #166534;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 72px 32px 96px;
+    }
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 12px;
+    }
+    h1 {
+      font-size: 32px;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      margin: 0 0 16px;
+    }
+    .lede {
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--muted);
+      margin: 0 0 36px;
+    }
+    h2 {
+      font-size: 18px;
+      margin: 44px 0 12px;
+      letter-spacing: -0.005em;
+    }
+    p { margin: 0 0 12px; }
+    code {
+      font-family: 'SFMono-Regular', Menlo, monospace;
+      font-size: 13px;
+      background: var(--bg-soft);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--fg);
+    }
+    hr { border: none; border-top: 1px solid var(--soft); margin: 0; }
+
+    /* ── Tier stack ── */
+    .stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin: 8px 0 32px;
+    }
+    .tier {
+      width: 100%;
+      max-width: 560px;
+      border: 1px solid var(--soft);
+      border-radius: 12px;
+      background: var(--bg);
+      padding: 16px 18px;
+      position: relative;
+    }
+    .tier-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    .tier-eyebrow.ethika  { background: var(--amber-soft);  color: var(--amber-text);  border: 1px solid var(--amber-border); }
+    .tier-eyebrow.org     { background: var(--brand-soft);  color: var(--brand-text);  border: 1px solid var(--brand-border); }
+    .tier-eyebrow.member  { background: var(--member-soft); color: var(--member-text); border: 1px solid var(--member-border); }
+    .tier-eyebrow.member small {
+      opacity: 0.8;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .tier h3 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .tier .desc {
+      font-size: 14px;
+      color: var(--muted);
+      margin: 0 0 6px;
+      line-height: 1.45;
+    }
+    .tier .path {
+      font-family: 'SFMono-Regular', Menlo, monospace;
+      font-size: 12px;
+      color: var(--brand);
+      background: var(--bg-soft);
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    /* Arrow between tiers */
+    .arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px 0;
+    }
+    .arrow .stem {
+      width: 2px;
+      height: 18px;
+      background: var(--soft);
+    }
+    .arrow .head {
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 7px solid var(--soft);
+      margin-top: -1px;
+    }
+    .arrow .label {
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--bg);
+      padding: 2px 8px;
+      margin-bottom: 4px;
+    }
+
+    /* Personal-skills sidecar — branches off Tier 3 */
+    .sidecar-wrap {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      gap: 14px;
+      align-items: stretch;
+    }
+    .sidecar-wrap > .tier { flex: 1; }
+    .sidecar-wrap > .branch {
+      flex-basis: 200px;
+      flex-shrink: 0;
+      border: 1px dashed var(--soft);
+      background: var(--bg-soft);
+      border-radius: 12px;
+      padding: 14px;
+      position: relative;
+    }
+    .sidecar-wrap > .branch::before {
+      content: '';
+      position: absolute;
+      left: -14px;
+      top: 50%;
+      width: 14px;
+      height: 1px;
+      background: var(--soft);
+    }
+    .branch h4 {
+      margin: 0 0 4px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .branch p {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    /* Surfaces row */
+    .surfaces-title {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 12px;
+    }
+    .surfaces {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    @media (min-width: 720px) {
+      .surfaces { grid-template-columns: repeat(3, 1fr); }
+    }
+    .surface {
+      background: var(--brand-soft);
+      border: 1px solid var(--brand-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--brand-text);
+    }
+    .surface strong {
+      display: block;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 1px;
+    }
+    .surface code {
+      font-size: 11px;
+      background: rgba(255,255,255,0.55);
+      color: var(--brand-text);
+      padding: 0 4px;
+    }
+
+    /* ── Tables / lists ── */
+    table.ref {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      margin: 8px 0 20px;
+    }
+    table.ref th {
+      text-align: left;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 10px 8px 0;
+      border-bottom: 1px solid var(--soft);
+      font-weight: 600;
+    }
+    table.ref td {
+      padding: 9px 10px 9px 0;
+      border-bottom: 1px solid var(--soft);
+      vertical-align: top;
+    }
+    table.ref td.first { font-weight: 600; color: var(--brand); white-space: nowrap; }
+
+    ul.tight { margin: 4px 0 18px; padding-left: 18px; }
+    ul.tight li { margin-bottom: 4px; }
+
+    .loop {
+      background: var(--bg-soft);
+      border-left: 3px solid var(--brand-border);
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 8px 0 12px;
+      font-size: 14px;
+    }
+    .loop strong { color: var(--brand); }
+
+    /* Parallel/adjacent system callout — slate-toned so it reads as set aside */
+    .parallel {
+      border: 1px solid var(--soft);
+      border-left: 3px solid #94a3b8;
+      background: var(--bg-soft);
+      padding: 16px 18px;
+      border-radius: 0 12px 12px 0;
+      margin: 8px 0 28px;
+    }
+    .parallel-pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #fff;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      margin-bottom: 8px;
+    }
+    .parallel h3 {
+      margin: 4px 0 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .parallel p {
+      font-size: 14px;
+      margin: 0 0 8px;
+      color: var(--muted);
+    }
+    .parallel p strong { color: var(--fg); }
+    .parallel ul.tight { margin-top: 4px; color: var(--muted); }
+    .parallel ul.tight li { font-size: 14px; }
+
+    .footer-note {
+      margin-top: 56px;
+      padding: 16px 20px;
+      background: var(--bg-soft);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .footer-note strong { color: var(--fg); }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <p class="eyebrow">Architecture · Skills</p>
+    <h1>Skills lifecycle</h1>
+    <p class="lede">
+      Skills flow top-down through four ownership tiers, then fan out across the product. Each tier is owned by one actor; arrows show who passes work to whom.
+    </p>
+
+    <hr />
+
+    <h2>Tier stack — top-down flow</h2>
+
+    <div class="stack">
+
+      <!-- Tier 0 -->
+      <div class="tier">
+        <span class="tier-eyebrow ethika">Owned by · Ethika Admin</span>
+        <h3>Tier 0 — Master Skills Library</h3>
+        <p class="desc">~30–50 competencies, each carrying a citation to the frameworks that recognise it (Law Society NSW, AICD, AUSTRAC, Governance Institute, ISSB). Curated centrally so every customer org draws from one vetted source.</p>
+        <span class="path">EthikaAdminPage → Skills Library</span>
+      </div>
+
+      <div class="arrow">
+        <div class="label">subscribe + add custom</div>
+        <div class="stem"></div>
+        <div class="head"></div>
+      </div>
+
+      <!-- Tier 1 -->
+      <div class="tier">
+        <span class="tier-eyebrow org">Owned by · Org Admin</span>
+        <h3>Tier 1 — Org Active Catalog</h3>
+        <p class="desc">The org enables which library skills apply to them, and adds any custom skills outside the library (proprietary frameworks). Result: this org's tracked-skills universe.</p>
+        <span class="path">/admin/skills-catalog</span>
+      </div>
+
+      <div class="arrow">
+        <div class="label">pick subset + set targets per role</div>
+        <div class="stem"></div>
+        <div class="head"></div>
+      </div>
+
+      <!-- Tier 2 -->
+      <div class="tier">
+        <span class="tier-eyebrow org">Owned by · Org Admin</span>
+        <h3>Tier 2 — Role Profiles</h3>
+        <p class="desc">Each role (Director, Senior Lawyer, Junior Lawyer, …) gets a subset of the catalog with a target level per skill. Same skill, different targets at different career stages.</p>
+        <span class="path">/admin/role-profiles</span>
+      </div>
+
+      <div class="arrow">
+        <div class="label">user self-assesses against their role's required skills</div>
+        <div class="stem"></div>
+        <div class="head"></div>
+      </div>
+
+      <!-- Tier 3 + sidecar -->
+      <div class="sidecar-wrap">
+        <div class="tier">
+          <span class="tier-eyebrow member">Owned by · Team Member <small>(Org Admin can override)</small></span>
+          <h3>Tier 3 — Self-assessment</h3>
+          <p class="desc">User picks level (Emerging / Established / Expert) and attaches evidence per skill. Admin can override via the matrix cell editor with an evidence trail.</p>
+          <span class="path">Skills Profile</span>
+        </div>
+
+        <div class="branch">
+          <h4>Personal Skills</h4>
+          <p>User adds skills outside the org catalog (language, hobbies, niche techniques). Profile-only — never roll up to role gap analysis.</p>
+        </div>
+      </div>
+
+      <div class="arrow">
+        <div class="label">all of the above feed downstream surfaces</div>
+        <div class="stem"></div>
+        <div class="head"></div>
+      </div>
+
+      <p class="surfaces-title">Where skills show up</p>
+      <div class="surfaces">
+        <div class="surface">
+          <strong>Team Capability matrix</strong>
+          <code>/admin/team-capability</code>
+        </div>
+        <div class="surface">
+          <strong>All Team Skills</strong>
+          <code>/admin/team-capability</code>
+        </div>
+        <div class="surface">
+          <strong>Skills Profile</strong>
+          User's own page
+        </div>
+        <div class="surface">
+          <strong>Onboarding</strong>
+          "Skills for your role"
+        </div>
+        <div class="surface">
+          <strong>Talent / CV</strong>
+          <code>/talent</code>
+        </div>
+        <div class="surface">
+          <strong>Notifications</strong>
+          Gaps, library updates
+        </div>
+      </div>
+
+    </div>
+
+    <h2>Parallel · CPD Regimes</h2>
+
+    <div class="parallel">
+      <span class="parallel-pill">Adjacent system — not in this lifecycle</span>
+      <h3>What CPD regimes are, and why they sit alongside skills</h3>
+      <p>
+        <strong>CPD regimes</strong> are activity-based compliance requirements set by accreditation bodies — e.g. Law Society NSW requires 10 CPD hours per year including ethics; AICD and AUSTRAC have their own. They're about <em>what learning you must complete in a period</em>, not <em>how capable you are at a competency</em>.
+      </p>
+      <p>
+        <strong>Lives in:</strong> CPD Tracker (user-facing) · <code>/admin/cpd-management</code> + <code>/admin/cpd-regimes</code> (admin).
+      </p>
+      <p>
+        <strong>Touchpoints with skills</strong> — limited and one-directional:
+      </p>
+      <ul class="tight">
+        <li>Same bodies attribute both. A library skill cites Law Society NSW; Law Society NSW also defines a CPD regime. Shared citation, not shared data.</li>
+        <li>A course completion can count toward CPD hours <em>and</em> appear as evidence on a skill. One event, two consumers.</li>
+        <li>An org's CPD regime subscriptions might default-enable matching library skills as a convenience — not a coupling.</li>
+      </ul>
+      <p style="margin-top: 8px;">
+        Per the Skills direction principle <em>"regimes separate"</em>: the two systems share source frameworks but don't share data structures or governance.
+      </p>
+    </div>
+
+    <h2>Who owns what</h2>
+    <table class="ref">
+      <thead>
+        <tr>
+          <th>Tier</th>
+          <th>Owner</th>
+          <th>What they do</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="first">Tier 0 · Library</td>
+          <td>Ethika Admin</td>
+          <td>Curates the master skills library. Writes descriptions, sets default categories, ties skills to source frameworks, retires obsolete entries.</td>
+        </tr>
+        <tr>
+          <td class="first">Tier 1 · Catalog</td>
+          <td>Org Admin</td>
+          <td>Picks library skills that apply to the org. Adds custom skills not in the library. Manages org-level categories and regime scoping.</td>
+        </tr>
+        <tr>
+          <td class="first">Tier 2 · Roles</td>
+          <td>Org Admin</td>
+          <td>For each role: attaches catalog skills, sets target level per skill, writes role description, assigns members.</td>
+        </tr>
+        <tr>
+          <td class="first">Tier 3 · Assessment</td>
+          <td>Team Member <span style="color: var(--muted)">primary</span><br/>Org Admin <span style="color: var(--muted)">override</span></td>
+          <td>User self-assesses + adds evidence. Admin can edit a cell in the matrix with evidence required. Self-assessment remains the primary signal.</td>
+        </tr>
+        <tr>
+          <td class="first">Personal skills</td>
+          <td>Team Member only</td>
+          <td>Anything outside the org catalog. Live on profile only; appear in "All Team Skills" aggregate but never in role gap analysis.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Feedback loops</h2>
+
+    <div class="loop">
+      <strong>Library updates → orgs.</strong> Ethika revises a skill; subscribed orgs get a "review changes" prompt. Sync is opt-in — nothing forces.
+    </div>
+
+    <div class="loop">
+      <strong>Personal skills → org catalog.</strong> When N+ members add the same personal skill, the admin sees "12 team members have added Mediation — promote to org-tracked?" Suggestion only.
+    </div>
+
+    <div class="loop">
+      <strong>Self-assessment → role gap analysis.</strong> Ratings feed the matrix gap view; gaps drive training assignment and team-health metrics.
+    </div>
+
+    <div class="loop">
+      <strong>Admin override → audit trail.</strong> When the admin edits a cell, evidence is captured. The user can challenge (deferred). Self-assessment stays primary.
+    </div>
+
+    <h2>What impacts skills</h2>
+    <ul class="tight">
+      <li><strong>Framework changes</strong> — ISSB publishes new standards → Ethika updates library → orgs review and sync.</li>
+      <li><strong>Regulator updates</strong> — Law Society changes CPD requirements → library skills carry an updated suggested target.</li>
+      <li><strong>Org strategy</strong> — Blackmores enters M&amp;A → admin enables M&amp;A skills + adjusts senior-lawyer role targets.</li>
+      <li><strong>Role redesigns</strong> — "Senior Lawyer" becomes "Lead Counsel" → admin renames role + revises skills + targets.</li>
+      <li><strong>Team activity</strong> — Course completions, scenario assessments, work signals → system <em>suggests</em> level changes; user decides.</li>
+      <li><strong>Bottom-up emergence</strong> — Many members share an off-catalog skill → admin sees "promote to catalog?" prompt.</li>
+    </ul>
+
+    <div class="footer-note">
+      <strong>Aligned with:</strong> the Skills direction (3-point Emerging / Established / Expert, self-assessed not AI-scored, evidence kept, regimes separate). <strong>Built today:</strong> <code>/admin/team-capability</code>, <code>/admin/role-profiles</code>. <strong>Next:</strong> Ethika Library admin (inside <code>EthikaAdminPage</code>), then <code>/admin/skills-catalog</code>.
+    </div>
+  </main>
+</body>
+</html>

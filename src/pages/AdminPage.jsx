@@ -8,6 +8,7 @@ import LearningJourneysPage from './AdminLearningJourneysPage'
 import AdminCPDPage from './AdminCPDPage'
 import AdminCPDEventsPage from './AdminCPDEventsPage'
 import AdminTeamCapabilityPage from './AdminTeamCapabilityPage'
+import AdminRolesPage from './AdminRolesPage'
 import AdminKnowledgeCentrePage from './AdminKnowledgeCentrePage'
 import AdminResourceLibraryPage from './AdminResourceLibraryPage'
 import AdminVaultPage from './AdminVaultPage'
@@ -810,6 +811,7 @@ const ADMIN_PAGES = {
   'CPD Regimes':       () => <AdminCPDRegimesPage />,
   'CPD Events':        () => <AdminCPDEventsPage />,
   'Team Capability':   () => <AdminTeamCapabilityPage />,
+  'Role Profiles':     () => <AdminRolesPage />,
   'Knowledge Centre':  () => <AdminKnowledgeCentrePage />,
 }
 
@@ -840,6 +842,7 @@ const SLUG_TO_PAGE = {
   'cpd-regimes':       'CPD Regimes',
   'cpd-events':        'CPD Events',
   'team-capability':   'Team Capability',
+  'role-profiles':     'Role Profiles',
   'knowledge-centre':  'Knowledge Centre',
 }
 

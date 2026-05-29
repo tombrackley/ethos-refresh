@@ -1158,30 +1158,85 @@ const configs = {
           percentMeetingRequired: 72,
           totalSkillsTracked: 8,
           lastAssessmentCycle: 'Feb 2026',
-          teamGaps: [
-            { skillId: 'sk7', label: 'ESG & Sustainability Reporting', membersBelow: 7, targetLevel: 'Proficient' },
-            { skillId: 'sk8', label: 'AI & Legal Technology', membersBelow: 7, targetLevel: 'Intermediate' },
-            { skillId: 'sk6', label: 'Data Privacy & Protection', membersBelow: 6, targetLevel: 'Proficient' },
+          // Category groups for the org-tracked skills matrix. The matrix axis
+          // only shows skills that belong to a group here — personal skills
+          // users add to their own profile sit outside this.
+          skillGroups: [
+            { id: 'reg-comp',       label: 'Regulatory & Compliance', skillIds: ['sk1', 'sk2', 'sk4'] },
+            { id: 'governance',     label: 'Governance',              skillIds: ['sk3'] },
+            { id: 'legal-practice', label: 'Legal Practice',          skillIds: ['sk5'] },
+            { id: 'emerging',       label: 'Emerging Areas',          skillIds: ['sk6', 'sk7', 'sk8'] },
           ],
+          // Role profiles — each role draws a subset of the org skills catalog
+          // with a required target level. Same skill, different targets at
+          // different career stages. `requirements` is keyed by skillId →
+          // target level (1 Emerging | 2 Established | 3 Expert).
+          roles: [
+            {
+              id: 'general-counsel',
+              label: 'General Counsel',
+              description: 'Sets legal strategy, advises the board, owns regulatory posture across the org.',
+              requirements: { sk1: 3, sk2: 3, sk3: 3, sk4: 3, sk5: 3, sk6: 2, sk7: 2, sk8: 2 },
+            },
+            {
+              id: 'senior-lawyer',
+              label: 'Senior Lawyer',
+              description: 'Runs matters independently; supports the GC and reviews junior work.',
+              requirements: { sk1: 3, sk2: 2, sk3: 2, sk4: 2, sk5: 3, sk6: 2, sk7: 1, sk8: 1 },
+            },
+            {
+              id: 'compliance-officer',
+              label: 'Compliance Officer',
+              description: 'Owns the obligations register, runs AML / data privacy controls and reporting.',
+              requirements: { sk1: 3, sk2: 3, sk4: 3, sk6: 3, sk7: 2 },
+            },
+            {
+              id: 'junior-lawyer',
+              label: 'Junior Lawyer',
+              description: 'Builds foundational capability under supervision; drafts and supports senior work.',
+              requirements: { sk1: 2, sk2: 1, sk4: 1, sk5: 1 },
+            },
+            {
+              id: 'board-member',
+              label: 'Board Member',
+              description: 'Non-executive director; oversees strategy, governance and risk appetite.',
+              requirements: { sk1: 2, sk3: 3, sk7: 2, sk8: 1 },
+            },
+            {
+              id: 'company-secretary',
+              label: 'Company Secretary',
+              description: 'Governance custodian — board administration, statutory filings, policy stewardship.',
+              requirements: { sk1: 3, sk3: 3, sk4: 2, sk7: 2 },
+            },
+          ],
+          teamGaps: [
+            { skillId: 'sk7', label: 'ESG & Sustainability Reporting', membersBelow: 7, targetLevel: 'Established' },
+            { skillId: 'sk8', label: 'AI & Legal Technology',         membersBelow: 8, targetLevel: 'Established' },
+            { skillId: 'sk6', label: 'Data Privacy & Protection',     membersBelow: 6, targetLevel: 'Established' },
+          ],
+          // Self-assessed skill levels per member, on the 3-point
+          // Emerging (1) → Established (2) → Expert (3) scale.
+          // `personalSkills`: skills the member added to their own profile
+          // outside the org-tracked list (two-tier model).
           members: [
-            { id: 1, name: 'Sarah Chen', initials: 'SC', role: 'Senior Lawyer', overallScore: 78, topGap: 'ESG Reporting', lastAssessed: 'Feb 2026', skills: { sk1: 4, sk2: 4, sk3: 3, sk4: 3, sk5: 4, sk6: 3, sk7: 2, sk8: 2 }, targetRole: 'General Counsel', roleProgress: 78 },
-            { id: 2, name: 'James Harrington', initials: 'JH', role: 'General Counsel', overallScore: 85, topGap: 'AI & Legal Tech', lastAssessed: 'Feb 2026', skills: { sk1: 4, sk2: 4, sk3: 4, sk4: 4, sk5: 4, sk6: 3, sk7: 3, sk8: 1 }, targetRole: 'Chief Legal Officer', roleProgress: 85 },
-            { id: 3, name: 'Priya Patel', initials: 'PP', role: 'Compliance Officer', overallScore: 72, topGap: 'ESG Reporting', lastAssessed: 'Jan 2026', skills: { sk1: 4, sk2: 4, sk3: 2, sk4: 3, sk5: 3, sk6: 2, sk7: 1, sk8: 2 }, targetRole: 'Head of Compliance', roleProgress: 65 },
-            { id: 4, name: 'Michael Torres', initials: 'MT', role: 'Junior Lawyer', overallScore: 45, topGap: 'Corporate Governance', lastAssessed: 'Feb 2026', skills: { sk1: 2, sk2: 2, sk3: 1, sk4: 2, sk5: 2, sk6: 1, sk7: 1, sk8: 2 }, targetRole: 'Senior Lawyer', roleProgress: 35 },
-            { id: 5, name: 'Emily Watson', initials: 'EW', role: 'HR Manager', overallScore: 62, topGap: 'Data Privacy', lastAssessed: 'Jan 2026', skills: { sk1: 3, sk2: 3, sk3: 2, sk4: 3, sk5: 3, sk6: 1, sk7: 2, sk8: 2 }, targetRole: 'HR Director', roleProgress: 60 },
-            { id: 6, name: 'David Kim', initials: 'DK', role: 'Finance Manager', overallScore: 58, topGap: 'Reg Change', lastAssessed: 'Dec 2025', skills: { sk1: 3, sk2: 2, sk3: 3, sk4: 1, sk5: 3, sk6: 2, sk7: 1, sk8: 2 }, targetRole: 'CFO', roleProgress: 50 },
-            { id: 7, name: 'Rachel Adams', initials: 'RA', role: 'Company Secretary', overallScore: 75, topGap: 'AI & Legal Tech', lastAssessed: 'Feb 2026', skills: { sk1: 4, sk2: 3, sk3: 4, sk4: 3, sk5: 4, sk6: 2, sk7: 2, sk8: 1 }, targetRole: 'Head of Governance', roleProgress: 75 },
-            { id: 8, name: 'Tom Bradley', initials: 'TB', role: 'Board Member', overallScore: 52, topGap: 'Data Privacy', lastAssessed: 'Nov 2025', skills: { sk1: 3, sk2: 2, sk3: 2, sk4: 2, sk5: 3, sk6: 1, sk7: 1, sk8: 1 }, targetRole: 'Board Chair', roleProgress: 45 },
+            { id: 1, name: 'Sarah Chen',       initials: 'SC', role: 'Senior Lawyer',      overallScore: 78, topGap: 'ESG Reporting',        lastAssessed: 'Feb 2026', skills: { sk1: 3, sk2: 3, sk3: 2, sk4: 2, sk5: 3, sk6: 2, sk7: 1, sk8: 1 }, personalSkills: [{ label: 'Mediation', level: 2 }, { label: 'Spanish', level: 1 }],                 targetRole: 'General Counsel',     roleProgress: 78 },
+            { id: 2, name: 'James Harrington', initials: 'JH', role: 'General Counsel',    overallScore: 85, topGap: 'AI & Legal Tech',      lastAssessed: 'Feb 2026', skills: { sk1: 3, sk2: 3, sk3: 3, sk4: 3, sk5: 3, sk6: 2, sk7: 2, sk8: 1 }, personalSkills: [{ label: 'M&A', level: 3 }, { label: 'International tax', level: 2 }],            targetRole: 'Chief Legal Officer', roleProgress: 85 },
+            { id: 3, name: 'Priya Patel',      initials: 'PP', role: 'Compliance Officer', overallScore: 72, topGap: 'ESG Reporting',        lastAssessed: 'Jan 2026', skills: { sk1: 3, sk2: 3, sk3: 1, sk4: 2, sk5: 2, sk6: 1, sk7: 1, sk8: 1 }, personalSkills: [{ label: 'AML investigations', level: 3 }, { label: 'Mediation', level: 1 }],     targetRole: 'Head of Compliance',  roleProgress: 65 },
+            { id: 4, name: 'Michael Torres',   initials: 'MT', role: 'Junior Lawyer',      overallScore: 45, topGap: 'Corporate Governance', lastAssessed: 'Feb 2026', skills: { sk1: 1, sk2: 1, sk3: 1, sk4: 1, sk5: 1, sk6: 1, sk7: 1, sk8: 1 }, personalSkills: [{ label: 'Spanish', level: 2 }],                                                targetRole: 'Senior Lawyer',       roleProgress: 35 },
+            { id: 5, name: 'Emily Watson',     initials: 'EW', role: 'HR Manager',         overallScore: 62, topGap: 'Data Privacy',         lastAssessed: 'Jan 2026', skills: { sk1: 2, sk2: 2, sk3: 1, sk4: 2, sk5: 2, sk6: 1, sk7: 1, sk8: 1 }, personalSkills: [{ label: 'Employment law', level: 3 }, { label: 'Workplace investigations', level: 2 }], targetRole: 'HR Director',     roleProgress: 60 },
+            { id: 6, name: 'David Kim',        initials: 'DK', role: 'Finance Manager',    overallScore: 58, topGap: 'Reg Change',           lastAssessed: 'Dec 2025', skills: { sk1: 2, sk2: 1, sk3: 2, sk4: 1, sk5: 2, sk6: 1, sk7: 1, sk8: 1 }, personalSkills: [{ label: 'Tax planning', level: 3 }, { label: 'M&A', level: 1 }],                targetRole: 'CFO',                 roleProgress: 50 },
+            { id: 7, name: 'Rachel Adams',     initials: 'RA', role: 'Company Secretary',  overallScore: 75, topGap: 'AI & Legal Tech',      lastAssessed: 'Feb 2026', skills: { sk1: 3, sk2: 2, sk3: 3, sk4: 2, sk5: 3, sk6: 1, sk7: 1, sk8: 1 }, personalSkills: [{ label: 'Board secretarial', level: 3 }, { label: 'AML investigations', level: 2 }], targetRole: 'Head of Governance', roleProgress: 75 },
+            { id: 8, name: 'Tom Bradley',      initials: 'TB', role: 'Board Member',       overallScore: 52, topGap: 'Data Privacy',         lastAssessed: 'Nov 2025', skills: { sk1: 2, sk2: 1, sk3: 1, sk4: 1, sk5: 2, sk6: 1, sk7: 1, sk8: 1 }, personalSkills: [{ label: 'Strategy', level: 3 }, { label: 'Risk appetite', level: 2 }],         targetRole: 'Board Chair',         roleProgress: 45 },
           ],
           skillDistribution: [
-            { skillId: 'sk1', label: 'Ethics & Professional Responsibility', avgDots: 3.4, meetingTarget: 88, criticalGap: false },
-            { skillId: 'sk2', label: 'Anti-Money Laundering & CTF', avgDots: 3.0, meetingTarget: 75, criticalGap: false },
-            { skillId: 'sk3', label: 'Corporate Governance', avgDots: 2.6, meetingTarget: 50, criticalGap: false },
-            { skillId: 'sk4', label: 'Regulatory Change Management', avgDots: 2.6, meetingTarget: 63, criticalGap: false },
-            { skillId: 'sk5', label: 'Contract Drafting & Negotiation', avgDots: 3.3, meetingTarget: 75, criticalGap: false },
-            { skillId: 'sk6', label: 'Data Privacy & Protection', avgDots: 1.9, meetingTarget: 25, criticalGap: true },
-            { skillId: 'sk7', label: 'ESG & Sustainability Reporting', avgDots: 1.6, meetingTarget: 13, criticalGap: true },
-            { skillId: 'sk8', label: 'AI & Legal Technology', avgDots: 1.6, meetingTarget: 13, criticalGap: true },
+            { skillId: 'sk1', label: 'Ethics & Professional Responsibility', avgDots: 2.4, meetingTarget: 50, criticalGap: false },
+            { skillId: 'sk2', label: 'Anti-Money Laundering & CTF',          avgDots: 2.0, meetingTarget: 38, criticalGap: false },
+            { skillId: 'sk3', label: 'Corporate Governance',                 avgDots: 1.8, meetingTarget: 50, criticalGap: false },
+            { skillId: 'sk4', label: 'Regulatory Change Management',         avgDots: 1.8, meetingTarget: 63, criticalGap: false },
+            { skillId: 'sk5', label: 'Contract Drafting & Negotiation',      avgDots: 2.3, meetingTarget: 88, criticalGap: false },
+            { skillId: 'sk6', label: 'Data Privacy & Protection',            avgDots: 1.3, meetingTarget: 25, criticalGap: true  },
+            { skillId: 'sk7', label: 'ESG & Sustainability Reporting',       avgDots: 1.1, meetingTarget: 13, criticalGap: true  },
+            { skillId: 'sk8', label: 'AI & Legal Technology',                avgDots: 1.0, meetingTarget: 0,  criticalGap: true  },
           ],
         },
       },

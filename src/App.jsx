@@ -11,6 +11,7 @@ import { isEnabled } from '@/config/flags'
 import LoginPage from '@/pages/LoginPage'
 import LandingPage from '@/pages/LandingPage'
 import OnboardingPage from '@/pages/OnboardingPage'
+import RolesTeamSetupPage from '@/pages/RolesTeamSetupPage'
 import EthikaAdminPage from '@/pages/EthikaAdminPage'
 import HomePage from '@/pages/HomePage'
 import HomeChatPage from '@/pages/HomeChatPage'
@@ -93,6 +94,11 @@ function AppLayout({ onLogout }) {
   const [commandOpen, setCommandOpen] = useState(false)
   const defaultPath = getDefaultPath()
   const hideTopBar = location.pathname.startsWith('/admin') || location.pathname === '/profile'
+
+  // Fullscreen setup wizard — bypass the main shell entirely.
+  if (location.pathname === '/setup/roles-team') {
+    return <RolesTeamSetupPage />
+  }
 
   function navigateToMatter(matter) {
     setSelectedMatter(matter)
